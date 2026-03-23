@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* ===== Design Tokens ===== */
+:root {
+  /* Primary */
+  --primary-black: #000000;
+  --neon-green: #c4ff0d;
+
+  /* Backgrounds */
+  --bg-light: #f8f9fa;
+  --white: #ffffff;
+
+  /* Gray Scale */
+  --gray-900: #1f2937;
+  --gray-700: #374151;
+  --gray-600: #4b5563;
+  --gray-500: #6b7280;
+  --gray-400: #9ca3af;
+  --gray-300: #d1d5db;
+  --gray-200: #e5e7eb;
+  --gray-100: #f3f4f6;
+  --gray-50: #f9fafb;
+
+  /* Functional Colors */
+  --success: #15803d;
+  --error: #b42318;
+  --warning: #b45309;
+  --info: #1d4ed8;
+
+  /* Functional Soft Variants */
+  --success-soft: #f0fdf4;
+  --error-soft: #fef2f2;
+  --warning-soft: #fffbeb;
+  --info-soft: #eff6ff;
+}
+
+/* ===== Tailwind Theme Extension ===== */
+@theme inline {
+  --color-primary-black: var(--primary-black);
+  --color-neon-green: var(--neon-green);
+  --color-bg-light: var(--bg-light);
+}
+
+/* ===== Base Styles ===== */
+body {
+  background: var(--bg-light);
+  color: var(--gray-900);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}

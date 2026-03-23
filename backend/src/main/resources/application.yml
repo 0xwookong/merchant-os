@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: oslpay-merchant-portal
+
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/oslpay_portal?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Redis - placeholder, exclude auto-config until needed
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+# MyBatis-Plus
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# SpringDoc
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# OSLPay Environment Endpoints
+oslpay:
+  api:
+    production-url: https://openapi.osl-pay.com
+    sandbox-url: https://openapitest.osl-pay.com
+  mcp:
+    production-url: https://mcp.osl-pay.com/sse
+    sandbox-url: https://mcptest.osl-pay.com/sse
+
+# Email (dev profile uses log output, prod profile uses SMTP)
+mail:
+  verify-token-expire-minutes: 30
+  verify-base-url: http://localhost:3000/verify-email

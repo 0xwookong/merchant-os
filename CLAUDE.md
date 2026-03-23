@@ -515,6 +515,66 @@ com.osl.pay.portal
 | `/api/v1/logs/**` | 请求日志 | 列表、详情 |
 | `/api/v1/guides/**` | 快速指南 | 结构化 JSON 指南 |
 
+### 多租户架构（MANDATORY）
+
+本系统是 **B2B2C** 平台：OSLPay（平台）→ Merchants（商户）→ End Users（散户）。每个商户是一个独立租户，数据完全隔离。
+
+**核心模型**:
+```
+t_merchant (租户/商户公司)
+    ├── t_merchant_user (用户，归属于某个 merchant)
+    ├── t_order (订单，按 merchant 隔离)
+    ├── t_webhook_config (Webhook 配置，按 merchant 隔离)
+    ├── t_api_credential (API 凭证，按 merchant 隔离)
+    ├── t_domain_whitelist (域名白名单，按 merchant 隔离)
+    └── ...所有业务表均带 merchant_id
+```
+
+**设计规则**:
+1. **所有业务表必须包含 `merchant_id` 字段**，作为租户隔离键
+2. **注册流程**：创建 `t_merchant` 记录 + 创建该 merchant 下的第一个 ADMIN 用户
+3. **邀请成员**：新用户加入已有 merchant，不创建新 merchant
+4. **数据查询**：所有 Service 层查询必须自动附加 `merchant_id` 条件，从当前认证用户的上下文获取
+5. **API 层**：通过 JWT 中的 merchant_id claim 或从 SecurityContext 中的用户信息解析 merchant_id
+6. **禁止跨租户访问**：任何数据操作都必须校验 merchant_id 归属
+7. **邮箱唯一性**: 同一 email 可存在于不同 merchant 下（UNIQUE(merchant_id, email)），同一 email + 同一公司名不允许重复注册
+8. **登录与商户选择**: 登录时若 email 对应多个 merchant，需用户选择一个进入；切换商户需退出重新登录
+
+**基础表结构**:
+```sql
+-- 商户表（租户）
+CREATE TABLE t_merchant (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    company_name VARCHAR(200) NOT NULL,
+    status ENUM('ACTIVE','SUSPENDED','DISABLED') DEFAULT 'ACTIVE',
+    kyb_status ENUM('NOT_STARTED','PENDING','APPROVED','REJECTED','NEED_MORE_INFO') DEFAULT 'NOT_STARTED',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 用户表（归属于商户）
+CREATE TABLE t_merchant_user (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    email VARCHAR(200) NOT NULL,
+    password_hash VARCHAR(200) NOT NULL,
+    contact_name VARCHAR(100) NOT NULL,
+    role ENUM('ADMIN','BUSINESS','TECH') NOT NULL DEFAULT 'ADMIN',
+    status ENUM('ACTIVE','LOCKED','DISABLED') DEFAULT 'ACTIVE',
+    email_verified TINYINT(1) DEFAULT 0,
+    verify_token VARCHAR(100),
+    verify_token_expire DATETIME,
+    failed_login_count INT DEFAULT 0,
+    locked_until DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_merchant_email (merchant_id, email),
+    INDEX idx_email (email),
+    INDEX idx_merchant_id (merchant_id),
+    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
+);
+```
+
 ### 统一响应格式
 
 所有 API 响应使用统一包装:
@@ -559,8 +619,11 @@ com.osl.pay.portal
 
 - 认证方式: JWT（JSON Web Token）
 - Token 位置: `Authorization: Bearer {token}` 请求头
-- Token 刷新: 提供 refresh token 机制
+- Access Token 有效期: 2 小时
+- Refresh Token 有效期: 7 天
+- JWT Claims 必须包含: `userId`, `merchantId`, `email`, `role`（merchantId 是租户隔离的关键）
 - 角色注解: 使用自定义注解 `@RequireRole(UserRole.ADMIN)` 标注 Controller 方法
+- 租户上下文: 后端通过 `SecurityContext` 获取当前用户的 `merchantId`，所有数据查询自动 scope 到该租户
 - 环境标识: 通过请求头 `X-Environment: production | sandbox` 传递当前环境
 
 ### 环境配置
@@ -584,6 +647,7 @@ Apollo 配置中心管理环境特定配置，代码中通过 `@Value` 或 `@Apo
 - 不在 Controller 中写业务逻辑，Controller 只做参数校验和调用 Service
 - 敏感信息（密钥、密码、Token）不得出现在日志或响应中
 - 数据库查询必须使用参数化查询，禁止拼接 SQL
+- **所有业务数据查询必须附加 `merchant_id` 条件**，从当前用户上下文获取，禁止跨租户访问
 
 ---
 
@@ -594,11 +658,14 @@ Apollo 配置中心管理环境特定配置，代码中通过 `@Value` 或 `@Apo
 ```
 Frontend                            Backend
    │                                   │
-   ├─ Authorization: Bearer {jwt} ────→│
+   ├─ Authorization: Bearer {jwt} ────→│  jwt 含 userId, merchantId, role
    ├─ X-Environment: sandbox ─────────→│  请求头
    ├─ Content-Type: application/json ─→│
    │                                   │
-   │←── { code, message, data } ──────┤  统一响应
+   │                          解析 jwt → 设置 SecurityContext (merchantId, userId, role)
+   │                          所有查询自动 WHERE merchant_id = {merchantId}
+   │                                   │
+   │←── { code, message, data } ──────┤  统一响应（数据已按租户隔离）
 ```
 
 ### 前端 Service 封装约定
