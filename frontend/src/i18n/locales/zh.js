@@ -9,6 +9,11 @@ const zh = {
   "common.loading": "加载中...",
   "common.error": "发生错误",
 
+  // auth - brand (layout left panel)
+  "auth.brand.tagline1": "安全合规的加密货币",
+  "auth.brand.tagline2": "支付网关",
+  "auth.brand.description": "OSL Pay 是 OSL Group (HKEX: 863) 旗下的专业支付解决方案，为金融机构和金融科技平台提供安全的法币与数字资产转换服务。",
+
   // auth - register
   "auth.register.title": "商户注册",
   "auth.register.subtitle": "创建您的 OSLPay 商户账户",
@@ -29,6 +34,9 @@ const zh = {
   "auth.register.success.title": "验证邮件已发送",
   "auth.register.success.message": "我们已向 {email} 发送了一封验证邮件，请查收并点击验证链接完成注册。",
   "auth.register.goLoginLink": "返回登录 →",
+  "auth.register.password.show": "显示密码",
+  "auth.register.password.hide": "隐藏密码",
+  "auth.register.networkError": "网络错误，请稍后重试",
 
   // auth - verify email
   "auth.verifyEmail.loading": "正在验证邮箱...",
@@ -77,11 +85,16 @@ const zh = {
   // auth - forgot password
   "auth.forgotPassword.title": "忘记密码",
   "auth.forgotPassword.subtitle": "输入您的注册邮箱，我们将发送密码重置链接",
+  "auth.forgotPassword.email": "邮箱",
+  "auth.forgotPassword.email.placeholder": "your@company.com",
+  "auth.forgotPassword.inputRequired": "请输入邮箱",
   "auth.forgotPassword.submit": "发送重置链接",
   "auth.forgotPassword.submitting": "发送中...",
   "auth.forgotPassword.sent.title": "邮件已发送",
   "auth.forgotPassword.sent.message": "如果 {email} 已注册，您将收到密码重置邮件。",
+  "auth.forgotPassword.sent.goLoginLink": "返回登录 →",
   "auth.forgotPassword.backToLogin": "← 返回登录",
+  "auth.forgotPassword.networkError": "网络错误，请稍后重试",
 
   // auth - reset password
   "auth.resetPassword.title": "重置密码",

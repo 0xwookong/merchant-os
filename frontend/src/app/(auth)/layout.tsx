@@ -14,7 +14,7 @@ export default function AuthLayout({
 }) {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
-  const { locale, setLocale } = useI18n();
+  const { t, locale, setLocale } = useI18n();
 
   // If user already has a valid session, redirect away from auth pages
   useEffect(() => {
@@ -66,11 +66,11 @@ export default function AuthLayout({
         {/* Tagline */}
         <div className="relative">
           <h2 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
-            安全合规的加密货币<br />
-            <span className="text-[var(--neon-green)]">支付网关</span>
+            {t("auth.brand.tagline1")}<br />
+            <span className="text-[var(--neon-green)]">{t("auth.brand.tagline2")}</span>
           </h2>
           <p className="text-gray-400 mt-6 max-w-md leading-relaxed text-sm">
-            OSL Pay 是 OSL Group (HKEX: 863) 旗下的专业支付解决方案，为金融机构和金融科技平台提供安全的法币与数字资产转换服务。
+            {t("auth.brand.description")}
           </p>
         </div>
 

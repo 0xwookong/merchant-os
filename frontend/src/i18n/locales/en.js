@@ -9,6 +9,11 @@ const en = {
   "common.loading": "Loading...",
   "common.error": "An error occurred",
 
+  // auth - brand (layout left panel)
+  "auth.brand.tagline1": "Secure & Compliant Cryptocurrency",
+  "auth.brand.tagline2": "Payment Gateway",
+  "auth.brand.description": "OSL Pay is a professional payment solution under OSL Group (HKEX: 863), providing secure fiat-to-digital-asset conversion services for financial institutions and fintech platforms.",
+
   // auth - register
   "auth.register.title": "Merchant Registration",
   "auth.register.subtitle": "Create your OSLPay merchant account",
@@ -29,6 +34,9 @@ const en = {
   "auth.register.success.title": "Verification email sent",
   "auth.register.success.message": "We've sent a verification email to {email}. Please check and click the link to complete registration.",
   "auth.register.goLoginLink": "Back to login →",
+  "auth.register.password.show": "Show password",
+  "auth.register.password.hide": "Hide password",
+  "auth.register.networkError": "Network error, please try again",
 
   // auth - verify email
   "auth.verifyEmail.loading": "Verifying email...",
@@ -77,11 +85,16 @@ const en = {
   // auth - forgot password
   "auth.forgotPassword.title": "Forgot Password",
   "auth.forgotPassword.subtitle": "Enter your email to receive a password reset link",
+  "auth.forgotPassword.email": "Email",
+  "auth.forgotPassword.email.placeholder": "your@company.com",
+  "auth.forgotPassword.inputRequired": "Please enter your email",
   "auth.forgotPassword.submit": "Send Reset Link",
   "auth.forgotPassword.submitting": "Sending...",
   "auth.forgotPassword.sent.title": "Email sent",
   "auth.forgotPassword.sent.message": "If {email} is registered, you will receive a reset email.",
+  "auth.forgotPassword.sent.goLoginLink": "Back to login →",
   "auth.forgotPassword.backToLogin": "← Back to login",
+  "auth.forgotPassword.networkError": "Network error, please try again",
 
   // auth - reset password
   "auth.resetPassword.title": "Reset Password",
