@@ -91,7 +91,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | 015 | API 文档引擎 - AI 提示词与代码生成 | ✅ Done (2026-03-24, merged into 014) |
 | 016 | API 文档引擎 - 在线试用 | ✅ Done (2026-03-24) |
 | 017 | Webhook - 配置管理 | ✅ Done (2026-03-24) |
-| 018 | Webhook - 推送日志 | ⏳ Pending |
+| 018 | Webhook - 推送日志 | ✅ Done (2026-03-24) |
 | 019 | 域名白名单 | ⏳ Pending |
 | 020 | API 请求日志 | ⏳ Pending |
 | 021 | 成员与权限管理 | ⏳ Pending |
