@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/providers/auth-provider";
 import { EnvironmentProvider } from "@/providers/environment-provider";
 import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
+import KybBanner from "@/components/layout/kyb-banner";
 
 function PortalGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -36,7 +37,10 @@ function PortalGuard({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[var(--bg-light)]">
       <Sidebar />
       <TopBar />
-      <main className="ml-60 pt-16 p-6">{children}</main>
+      <main className="ml-60 pt-24 px-8 pb-8">
+        <KybBanner />
+        {children}
+      </main>
     </div>
   );
 }

@@ -49,7 +49,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         "/api/v1/auth/change-password", new int[]{5, 3600},
         "/api/v1/auth/reset-password",  new int[]{10, 3600},
         "/api/v1/auth/verify-email",    new int[]{10, 60},
-        "/api/v1/auth/refresh",         new int[]{20, 60}
+        "/api/v1/auth/refresh",         new int[]{20, 60},
+        "/api/v1/kyb/submit",           new int[]{5, 3600}
     );
 
     /** Global per-IP limit across all auth endpoints: 30 requests per minute */
@@ -62,7 +63,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        if (!path.startsWith("/api/v1/auth/")) {
+        // Only apply rate limiting to paths that have rules defined
+        if (findRule(path) == null && !path.startsWith("/api/v1/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -38,6 +38,27 @@ CREATE TABLE IF NOT EXISTS t_merchant_user (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- KYB application table (Know Your Business)
+CREATE TABLE IF NOT EXISTS t_kyb_application (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    company_reg_country VARCHAR(100) NOT NULL COMMENT '公司注册地',
+    company_reg_number VARCHAR(100) NOT NULL COMMENT '公司注册号',
+    business_license_no VARCHAR(100) NOT NULL COMMENT '营业执照号',
+    company_type VARCHAR(50) NOT NULL COMMENT 'LIMITED/PARTNERSHIP/SOLE_PROPRIETORSHIP/OTHER',
+    legal_rep_name VARCHAR(100) NOT NULL COMMENT '法人姓名',
+    legal_rep_nationality VARCHAR(100) NOT NULL COMMENT '法人国籍',
+    legal_rep_id_type VARCHAR(50) NOT NULL COMMENT 'ID_CARD/PASSPORT/OTHER',
+    legal_rep_id_number VARCHAR(100) NOT NULL COMMENT '证件号码',
+    legal_rep_share_pct DECIMAL(5,2) COMMENT '持股比例',
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/APPROVED/REJECTED/NEED_MORE_INFO',
+    reject_reason VARCHAR(500),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_merchant_id (merchant_id),
+    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
 CREATE TABLE IF NOT EXISTS t_audit_log (
