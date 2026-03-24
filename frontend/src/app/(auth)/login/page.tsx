@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authService, type LoginResponse, type MerchantSelectItem } from "@/services/authService";
-import { setAccessToken } from "@/lib/auth";
+import { setAccessToken, setRefreshToken } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 
 export default function LoginPage() {
@@ -29,6 +29,7 @@ export default function LoginPage() {
 
       if (res.authenticated) {
         setAccessToken(res.accessToken!);
+        if (res.refreshToken) setRefreshToken(res.refreshToken);
         router.push("/");
       } else if (res.merchants) {
         setMerchants(res.merchants);
