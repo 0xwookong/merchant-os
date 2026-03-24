@@ -3,6 +3,7 @@ package com.osl.pay.portal.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.osl.pay.portal.common.audit.AuditService;
+import com.osl.pay.portal.common.context.EnvironmentContext;
 import com.osl.pay.portal.common.exception.BizException;
 import com.osl.pay.portal.model.dto.KybStatusResponse;
 import com.osl.pay.portal.model.dto.KybSubmitRequest;
@@ -36,19 +37,32 @@ public class KybServiceImpl implements KybService {
             throw new BizException(40400, "商户不存在");
         }
 
-        String rejectReason = null;
-        if (merchant.getKybStatus() == KybStatus.REJECTED) {
-            KybApplication latest = kybApplicationMapper.selectOne(
-                    new LambdaQueryWrapper<KybApplication>()
-                            .eq(KybApplication::getMerchantId, merchantId)
-                            .orderByDesc(KybApplication::getId)
-                            .last("LIMIT 1"));
-            if (latest != null) {
-                rejectReason = latest.getRejectReason();
+        KybStatusResponse resp = new KybStatusResponse(merchant.getKybStatus().getValue(), null);
+
+        // Load latest application for details
+        KybApplication latest = kybApplicationMapper.selectOne(
+                new LambdaQueryWrapper<KybApplication>()
+                        .eq(KybApplication::getMerchantId, merchantId)
+                        .orderByDesc(KybApplication::getId)
+                        .last("LIMIT 1"));
+
+        if (latest != null) {
+            if (merchant.getKybStatus() == KybStatus.REJECTED) {
+                resp.setRejectReason(latest.getRejectReason());
             }
+            // Return all fields for APPROVED display and REJECTED re-edit
+            resp.setCompanyRegCountry(latest.getCompanyRegCountry());
+            resp.setCompanyRegNumber(latest.getCompanyRegNumber());
+            resp.setBusinessLicenseNo(latest.getBusinessLicenseNo());
+            resp.setCompanyType(latest.getCompanyType());
+            resp.setLegalRepName(latest.getLegalRepName());
+            resp.setLegalRepNationality(latest.getLegalRepNationality());
+            resp.setLegalRepIdType(latest.getLegalRepIdType());
+            resp.setLegalRepIdNumber(latest.getLegalRepIdNumber());
+            resp.setLegalRepSharePct(latest.getLegalRepSharePct());
         }
 
-        return new KybStatusResponse(merchant.getKybStatus().getValue(), rejectReason);
+        return resp;
     }
 
     @Override
@@ -66,7 +80,11 @@ public class KybServiceImpl implements KybService {
         if (currentStatus == KybStatus.APPROVED) {
             throw new BizException(40001, "已通过认证");
         }
-        // NOT_STARTED, REJECTED, NEED_MORE_INFO → allow submit
+
+        // Determine target status: sandbox auto-approves
+        boolean isSandbox = EnvironmentContext.isSandbox();
+        KybStatus targetStatus = isSandbox ? KybStatus.APPROVED : KybStatus.PENDING;
+        String appStatus = isSandbox ? "APPROVED" : "PENDING";
 
         KybApplication app = new KybApplication();
         app.setMerchantId(merchantId);
@@ -79,14 +97,14 @@ public class KybServiceImpl implements KybService {
         app.setLegalRepIdType(request.getLegalRepIdType());
         app.setLegalRepIdNumber(request.getLegalRepIdNumber());
         app.setLegalRepSharePct(request.getLegalRepSharePct());
-        app.setStatus("PENDING");
+        app.setStatus(appStatus);
         kybApplicationMapper.insert(app);
 
-        // Update merchant KYB status
         merchantMapper.update(new LambdaUpdateWrapper<Merchant>()
                 .eq(Merchant::getId, merchantId)
-                .set(Merchant::getKybStatus, KybStatus.PENDING));
+                .set(Merchant::getKybStatus, targetStatus));
 
-        auditService.log(KYB_SUBMIT, null, merchantId, null, httpRequest, true, null);
+        auditService.log(KYB_SUBMIT, null, merchantId, null, httpRequest, true,
+                "env=" + EnvironmentContext.current() + ", status=" + appStatus);
     }
 }

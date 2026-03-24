@@ -29,6 +29,7 @@ const ID_TYPES = [
 export default function KybPage() {
   const [kybStatus, setKybStatus] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<string | null>(null);
+  const [approvedInfo, setApprovedInfo] = useState<{ companyRegCountry?: string; companyRegNumber?: string; companyType?: string; legalRepName?: string }>({});
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<Step>(1);
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +49,32 @@ export default function KybPage() {
 
   useEffect(() => {
     kybService.getStatus()
-      .then((res) => { setKybStatus(res.kybStatus); setRejectReason(res.rejectReason); })
+      .then((res) => {
+        setKybStatus(res.kybStatus);
+        setRejectReason(res.rejectReason);
+        if (res.kybStatus === "APPROVED") {
+          setApprovedInfo({
+            companyRegCountry: res.companyRegCountry,
+            companyRegNumber: res.companyRegNumber,
+            companyType: res.companyType,
+            legalRepName: res.legalRepName,
+          });
+        }
+        // Pre-fill form with previous data when REJECTED (so user can edit and resubmit)
+        if (res.kybStatus === "REJECTED" || res.kybStatus === "NEED_MORE_INFO") {
+          setForm({
+            companyRegCountry: res.companyRegCountry || "",
+            companyRegNumber: res.companyRegNumber || "",
+            businessLicenseNo: res.businessLicenseNo || "",
+            companyType: res.companyType || "LIMITED",
+            legalRepName: res.legalRepName || "",
+            legalRepNationality: res.legalRepNationality || "",
+            legalRepIdType: res.legalRepIdType || "ID_CARD",
+            legalRepIdNumber: res.legalRepIdNumber || "",
+            legalRepSharePct: res.legalRepSharePct,
+          });
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -63,7 +89,9 @@ export default function KybPage() {
     setError("");
     try {
       await kybService.submit(form);
-      setKybStatus("PENDING");
+      // Reload status (sandbox auto-approves, production goes to PENDING)
+      const status = await kybService.getStatus();
+      setKybStatus(status.kybStatus);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "提交失败，请稍后重试");
     } finally {
@@ -77,7 +105,32 @@ export default function KybPage() {
 
   // Status display for non-editable states
   if (kybStatus === "APPROVED") {
-    return <StatusCard icon={<CheckCircleIcon className="w-8 h-8 text-[var(--success)]" />} title="KYB 认证已通过" desc="您的商户资质已通过审核，可正常使用所有功能。" color="success" />;
+    return (
+      <div className="max-w-3xl space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--gray-900)]">KYB 认证</h1>
+          <p className="text-sm text-[var(--gray-500)] mt-1">商户资质认证信息</p>
+        </div>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+          <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
+          <p className="text-sm text-green-800 font-medium">KYB 认证已通过，所有功能已开通。</p>
+        </div>
+        {approvedInfo.companyRegCountry && (
+          <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-8">
+            <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-5">认证信息</h2>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+              <div><dt className="text-[var(--gray-500)]">公司注册地</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyRegCountry}</dd></div>
+              <div><dt className="text-[var(--gray-500)]">公司注册号</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyRegNumber}</dd></div>
+              <div><dt className="text-[var(--gray-500)]">公司类型</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyType}</dd></div>
+              <div><dt className="text-[var(--gray-500)]">法定代表人</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.legalRepName}</dd></div>
+            </div>
+          </div>
+        )}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
+          <span className="text-blue-600 text-sm">如需更新公司信息，请联系客服：<span className="font-medium">support@osl-pay.com</span></span>
+        </div>
+      </div>
+    );
   }
   if (kybStatus === "PENDING") {
     return <StatusCard icon={<ClockIcon className="w-8 h-8 text-[var(--warning)]" />} title="KYB 认证审核中" desc="您的认证申请已提交，我们将尽快完成审核。审核结果将通过邮件通知。" color="warning" />;
@@ -91,12 +144,22 @@ export default function KybPage() {
         <p className="text-sm text-[var(--gray-500)] mt-1">完成商户资质认证以开通全部功能</p>
       </div>
 
-      {kybStatus === "REJECTED" && rejectReason && (
+      {kybStatus === "NEED_MORE_INFO" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
+          <ClockIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">需要补充材料</p>
+            <p className="text-sm text-[var(--gray-600)] mt-1">{rejectReason || "审核方要求补充部分信息，请修改后重新提交。如有疑问请联系 support@osl-pay.com"}</p>
+          </div>
+        </div>
+      )}
+
+      {kybStatus === "REJECTED" && (
         <div className="bg-[var(--error-soft)] border border-red-200 rounded-lg p-4 flex gap-3">
           <XCircleIcon className="w-5 h-5 text-[var(--error)] flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-[var(--error)]">审核未通过</p>
-            <p className="text-sm text-[var(--gray-600)] mt-1">{rejectReason}</p>
+            <p className="text-sm text-[var(--gray-600)] mt-1">{rejectReason || "请根据审核要求修改后重新提交，如有疑问请联系 support@osl-pay.com"}</p>
           </div>
         </div>
       )}

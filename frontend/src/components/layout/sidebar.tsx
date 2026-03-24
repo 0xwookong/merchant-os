@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { filterMenuByRole, MENU_CONFIG, type MenuItem } from "@/lib/menu-config";
+import { kybService } from "@/services/kybService";
 import {
   RocketLaunchIcon,
   ChartBarIcon,
@@ -45,8 +46,16 @@ export default function Sidebar() {
   const { user } = useAuth();
   const pathname = usePathname();
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+  const [kybApproved, setKybApproved] = useState(false);
 
   const menuItems = user ? filterMenuByRole(MENU_CONFIG, user.role) : [];
+
+  // Check KYB status for onboarding gate
+  useEffect(() => {
+    kybService.getStatus()
+      .then((res) => setKybApproved(res.kybStatus === "APPROVED"))
+      .catch(() => {});
+  }, []);
 
   // Auto-expand parent menu when a child path matches
   useEffect(() => {
@@ -95,6 +104,8 @@ export default function Sidebar() {
             isExpanded={expandedKeys.has(item.key)}
             onToggle={() => toggleExpand(item.key)}
             isActive={isActive}
+            isDisabled={item.key === "onboarding" && !kybApproved}
+            disabledTooltip="请先完成 KYB 认证"
           />
         ))}
       </nav>
@@ -107,15 +118,19 @@ function MenuItemComponent({
   isExpanded,
   onToggle,
   isActive,
+  isDisabled = false,
+  disabledTooltip,
 }: {
   item: MenuItem;
   isExpanded: boolean;
   onToggle: () => void;
   isActive: (path?: string) => boolean;
+  isDisabled?: boolean;
+  disabledTooltip?: string;
 }) {
   const IconComponent = ICON_MAP[item.icon];
   const hasChildren = item.children && item.children.length > 0;
-  const active = !hasChildren && isActive(item.path);
+  const active = !hasChildren && !isDisabled && isActive(item.path);
 
   if (hasChildren) {
     return (
@@ -147,6 +162,18 @@ function MenuItemComponent({
             ))}
           </div>
         )}
+      </div>
+    );
+  }
+
+  if (isDisabled) {
+    return (
+      <div
+        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--gray-400)] cursor-not-allowed"
+        title={disabledTooltip}
+      >
+        {IconComponent && <IconComponent className="w-5 h-5" />}
+        <span>{item.label}</span>
       </div>
     );
   }

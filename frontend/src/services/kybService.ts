@@ -3,6 +3,15 @@ import { api } from "@/lib/api";
 interface KybStatusResponse {
   kybStatus: string;
   rejectReason: string | null;
+  companyRegCountry?: string;
+  companyRegNumber?: string;
+  businessLicenseNo?: string;
+  companyType?: string;
+  legalRepName?: string;
+  legalRepNationality?: string;
+  legalRepIdType?: string;
+  legalRepIdNumber?: string;
+  legalRepSharePct?: number;
 }
 
 interface KybSubmitRequest {
