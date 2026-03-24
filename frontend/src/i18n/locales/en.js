@@ -164,6 +164,28 @@ const en = {
   "signature.keyRef.generatePrivate": "Generate private key",
   "signature.keyRef.convertPkcs8": "Convert to PKCS#8 format",
   "signature.keyRef.generatePublic": "Generate public key",
+
+  // docs
+  "docs.title": "API Documentation",
+  "docs.subtitle": "Browse OSLPay payment API endpoints with request parameters and response schemas",
+  "docs.search.placeholder": "Search endpoints...",
+  "docs.allCategories": "All",
+  "docs.endpoints": "endpoints",
+  "docs.noResults": "No matching endpoints",
+  "docs.detail.parameters": "Parameters",
+  "docs.detail.requestBody": "Request Body",
+  "docs.detail.responses": "Responses",
+  "docs.detail.aiContext": "AI Context Block",
+  "docs.detail.aiContext.copy": "Copy AI Context",
+  "docs.detail.aiContext.copied": "Copied",
+  "docs.detail.param.name": "Name",
+  "docs.detail.param.in": "In",
+  "docs.detail.param.type": "Type",
+  "docs.detail.param.required": "Required",
+  "docs.detail.param.description": "Description",
+  "docs.detail.clickToView": "Click an endpoint to view details",
+  "docs.loading": "Loading...",
+  "docs.error": "Failed to load",
 };
 
 export default en;

@@ -164,6 +164,28 @@ const zh = {
   "signature.keyRef.generatePrivate": "生成私钥",
   "signature.keyRef.convertPkcs8": "转换为 PKCS#8 格式",
   "signature.keyRef.generatePublic": "生成公钥",
+
+  // docs
+  "docs.title": "API 文档",
+  "docs.subtitle": "浏览 OSLPay 支付 API 端点，查看请求参数和响应结构",
+  "docs.search.placeholder": "搜索端点...",
+  "docs.allCategories": "全部",
+  "docs.endpoints": "个端点",
+  "docs.noResults": "没有匹配的端点",
+  "docs.detail.parameters": "请求参数",
+  "docs.detail.requestBody": "请求体",
+  "docs.detail.responses": "响应",
+  "docs.detail.aiContext": "AI Context Block",
+  "docs.detail.aiContext.copy": "复制 AI Context",
+  "docs.detail.aiContext.copied": "已复制",
+  "docs.detail.param.name": "参数名",
+  "docs.detail.param.in": "位置",
+  "docs.detail.param.type": "类型",
+  "docs.detail.param.required": "必填",
+  "docs.detail.param.description": "描述",
+  "docs.detail.clickToView": "点击端点查看详情",
+  "docs.loading": "加载中...",
+  "docs.error": "加载失败",
 };
 
 export default zh;

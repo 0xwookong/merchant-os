@@ -1,86 +1,116 @@
-# Task-013: 签名工具
+# Task-014: API 文档引擎 - 端点列表与详情
 
 ## Status: Verifying
 
 ## PRD Reference
-docs/prd/07-signature-tools.md — 签名生成/验证/加密三合一工具页
+docs/prd/05-api-doc-engine.md — §2.1-2.2「OpenAPI 规范结构化转换」「AI Context Block」、§3「API 端点分类」、§5「文档引擎后端接口」
 
 ## Scope
-- 前端: `/developer/signature` 页面（3 个 Tab：生成签名、验证签名、加密数据）
-- 后端: 3 个无状态 API（无 DB 写入，纯计算）
-  - `POST /api/v1/sign/generate` — RSA SHA256withRSA 签名
-  - `POST /api/v1/sign/verify` — 验证签名
-  - `POST /api/v1/sign/encrypt` — RSA/ECB/PKCS1Padding 加密
-- 数据库: 无（纯工具，不涉及持久化）
-
-> 注: 3 个端点均为无状态计算接口，无 DB 操作，复杂度等同于 2 个普通 CRUD 端点
+- 前端: `/developer/docs` 页面（分类导航 + 端点列表 + 端点详情面板）
+- 后端: 2 个 API
+  - `GET /api/v1/docs/endpoints` — 端点列表（支持分类筛选）
+  - `GET /api/v1/docs/endpoints/{operationId}` — 端点详情 + AI Context Block
+- 数据源: 内置 OpenAPI 3.0 YAML 规范文件（描述 OSLPay 支付 API 的 16 个端点）
 
 ## 设计要点
 
-### 签名流程
-1. 签名字符串: `appId=[appId]&timestamp=[timestamp]`
-2. RSA SHA256withRSA 签名 → Base64 输出
-3. 验证: 用公钥验签，返回 true/false
-4. 加密: RSA/ECB/PKCS1Padding → Base64 密文
+### 数据源
+- 后端 resources 目录下放置 `oslpay-openapi.yaml`（OSLPay 支付 API 规范）
+- 应用启动时解析并缓存，不涉及数据库
+- 每个端点提取: method, path, summary, description, tags, parameters, requestBody, responses
 
-### 前端交互
-- Tab 切换时自动传递数据（生成→验证时自动填入 appId、timestamp、签名值）
-- 预填测试数据（demo appId、当前时间戳、测试私钥）
-- "重置为测试数据" 按钮
-- 密钥格式错误时明确错误提示
+### 端点列表 API 响应结构
+```json
+{
+  "categories": [
+    { "key": "user", "label": "用户管理", "count": 2 },
+    { "key": "quote", "label": "报价", "count": 1 },
+    ...
+  ],
+  "endpoints": [
+    {
+      "operationId": "createUser",
+      "method": "POST",
+      "path": "/api/v1/users",
+      "summary": "用户注册",
+      "category": "user",
+      "tags": ["User Management"]
+    }
+  ]
+}
+```
+
+### 端点详情 API 响应结构
+```json
+{
+  "operationId": "createUser",
+  "method": "POST",
+  "path": "/api/v1/users",
+  "summary": "...",
+  "description": "...",
+  "category": "user",
+  "parameters": [...],
+  "requestBody": { "contentType": "application/json", "schema": {...}, "example": {...} },
+  "responses": { "200": {...}, "400": {...} },
+  "aiContextBlock": "structured AI-friendly text block"
+}
+```
+
+### 前端页面布局
+- 左侧: 分类导航（6 个分类）+ 搜索框
+- 右侧: 端点列表 → 点击展开详情面板
+- 详情面板: 请求参数表、响应结构、AI Context Block（可复制）
 
 ## Test Cases (TDD)
 
 ### 后端功能测试
-1. **生成签名**: 有效私钥 + appId + timestamp → 200，返回 signatureString + signature (Base64)
-2. **验证签名 — 正确**: 匹配的公钥 + 正确签名 → 200，valid=true
-3. **验证签名 — 错误**: 错误签名 → 200，valid=false
-4. **加密数据**: 有效公钥 + 明文 → 200，返回 Base64 密文
-5. **无效私钥格式**: 非 PEM 格式 → 400，明确错误消息
-6. **无效公钥格式**: 非 PEM 格式 → 400，明确错误消息
-7. **缺失参数**: appId 为空 → 400
+1. **端点列表**: GET /api/v1/docs/endpoints → 200，返回 categories + endpoints
+2. **分类筛选**: ?category=order → 仅返回订单相关端点
+3. **端点详情**: GET /api/v1/docs/endpoints/createUser → 200，返回完整详情
+4. **AI Context Block**: 详情响应中包含 aiContextBlock 字段
+5. **不存在的端点**: GET /api/v1/docs/endpoints/notExist → 404
 
 ### 后端安全测试
-8. **未认证访问**: 无 JWT → 403
-9. **超长输入**: 明文超长 → 400
+6. **未认证访问**: 无 JWT → 403
+7. **operationId 注入**: 特殊字符 operationId → 404（安全处理）
 
 ### 前端功能测试
-10. **渲染 3 个 Tab**: 生成签名、验证签名、加密数据
-11. **预填测试数据**: 初始显示 demo appId 和当前时间戳
-12. **Tab 切换数据传递**: 生成签名后切换到验证，自动填入参数
+8. **渲染分类导航**: 6 个分类可见
+9. **渲染端点列表**: 显示端点方法 + 路径 + 摘要
+10. **端点搜索**: 输入关键词过滤端点
 
 ### 安全检查清单
-- [x] 认证: 需要 JWT（anyRequest().authenticated()）
-- [x] 频率限制: 全局 RateLimitFilter 覆盖
-- [x] 信息泄漏: 纯计算工具，用户提供自己的密钥
-- [x] 输入校验: PEM 格式校验、参数非空、长度限制
-- [x] 租户隔离: 不涉及（无持久化数据）
-- [x] 审计日志: 不涉及（工具性质，无业务数据变更）
-- [x] HTTP 状态码: 400 参数错误，403 未认证
-- [x] 日志安全: 不记录用户提供的密钥内容
+- [x] 认证: 需要 JWT
+- [x] 频率限制: 全局 RateLimitFilter
+- [x] 信息泄漏: 不涉及（公开 API 文档数据）
+- [x] 输入校验: operationId 白名单匹配，category 枚举校验
+- [x] 租户隔离: 不涉及（文档数据所有商户共享）
+- [x] HTTP 状态码: 404 端点不存在
+- [x] 日志安全: 无敏感数据
 
 ## Development Plan
 
 ### 后端
-- [x] 1. 创建 DTO（SignGenerateRequest/Response, SignVerifyRequest/Response, EncryptRequest/Response）
-- [x] 2. 创建 SignService + SignServiceImpl（RSA 签名/验签/加密逻辑）
-- [x] 3. 创建 SignController（3 个 POST 端点）
-- [x] 4. 编写后端测试 SignApiTest（9 个测试）
+- [x] 1. 创建 `oslpay-openapi.yaml` 规范文件（16 个端点，6 个分类）
+- [x] 2. 创建 DocEngineService（@PostConstruct 解析 + 内存缓存）
+- [x] 3. 创建 DTO（EndpointSummary, EndpointDetail, CategoryInfo, EndpointListResult）
+- [x] 4. 创建 DocsController（2 个 GET 端点）
+- [x] 5. 编写后端测试 DocsApiTest（6 个测试）
 
 ### 前端
-- [x] 5. 创建 signService.ts
-- [x] 6. 添加 i18n 翻译键（signature namespace，zh+en）
-- [x] 7. 创建 /developer/signature/page.tsx（3 Tab + Radix Tabs + 密钥参考）
-- [x] 8. 编写前端测试（5 个测试）
+- [x] 6. 创建 docsService.ts
+- [x] 7. 添加 i18n 翻译键（docs namespace，zh+en）
+- [x] 8. 创建 /developer/docs/page.tsx（分类pills + 搜索 + 列表 + 详情面板 + AI Context Block）
+- [x] 9. 编写前端测试（4 个测试）
 
 ## Execution Log
 
-### 2026-03-24 18:40
-- 后端: 6 个 DTO + SignService（SHA256withRSA 签名/验签 + RSA/ECB/PKCS1Padding 加密）+ SignController（3 POST 端点）
-- 后端测试: 9 个全部通过（生成/验证/加密 + 无效密钥 + 缺失参数 + 未认证）
-- 前端: signService.ts + i18n（40+ keys）+ signature page（Radix Tabs 3-tab 布局 + 密钥参考）
-- 前端测试: 5 个全部通过
-- 全量: 后端 100 通过，前端 48 通过
+### 2026-03-24 18:57
+- 后端: oslpay-openapi.yaml（16 端点，6 分类）+ DocEngineService（Jackson YAML 解析 + $ref 解析 + AI Context Block 生成）+ DocsController
+- 后端测试: 6 个全部通过（列表、分类筛选、详情、AI Context、404、未认证）
+- 前端: docsService.ts + i18n + docs page（搜索框 + 分类 pills + 端点列表 + 详情面板 + 参数表 + 响应 JSON + AI Context 暗色代码块）
+- 前端测试: 4 个全部通过
+- 全量: 后端 106 通过，前端 52 通过
 
 ## Next Step
-Task-014: API 文档引擎 - 端点列表与详情
+Task-015: API 文档引擎 - AI 提示词与代码生成

@@ -1,0 +1,274 @@
+"use client";
+
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useI18n } from "@/providers/language-provider";
+import { docsService, type EndpointSummary, type EndpointDetail, type CategoryInfo } from "@/services/docsService";
+import {
+  MagnifyingGlassIcon,
+  ClipboardDocumentIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+
+const METHOD_COLORS: Record<string, string> = {
+  GET: "bg-blue-100 text-blue-700",
+  POST: "bg-green-100 text-green-700",
+  PUT: "bg-yellow-100 text-yellow-700",
+  DELETE: "bg-red-100 text-red-700",
+  PATCH: "bg-purple-100 text-purple-700",
+};
+
+export default function DocsPage() {
+  const { t } = useI18n();
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  const [endpoints, setEndpoints] = useState<EndpointSummary[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [search, setSearch] = useState("");
+  const [selectedEndpoint, setSelectedEndpoint] = useState<EndpointDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copiedAi, setCopiedAi] = useState(false);
+
+  const fetchEndpoints = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    docsService.listEndpoints()
+      .then((res) => {
+        setCategories(res.categories);
+        setEndpoints(res.endpoints);
+      })
+      .catch((err) => setError(err.message || t("docs.error")))
+      .finally(() => setLoading(false));
+  }, [t]);
+
+  useEffect(() => { fetchEndpoints(); }, [fetchEndpoints]);
+
+  const filteredEndpoints = useMemo(() => {
+    let result = endpoints;
+    if (selectedCategory) {
+      result = result.filter((e) => e.category === selectedCategory);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter((e) =>
+        e.summary.toLowerCase().includes(q) ||
+        e.path.toLowerCase().includes(q) ||
+        e.operationId.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [endpoints, selectedCategory, search]);
+
+  const handleSelectEndpoint = async (operationId: string) => {
+    if (selectedEndpoint?.operationId === operationId) {
+      setSelectedEndpoint(null);
+      return;
+    }
+    setDetailLoading(true);
+    try {
+      const detail = await docsService.getEndpointDetail(operationId);
+      setSelectedEndpoint(detail);
+    } catch {
+      // silently fail
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleCopyAiContext = async () => {
+    if (!selectedEndpoint?.aiContextBlock) return;
+    try {
+      await navigator.clipboard.writeText(selectedEndpoint.aiContextBlock);
+      setCopiedAi(true);
+      setTimeout(() => setCopiedAi(false), 2000);
+    } catch { /* */ }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div><div className="h-7 bg-[var(--gray-200)] rounded w-32 mb-2 animate-pulse" /><div className="h-4 bg-[var(--gray-100)] rounded w-72 animate-pulse" /></div>
+        <div className="h-96 bg-[var(--gray-100)] rounded-xl animate-pulse" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <ExclamationTriangleIcon className="w-10 h-10 text-[var(--gray-400)] mb-3" />
+        <p className="text-[var(--gray-500)] mb-4">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-semibold text-[var(--gray-900)]">{t("docs.title")}</h1>
+        <p className="text-sm text-[var(--gray-500)] mt-1">{t("docs.subtitle")}</p>
+      </div>
+
+      <div className="flex gap-6">
+        {/* Left: Categories + Search + List */}
+        <div className="w-full lg:w-1/2 xl:w-2/5 space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--gray-400)]" />
+            <input
+              type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("docs.search.placeholder")}
+              className="w-full pl-9 pr-3 py-2.5 border border-[var(--gray-300)] rounded-lg text-sm placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Category pills */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedCategory("")}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                !selectedCategory ? "bg-[var(--primary-black)] text-white" : "bg-[var(--gray-100)] text-[var(--gray-600)] hover:bg-[var(--gray-200)]"
+              }`}
+            >
+              {t("docs.allCategories")} ({endpoints.length})
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.key}
+                onClick={() => setSelectedCategory(cat.key === selectedCategory ? "" : cat.key)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  selectedCategory === cat.key ? "bg-[var(--primary-black)] text-white" : "bg-[var(--gray-100)] text-[var(--gray-600)] hover:bg-[var(--gray-200)]"
+                }`}
+              >
+                {cat.label} ({cat.count})
+              </button>
+            ))}
+          </div>
+
+          {/* Endpoint list */}
+          <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm divide-y divide-[var(--gray-100)] max-h-[calc(100vh-320px)] overflow-y-auto">
+            {filteredEndpoints.length === 0 ? (
+              <div className="p-8 text-center text-[var(--gray-400)] text-sm">{t("docs.noResults")}</div>
+            ) : (
+              filteredEndpoints.map((ep) => (
+                <button
+                  key={ep.operationId}
+                  onClick={() => handleSelectEndpoint(ep.operationId)}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-[var(--gray-50)] transition-colors ${
+                    selectedEndpoint?.operationId === ep.operationId ? "bg-[var(--gray-50)]" : ""
+                  }`}
+                >
+                  <span className={`shrink-0 px-2 py-0.5 rounded text-xs font-mono font-semibold ${METHOD_COLORS[ep.method] || ""}`}>
+                    {ep.method}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-mono text-[var(--gray-700)] truncate">{ep.path}</div>
+                    <div className="text-xs text-[var(--gray-500)]">{ep.summary}</div>
+                  </div>
+                  <ChevronRightIcon className={`w-4 h-4 text-[var(--gray-400)] shrink-0 transition-transform ${
+                    selectedEndpoint?.operationId === ep.operationId ? "rotate-90" : ""
+                  }`} />
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Right: Detail panel */}
+        <div className="hidden lg:block lg:w-1/2 xl:w-3/5">
+          {detailLoading ? (
+            <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-8">
+              <div className="w-6 h-6 border-2 border-[var(--gray-300)] border-t-[var(--primary-black)] rounded-full animate-spin mx-auto" />
+            </div>
+          ) : selectedEndpoint ? (
+            <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm max-h-[calc(100vh-240px)] overflow-y-auto">
+              {/* Detail header */}
+              <div className="p-6 border-b border-[var(--gray-100)]">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className={`px-2 py-0.5 rounded text-xs font-mono font-semibold ${METHOD_COLORS[selectedEndpoint.method] || ""}`}>
+                    {selectedEndpoint.method}
+                  </span>
+                  <span className="text-sm font-mono text-[var(--gray-900)]">{selectedEndpoint.path}</span>
+                </div>
+                <h2 className="text-lg font-semibold text-[var(--gray-900)]">{selectedEndpoint.summary}</h2>
+                <p className="text-sm text-[var(--gray-500)] mt-1">{selectedEndpoint.description}</p>
+              </div>
+
+              {/* Parameters */}
+              {selectedEndpoint.parameters.length > 0 && (
+                <div className="p-6 border-b border-[var(--gray-100)]">
+                  <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">{t("docs.detail.parameters")}</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-[var(--gray-100)]">
+                          <th className="text-left py-2 px-3 font-semibold text-[var(--gray-700)]">{t("docs.detail.param.name")}</th>
+                          <th className="text-left py-2 px-3 font-semibold text-[var(--gray-700)]">{t("docs.detail.param.in")}</th>
+                          <th className="text-left py-2 px-3 font-semibold text-[var(--gray-700)]">{t("docs.detail.param.required")}</th>
+                          <th className="text-left py-2 px-3 font-semibold text-[var(--gray-700)]">{t("docs.detail.param.description")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedEndpoint.parameters.map((p, i) => (
+                          <tr key={i} className="border-b border-[var(--gray-50)]">
+                            <td className="py-2 px-3 font-mono text-[var(--gray-900)]">{String(p.name || "")}</td>
+                            <td className="py-2 px-3 text-[var(--gray-500)]">{String(p.in || "")}</td>
+                            <td className="py-2 px-3">{p.required ? <span className="text-red-600">*</span> : ""}</td>
+                            <td className="py-2 px-3 text-[var(--gray-600)]">{String(p.description || "")}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Request Body */}
+              {selectedEndpoint.requestBody && (
+                <div className="p-6 border-b border-[var(--gray-100)]">
+                  <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">{t("docs.detail.requestBody")}</h3>
+                  <pre className="text-xs font-mono bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-lg p-3 overflow-x-auto max-h-60 overflow-y-auto text-[var(--gray-700)]">
+                    {JSON.stringify(selectedEndpoint.requestBody, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Responses */}
+              <div className="p-6 border-b border-[var(--gray-100)]">
+                <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">{t("docs.detail.responses")}</h3>
+                <pre className="text-xs font-mono bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-lg p-3 overflow-x-auto max-h-60 overflow-y-auto text-[var(--gray-700)]">
+                  {JSON.stringify(selectedEndpoint.responses, null, 2)}
+                </pre>
+              </div>
+
+              {/* AI Context Block */}
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-[var(--gray-900)]">{t("docs.detail.aiContext")}</h3>
+                  <button onClick={handleCopyAiContext}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 border border-[var(--gray-300)] rounded-lg text-xs text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition-colors">
+                    {copiedAi ? (
+                      <><CheckIcon className="w-3.5 h-3.5 text-green-600" /><span className="text-green-600">{t("docs.detail.aiContext.copied")}</span></>
+                    ) : (
+                      <><ClipboardDocumentIcon className="w-3.5 h-3.5" /><span>{t("docs.detail.aiContext.copy")}</span></>
+                    )}
+                  </button>
+                </div>
+                <pre className="text-xs font-mono bg-[var(--gray-900)] text-green-400 rounded-lg p-4 overflow-x-auto max-h-80 overflow-y-auto whitespace-pre-wrap">
+                  {selectedEndpoint.aiContextBlock}
+                </pre>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm flex items-center justify-center h-96 text-[var(--gray-400)] text-sm">
+              {t("docs.detail.clickToView")}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

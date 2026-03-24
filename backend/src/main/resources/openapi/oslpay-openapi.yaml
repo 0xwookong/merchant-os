@@ -1,0 +1,657 @@
+openapi: 3.0.3
+info:
+  title: OSLPay Payment API
+  description: OSLPay cryptocurrency payment gateway API for merchants
+  version: 1.0.0
+servers:
+  - url: https://openapi.osl-pay.com
+    description: Production
+  - url: https://openapitest.osl-pay.com
+    description: Sandbox
+
+paths:
+  /api/v1/users/register:
+    post:
+      operationId: registerUser
+      tags: [User Management]
+      summary: 用户注册
+      description: 注册终端用户，需提供基本身份信息。注册后用户需完成 KYC 认证才能进行交易。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, firstName, lastName, dateOfBirth, nationality]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: 用户邮箱
+                  example: user@example.com
+                firstName:
+                  type: string
+                  description: 名
+                  example: John
+                lastName:
+                  type: string
+                  description: 姓
+                  example: Doe
+                dateOfBirth:
+                  type: string
+                  format: date
+                  description: 出生日期
+                  example: "1990-01-15"
+                nationality:
+                  type: string
+                  description: 国籍 (ISO 3166-1 alpha-2)
+                  example: US
+            example:
+              email: user@example.com
+              firstName: John
+              lastName: Doe
+              dateOfBirth: "1990-01-15"
+              nationality: US
+      responses:
+        '200':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 0
+                message: success
+                data:
+                  userId: "usr_abc123"
+                  kycStatus: NOT_STARTED
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/users/{userId}/kyc:
+    get:
+      operationId: getUserKyc
+      tags: [User Management]
+      summary: 查询用户 KYC 状态
+      description: 查询指定用户的 KYC 认证状态，包含审核进度和失败原因。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 用户 ID
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 0
+                message: success
+                data:
+                  userId: "usr_abc123"
+                  kycStatus: APPROVED
+                  updatedAt: "2024-03-01T10:00:00Z"
+
+  /api/v1/quotes:
+    post:
+      operationId: getQuote
+      tags: [Quote]
+      summary: 获取报价
+      description: 获取法币到加密货币的实时报价。报价有效期为 30 秒，过期后需重新获取。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fiatCurrency, fiatAmount, cryptoCurrency, cryptoNetwork]
+              properties:
+                fiatCurrency:
+                  type: string
+                  enum: [USD, EUR, GBP]
+                  description: 法币币种
+                  example: USD
+                fiatAmount:
+                  type: number
+                  description: 法币金额
+                  example: 100.00
+                cryptoCurrency:
+                  type: string
+                  enum: [BTC, ETH, USDT, USDC]
+                  description: 加密货币
+                  example: USDT
+                cryptoNetwork:
+                  type: string
+                  enum: [ERC20, TRC20, BEP20, Polygon, Arbitrum, Optimism, Solana]
+                  description: 区块链网络
+                  example: ERC20
+            example:
+              fiatCurrency: USD
+              fiatAmount: 100.00
+              cryptoCurrency: USDT
+              cryptoNetwork: ERC20
+      responses:
+        '200':
+          description: 报价成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 0
+                message: success
+                data:
+                  quoteId: "qt_xyz789"
+                  fiatAmount: 100.00
+                  fiatCurrency: USD
+                  cryptoAmount: 99.85
+                  cryptoCurrency: USDT
+                  cryptoNetwork: ERC20
+                  exchangeRate: 0.9985
+                  expiresAt: "2024-03-01T10:00:30Z"
+
+  /api/v1/orders:
+    post:
+      operationId: createOrder
+      tags: [Order]
+      summary: 创建订单
+      description: 使用有效报价创建支付订单。订单创建后返回支付页面 URL，引导用户完成支付。依赖 getQuote 获取报价 ID。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quoteId, userId, walletAddress, paymentMethod]
+              properties:
+                quoteId:
+                  type: string
+                  description: 报价 ID（从 getQuote 获取）
+                  example: "qt_xyz789"
+                userId:
+                  type: string
+                  description: 用户 ID
+                  example: "usr_abc123"
+                walletAddress:
+                  type: string
+                  description: 目标钱包地址
+                  example: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
+                paymentMethod:
+                  type: string
+                  enum: [CARD, GOOGLEPAY, APPLEPAY]
+                  description: 支付方式
+                  example: CARD
+                callbackUrl:
+                  type: string
+                  description: 支付完成回调 URL
+                  example: "https://merchant.com/callback"
+            example:
+              quoteId: "qt_xyz789"
+              userId: "usr_abc123"
+              walletAddress: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18"
+              paymentMethod: CARD
+              callbackUrl: "https://merchant.com/callback"
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 0
+                message: success
+                data:
+                  orderId: "ord_def456"
+                  paymentUrl: "https://pay.osl-pay.com/checkout/ord_def456"
+                  status: CREATED
+                  expiresAt: "2024-03-01T10:30:00Z"
+
+  /api/v1/orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [Order]
+      summary: 查询订单
+      description: 查询指定订单的详细信息，包含支付状态、链上交易信息。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 订单 ID
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 0
+                message: success
+                data:
+                  orderId: "ord_def456"
+                  status: COMPLETED
+                  fiatAmount: 100.00
+                  fiatCurrency: USD
+                  cryptoAmount: 99.85
+                  cryptoCurrency: USDT
+                  cryptoNetwork: ERC20
+                  txHash: "0xabc123..."
+                  walletAddress: "0x742d35Cc..."
+                  createdAt: "2024-03-01T10:00:00Z"
+                  completedAt: "2024-03-01T10:05:00Z"
+
+  /api/v1/orders/list:
+    get:
+      operationId: listOrders
+      tags: [Order]
+      summary: 订单列表
+      description: 分页查询商户订单列表，支持按状态和时间范围筛选。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [CREATED, PROCESSING, SUCCESSED, COMPLETED, FAILED]
+          description: 订单状态
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 开始日期
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 结束日期
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: 每页条数
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/cards/bindCard:
+    post:
+      operationId: bindCard
+      tags: [Card]
+      summary: 绑定银行卡
+      description: 为用户绑定银行卡，用于后续支付。需用户已完成 KYC 认证。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, cardNumber, expiryMonth, expiryYear, cvv, holderName]
+              properties:
+                userId:
+                  type: string
+                  description: 用户 ID
+                cardNumber:
+                  type: string
+                  description: 卡号（需加密传输）
+                  example: "4242424242424242"
+                expiryMonth:
+                  type: string
+                  description: 到期月
+                  example: "12"
+                expiryYear:
+                  type: string
+                  description: 到期年
+                  example: "2030"
+                cvv:
+                  type: string
+                  description: CVV（需加密传输）
+                  example: "123"
+                holderName:
+                  type: string
+                  description: 持卡人姓名
+                  example: "John Doe"
+      responses:
+        '200':
+          description: 绑定成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/cards/list:
+    get:
+      operationId: listCards
+      tags: [Card]
+      summary: 银行卡列表
+      description: 查询用户已绑定的银行卡列表，卡号仅展示后四位。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 用户 ID
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/cards/{cardId}:
+    delete:
+      operationId: deleteCard
+      tags: [Card]
+      summary: 删除银行卡
+      description: 删除用户已绑定的银行卡。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 银行卡 ID
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/config/currencies:
+    get:
+      operationId: getCurrencies
+      tags: [Config]
+      summary: 货币列表
+      description: 查询平台支持的法币和加密货币列表及其配置。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 0
+                message: success
+                data:
+                  fiatCurrencies: [USD, EUR, GBP]
+                  cryptoCurrencies:
+                    - symbol: USDT
+                      networks: [ERC20, TRC20, BEP20]
+                    - symbol: ETH
+                      networks: [ERC20]
+
+  /api/v1/config/networks:
+    get:
+      operationId: getNetworks
+      tags: [Config]
+      summary: 网络列表
+      description: 查询支持的区块链网络列表及确认数要求。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/config/limits:
+    get:
+      operationId: getLimits
+      tags: [Config]
+      summary: 限额查询
+      description: 查询当前商户的交易限额配置，包含单笔和日累计限额。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 0
+                message: success
+                data:
+                  singleTransactionLimit: 10000
+                  dailyLimit: 50000
+                  currency: USD
+
+  /api/v1/merchant/info:
+    get:
+      operationId: getMerchantInfo
+      tags: [Merchant]
+      summary: 商户信息
+      description: 查询当前商户的基本信息和认证状态。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/merchant/config:
+    get:
+      operationId: getMerchantConfig
+      tags: [Merchant]
+      summary: 商户配置
+      description: 查询商户的支付配置，包含支持的支付方式和货币对。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/webhooks/test:
+    post:
+      operationId: testWebhook
+      tags: [Merchant]
+      summary: Webhook 测试推送
+      description: 向商户配置的 Webhook URL 发送测试推送，用于验证 Webhook 接收功能。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [webhookUrl, eventType]
+              properties:
+                webhookUrl:
+                  type: string
+                  description: Webhook URL
+                  example: "https://merchant.com/webhook"
+                eventType:
+                  type: string
+                  enum: [ORDER_COMPLETED, ORDER_FAILED, KYC_APPROVED, KYC_REJECTED]
+                  description: 事件类型
+                  example: ORDER_COMPLETED
+      responses:
+        '200':
+          description: 推送成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/v1/users/{userId}/kyc/submit:
+    post:
+      operationId: submitKyc
+      tags: [User Management]
+      summary: 提交 KYC 认证
+      description: 为用户提交 KYC 认证资料。沙箱环境自动通过，生产环境需人工审核。
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/Timestamp'
+        - $ref: '#/components/parameters/Sign'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 用户 ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, dateOfBirth, nationality, idType, idNumber]
+              properties:
+                firstName:
+                  type: string
+                  description: 名
+                lastName:
+                  type: string
+                  description: 姓
+                dateOfBirth:
+                  type: string
+                  format: date
+                  description: 出生日期
+                nationality:
+                  type: string
+                  description: 国籍
+                idType:
+                  type: string
+                  enum: [PASSPORT, ID_CARD, DRIVING_LICENSE]
+                  description: 证件类型
+                idNumber:
+                  type: string
+                  description: 证件号码
+      responses:
+        '200':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+components:
+  parameters:
+    AppId:
+      name: open-api-appid
+      in: header
+      required: true
+      schema:
+        type: string
+      description: 商户 App ID
+    Timestamp:
+      name: open-api-timestamp
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Unix 时间戳（秒）
+    Sign:
+      name: open-api-sign
+      in: header
+      required: true
+      schema:
+        type: string
+      description: RSA SHA256withRSA 签名（Base64）
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 业务状态码，0 表示成功
+          example: 0
+        message:
+          type: string
+          description: 响应消息
+          example: success
+        data:
+          type: object
+          description: 响应数据
+
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            code: 40000
+            message: "Invalid request parameters"
+            data: null
