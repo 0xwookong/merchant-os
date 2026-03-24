@@ -1,0 +1,19 @@
+import { api } from "@/lib/api";
+
+export interface DomainEntry {
+  id: number;
+  domain: string;
+  createdAt: string;
+}
+
+export const domainService = {
+  list(): Promise<DomainEntry[]> {
+    return api.get<DomainEntry[]>("/api/v1/domains");
+  },
+  add(domain: string): Promise<DomainEntry> {
+    return api.post<DomainEntry>("/api/v1/domains", { domain });
+  },
+  remove(id: number): Promise<string> {
+    return api.delete<string>(`/api/v1/domains/${id}`);
+  },
+};

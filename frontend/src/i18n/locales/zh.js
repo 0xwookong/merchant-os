@@ -220,6 +220,19 @@ const zh = {
   "webhooks.save": "保存",
   "webhooks.saving": "保存中...",
   "webhooks.cancel": "取消",
+
+  // domains
+  "domains.title": "域名白名单",
+  "domains.subtitle": "配置允许调用 Web SDK 的业务域名",
+  "domains.info": "只有白名单中的域名才能正常调用 OSLPay Web SDK。请添加完整域名（含协议），支持子域名和端口号。",
+  "domains.add": "添加域名",
+  "domains.add.placeholder": "https://www.example.com",
+  "domains.adding": "添加中...",
+  "domains.empty": "暂无白名单域名",
+  "domains.remove": "移除",
+  "domains.remove.confirm": "确定要移除此域名？移除后该域名将无法调用 Web SDK。",
+  "domains.domain": "域名",
+  "domains.addedAt": "添加时间",
 };
 
 export default zh;

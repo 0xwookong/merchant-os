@@ -137,6 +137,17 @@ CREATE TABLE IF NOT EXISTS t_webhook_config (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Domain whitelist table
+CREATE TABLE IF NOT EXISTS t_domain_whitelist (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    domain VARCHAR(500) NOT NULL COMMENT '含协议的完整域名',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_merchant_domain (merchant_id, domain),
+    INDEX idx_merchant_id (merchant_id),
+    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Webhook push log table
 CREATE TABLE IF NOT EXISTS t_webhook_log (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,

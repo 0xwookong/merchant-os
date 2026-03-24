@@ -220,6 +220,19 @@ const en = {
   "webhooks.save": "Save",
   "webhooks.saving": "Saving...",
   "webhooks.cancel": "Cancel",
+
+  // domains
+  "domains.title": "Domain Whitelist",
+  "domains.subtitle": "Configure domains allowed to use the Web SDK",
+  "domains.info": "Only whitelisted domains can use the OSLPay Web SDK. Add full domains with protocol, subdomains and ports are supported.",
+  "domains.add": "Add Domain",
+  "domains.add.placeholder": "https://www.example.com",
+  "domains.adding": "Adding...",
+  "domains.empty": "No whitelisted domains",
+  "domains.remove": "Remove",
+  "domains.remove.confirm": "Remove this domain? It will no longer be able to use the Web SDK.",
+  "domains.domain": "Domain",
+  "domains.addedAt": "Added At",
 };
 
 export default en;
