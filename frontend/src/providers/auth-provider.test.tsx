@@ -15,11 +15,12 @@ vi.mock("@/services/authService", () => ({
 // Mock auth token store
 const mockSetAccessToken = vi.fn();
 const mockClearAccessToken = vi.fn();
+const mockGetRefreshToken = vi.fn(() => "mock-refresh-token");
 vi.mock("@/lib/auth", () => ({
   setAccessToken: (...args: unknown[]) => mockSetAccessToken(...args),
   clearAccessToken: (...args: unknown[]) => mockClearAccessToken(...args),
   getAccessToken: () => null,
-  getRefreshToken: () => null,
+  getRefreshToken: () => mockGetRefreshToken(),
   setRefreshToken: vi.fn(),
   clearRefreshToken: vi.fn(),
 }));

@@ -36,6 +36,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // On mount: try to restore session via refresh token (localStorage in dev, cookie in prod)
   useEffect(() => {
     const storedRefreshToken = getRefreshToken();
+    if (!storedRefreshToken) {
+      // No token stored — skip refresh, go straight to unauthenticated
+      setIsLoading(false);
+      return;
+    }
     authService
       .refresh(storedRefreshToken)
       .then((res) => {
@@ -49,10 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: res.role!,
             companyName: res.companyName!,
           });
+        } else {
+          clearRefreshToken();
         }
       })
       .catch(() => {
-        // No valid refresh token — user is not logged in
+        // Refresh failed — clear stale token
+        clearRefreshToken();
       })
       .finally(() => {
         setIsLoading(false);

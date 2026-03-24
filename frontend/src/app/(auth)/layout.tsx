@@ -15,8 +15,13 @@ export default function AuthLayout({
 
   // If user already has a valid session, redirect away from auth pages
   useEffect(() => {
+    const token = getRefreshToken();
+    if (!token) {
+      setChecking(false);
+      return;
+    }
     authService
-      .refresh(getRefreshToken())
+      .refresh(token)
       .then((res) => {
         if (res.authenticated) {
           router.replace("/");
