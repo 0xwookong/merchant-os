@@ -236,17 +236,12 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[var(--gray-200)]" /></div>
-        <div className="relative flex justify-center"><span className="bg-white px-3 text-xs text-[var(--gray-400)]">{t("auth.register.hasAccount")}</span></div>
-      </div>
-
-      <Link
-        href="/login"
-        className="block w-full text-center border border-[var(--gray-300)] text-[var(--gray-700)] font-medium py-3 px-5 rounded-xl hover:bg-[var(--gray-50)] hover:border-[var(--gray-400)] transition-all text-sm"
-      >
-        {t("auth.register.goLogin")}
-      </Link>
+      <p className="text-center text-sm text-[var(--gray-500)]">
+        {t("auth.register.hasAccount")}{" "}
+        <Link href="/login" className="font-medium text-[var(--gray-900)] hover:underline inline-flex items-center gap-0.5">
+          {t("auth.register.goLogin")} <ArrowRightIcon className="w-3 h-3" />
+        </Link>
+      </p>
     </div>
   );
 }
