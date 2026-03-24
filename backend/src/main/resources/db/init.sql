@@ -59,6 +59,29 @@ CREATE TABLE IF NOT EXISTS t_kyb_application (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Onboarding application table (merchant onboarding)
+CREATE TABLE IF NOT EXISTS t_onboarding_application (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT 'DRAFT/SUBMITTED/UNDER_REVIEW/APPROVED/REJECTED',
+    current_step INT NOT NULL DEFAULT 1,
+    company_name VARCHAR(200),
+    company_address VARCHAR(500),
+    contact_name VARCHAR(100),
+    contact_phone VARCHAR(50),
+    contact_email VARCHAR(200),
+    business_type VARCHAR(50),
+    monthly_volume VARCHAR(50),
+    supported_fiat VARCHAR(200) COMMENT 'comma separated',
+    supported_crypto VARCHAR(200) COMMENT 'comma separated',
+    business_desc VARCHAR(2000),
+    reject_reason VARCHAR(500),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_merchant_id (merchant_id),
+    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
 CREATE TABLE IF NOT EXISTS t_audit_log (
