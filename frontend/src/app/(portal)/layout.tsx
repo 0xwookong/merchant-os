@@ -3,6 +3,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/providers/auth-provider";
+import { EnvironmentProvider } from "@/providers/environment-provider";
+import Sidebar from "@/components/layout/sidebar";
+import TopBar from "@/components/layout/topbar";
 
 function PortalGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -26,10 +29,16 @@ function PortalGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-[var(--bg-light)]">
+      <Sidebar />
+      <TopBar />
+      <main className="ml-60 pt-16 p-6">{children}</main>
+    </div>
+  );
 }
 
 export default function PortalLayout({
@@ -39,12 +48,9 @@ export default function PortalLayout({
 }) {
   return (
     <AuthProvider>
-      <PortalGuard>
-        {/* Task-004b will add Sidebar + TopBar here */}
-        <div className="min-h-screen bg-[var(--bg-light)]">
-          <main className="p-6">{children}</main>
-        </div>
-      </PortalGuard>
+      <EnvironmentProvider>
+        <PortalGuard>{children}</PortalGuard>
+      </EnvironmentProvider>
     </AuthProvider>
   );
 }

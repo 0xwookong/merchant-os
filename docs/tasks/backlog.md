@@ -77,7 +77,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | 001 | 项目脚手架搭建 | ✅ Done (2026-03-23) |
 | 002 | 商户注册 | ✅ Done (2026-03-23) |
 | 003 | 商户登录 + JWT | ✅ Done (2026-03-24) |
-| 004 | 平台布局壳 | ⏳ Pending |
+| 004 | 平台布局壳 | ✅ Done (2026-03-24, split: 004a+004b) |
 | 005 | 全局环境切换 | ⏳ Pending |
 | 006 | 快速开始页面 | ⏳ Pending |
 | 007 | KYB 引导认证 | ⏳ Pending |
@@ -132,6 +132,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | M-9 | 前端无 401 自动刷新 | MEDIUM | Task-004 | API client 拦截器 |
 | M-10 | 无安全响应头 | MEDIUM | Task-004 | next.config.ts 配置 CSP/HSTS |
 | M-1 | CSRF 已禁用 | MEDIUM | 文档化 | SPA + SameSite=Strict 可接受，需文档 |
+| M-11 | 浏览器返回按钮导致加载死循环 | MEDIUM | 独立 Task | auth/portal 页面间客户端重定向存在历史栈问题，需用 Next.js Middleware 在服务端处理 |
 
 ---
 
