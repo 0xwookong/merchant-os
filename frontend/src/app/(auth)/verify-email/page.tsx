@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authService } from "@/services/authService";
@@ -28,6 +28,7 @@ function VerifyEmailContent() {
   const token = searchParams.get("token");
   const [status, setStatus] = useState<Status>("loading");
   const [errorMessage, setErrorMessage] = useState("");
+  const calledRef = useRef(false);
 
   useEffect(() => {
     if (!token) {
@@ -35,6 +36,10 @@ function VerifyEmailContent() {
       setErrorMessage("验证链接无效：缺少 token 参数");
       return;
     }
+
+    // Prevent double-call in React Strict Mode (dev mode runs effects twice)
+    if (calledRef.current) return;
+    calledRef.current = true;
 
     authService
       .verifyEmail(token)
