@@ -36,6 +36,7 @@ class WebhookApiTest {
     @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
+    @Autowired private WebhookLogMapper webhookLogMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private StringRedisTemplate redis;
 
@@ -44,6 +45,7 @@ class WebhookApiTest {
     @BeforeEach
     void setUp() throws Exception {
         auditLogMapper.delete(null);
+        webhookLogMapper.delete(null);
         kybApplicationMapper.delete(null);
         onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
@@ -191,6 +193,28 @@ class WebhookApiTest {
                     .andExpect(status().isOk());
 
             assertThat(webhookConfigMapper.selectCount(null)).isEqualTo(0);
+        }
+    }
+
+    @Nested
+    @DisplayName("推送日志")
+    class Logs {
+
+        @Test
+        @DisplayName("查询日志列表 → 200")
+        void should_returnLogs() throws Exception {
+            Long whId = createWebhook(token);
+
+            // Test push creates a log entry (will fail since URL is unreachable, but log is still written)
+            mockMvc.perform(post("/api/v1/webhooks/" + whId + "/test")
+                    .header("Authorization", "Bearer " + token));
+
+            mockMvc.perform(get("/api/v1/webhooks/" + whId + "/logs")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").isArray())
+                    .andExpect(jsonPath("$.data[0].eventType").value("test.ping"))
+                    .andExpect(jsonPath("$.data[0].status").exists());
         }
     }
 

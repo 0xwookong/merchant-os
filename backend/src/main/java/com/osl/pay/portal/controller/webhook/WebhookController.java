@@ -2,6 +2,7 @@ package com.osl.pay.portal.controller.webhook;
 
 import com.osl.pay.portal.common.result.Result;
 import com.osl.pay.portal.model.dto.WebhookCreateRequest;
+import com.osl.pay.portal.model.dto.WebhookLogResponse;
 import com.osl.pay.portal.model.dto.WebhookResponse;
 import com.osl.pay.portal.security.AuthUserDetails;
 import com.osl.pay.portal.service.WebhookService;
@@ -48,5 +49,11 @@ public class WebhookController {
     public Result<String> testPush(@AuthenticationPrincipal AuthUserDetails user,
                                    @PathVariable Long id) {
         return Result.ok(webhookService.testPush(user.getMerchantId(), id));
+    }
+
+    @GetMapping("/{id}/logs")
+    public Result<List<WebhookLogResponse>> getLogs(@AuthenticationPrincipal AuthUserDetails user,
+                                                    @PathVariable Long id) {
+        return Result.ok(webhookService.getLogs(user.getMerchantId(), id));
     }
 }

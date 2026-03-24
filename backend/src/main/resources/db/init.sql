@@ -137,6 +137,24 @@ CREATE TABLE IF NOT EXISTS t_webhook_config (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Webhook push log table
+CREATE TABLE IF NOT EXISTS t_webhook_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    webhook_id BIGINT NOT NULL,
+    merchant_id BIGINT NOT NULL,
+    event_type VARCHAR(50) NOT NULL COMMENT '事件类型',
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT 'pending/success/retry_pending/final_failed',
+    http_status INT COMMENT '响应状态码',
+    retry_count INT NOT NULL DEFAULT 0 COMMENT '已重试次数',
+    request_body TEXT COMMENT '请求内容',
+    response_body VARCHAR(2000) COMMENT '响应内容',
+    error_message VARCHAR(500),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_webhook_id (webhook_id),
+    INDEX idx_merchant_id (merchant_id),
+    FOREIGN KEY (webhook_id) REFERENCES t_webhook_config(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
 CREATE TABLE IF NOT EXISTS t_audit_log (

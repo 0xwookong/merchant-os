@@ -14,6 +14,18 @@ export interface WebhookCreateRequest {
   events: string[];
 }
 
+export interface WebhookLogEntry {
+  id: number;
+  eventType: string;
+  status: string;
+  httpStatus: number | null;
+  retryCount: number;
+  requestBody: string | null;
+  responseBody: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+}
+
 export const webhookService = {
   list(): Promise<WebhookConfig[]> {
     return api.get<WebhookConfig[]>("/api/v1/webhooks");
@@ -29,5 +41,8 @@ export const webhookService = {
   },
   testPush(id: number): Promise<string> {
     return api.post<string>(`/api/v1/webhooks/${id}/test`);
+  },
+  getLogs(id: number): Promise<WebhookLogEntry[]> {
+    return api.get<WebhookLogEntry[]>(`/api/v1/webhooks/${id}/logs`);
   },
 };

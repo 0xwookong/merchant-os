@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useI18n } from "@/providers/language-provider";
-import { webhookService, type WebhookConfig } from "@/services/webhookService";
+import { webhookService, type WebhookConfig, type WebhookLogEntry } from "@/services/webhookService";
 import {
   PlusIcon,
   PencilSquareIcon,
@@ -12,6 +12,8 @@ import {
   CheckIcon,
   BellAlertIcon,
   ExclamationTriangleIcon,
+  ClockIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 const ALL_EVENTS = [
@@ -40,6 +42,9 @@ export default function WebhooksPage() {
   const [formError, setFormError] = useState("");
   const [testResult, setTestResult] = useState<{ id: number; msg: string } | null>(null);
   const [copiedSecret, setCopiedSecret] = useState<number | null>(null);
+  const [expandedLogs, setExpandedLogs] = useState<number | null>(null);
+  const [logs, setLogs] = useState<WebhookLogEntry[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   const fetchConfigs = useCallback(() => {
     setLoading(true);
@@ -107,6 +112,23 @@ export default function WebhooksPage() {
       setCopiedSecret(id);
       setTimeout(() => setCopiedSecret(null), 2000);
     } catch { /* */ }
+  };
+
+  const toggleLogs = async (id: number) => {
+    if (expandedLogs === id) {
+      setExpandedLogs(null);
+      return;
+    }
+    setExpandedLogs(id);
+    setLogsLoading(true);
+    try {
+      const data = await webhookService.getLogs(id);
+      setLogs(data);
+    } catch {
+      setLogs([]);
+    } finally {
+      setLogsLoading(false);
+    }
   };
 
   const toggleEvent = (ev: string) => {
@@ -212,6 +234,10 @@ export default function WebhooksPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => toggleLogs(config.id)} title="Logs"
+                    className={`p-2 rounded-lg hover:bg-[var(--gray-100)] transition-colors ${expandedLogs === config.id ? "text-blue-600" : "text-[var(--gray-500)]"}`}>
+                    <ClockIcon className="w-4 h-4" />
+                  </button>
                   <button onClick={() => handleTest(config.id)} title={t("webhooks.test")}
                     className="p-2 rounded-lg hover:bg-[var(--gray-100)] transition-colors text-[var(--gray-500)]">
                     <BoltIcon className="w-4 h-4" />
@@ -226,10 +252,52 @@ export default function WebhooksPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Push Logs */}
+              {expandedLogs === config.id && (
+                <div className="mt-4 border-t border-[var(--gray-100)] pt-4">
+                  <h4 className="text-xs font-semibold text-[var(--gray-700)] mb-2 flex items-center gap-1">
+                    <ClockIcon className="w-3.5 h-3.5" /> 推送日志
+                  </h4>
+                  {logsLoading ? (
+                    <div className="py-4 text-center"><div className="w-4 h-4 border-2 border-[var(--gray-300)] border-t-[var(--primary-black)] rounded-full animate-spin mx-auto" /></div>
+                  ) : logs.length === 0 ? (
+                    <div className="text-xs text-[var(--gray-400)] py-2">暂无推送日志</div>
+                  ) : (
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {logs.map((l) => (
+                        <div key={l.id} className="flex items-center gap-3 text-xs bg-[var(--gray-50)] rounded-lg px-3 py-2">
+                          <span className="font-mono text-[var(--gray-600)]">{l.eventType}</span>
+                          <LogStatusBadge status={l.status} />
+                          {l.httpStatus && <span className="font-mono text-[var(--gray-500)]">HTTP {l.httpStatus}</span>}
+                          {l.retryCount > 0 && <span className="text-[var(--gray-400)]">×{l.retryCount}</span>}
+                          {l.errorMessage && <span className="text-red-500 truncate max-w-40">{l.errorMessage}</span>}
+                          <span className="ml-auto text-[var(--gray-400)]">{new Date(l.createdAt).toLocaleString("zh-CN")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+const LOG_STATUS_STYLES: Record<string, string> = {
+  success: "bg-green-100 text-green-700",
+  pending: "bg-yellow-100 text-yellow-700",
+  retry_pending: "bg-orange-100 text-orange-700",
+  final_failed: "bg-red-100 text-red-700",
+};
+
+function LogStatusBadge({ status }: { status: string }) {
+  return (
+    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${LOG_STATUS_STYLES[status] || "bg-gray-100 text-gray-600"}`}>
+      {status}
+    </span>
   );
 }
