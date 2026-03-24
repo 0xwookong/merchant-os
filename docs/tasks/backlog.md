@@ -89,7 +89,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | 013 | 签名工具 | ✅ Done (2026-03-24) |
 | 014 | API 文档引擎 - 端点列表与详情 | ✅ Done (2026-03-24) |
 | 015 | API 文档引擎 - AI 提示词与代码生成 | ✅ Done (2026-03-24, merged into 014) |
-| 016 | API 文档引擎 - 在线试用 | ⏳ Pending |
+| 016 | API 文档引擎 - 在线试用 | ✅ Done (2026-03-24) |
 | 017 | Webhook - 配置管理 | ⏳ Pending |
 | 018 | Webhook - 推送日志 | ⏳ Pending |
 | 019 | 域名白名单 | ⏳ Pending |
