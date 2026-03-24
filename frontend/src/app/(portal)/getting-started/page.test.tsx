@@ -38,7 +38,7 @@ describe("快速开始页面", () => {
   it("展示货币网络限额表格", () => {
     render(<GettingStartedPage />);
     expect(screen.getAllByText("USDT / USDC").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("43,000 EUR").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/43,000 EUR/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("展示快速链接卡片（API 文档、签名工具、Webhook 管理）", () => {
