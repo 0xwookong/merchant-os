@@ -233,6 +233,16 @@ const zh = {
   "domains.remove.confirm": "确定要移除此域名？移除后该域名将无法调用 Web SDK。",
   "domains.domain": "域名",
   "domains.addedAt": "添加时间",
+
+  // logs
+  "logs.title": "API 请求日志",
+  "logs.subtitle": "查看最新 API 请求记录，快速排查集成问题",
+  "logs.empty": "暂无请求日志",
+  "logs.autoRefresh": "每 5 秒自动刷新",
+  "logs.detail.title": "请求详情",
+  "logs.detail.request": "Request Body",
+  "logs.detail.response": "Response Body",
+  "logs.detail.close": "关闭",
 };
 
 export default zh;

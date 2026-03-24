@@ -233,6 +233,16 @@ const en = {
   "domains.remove.confirm": "Remove this domain? It will no longer be able to use the Web SDK.",
   "domains.domain": "Domain",
   "domains.addedAt": "Added At",
+
+  // logs
+  "logs.title": "API Request Logs",
+  "logs.subtitle": "View latest API requests to quickly debug integration issues",
+  "logs.empty": "No request logs",
+  "logs.autoRefresh": "Auto-refreshes every 5 seconds",
+  "logs.detail.title": "Request Detail",
+  "logs.detail.request": "Request Body",
+  "logs.detail.response": "Response Body",
+  "logs.detail.close": "Close",
 };
 
 export default en;

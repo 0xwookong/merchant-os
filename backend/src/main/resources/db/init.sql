@@ -137,6 +137,22 @@ CREATE TABLE IF NOT EXISTS t_webhook_config (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- API request log table
+CREATE TABLE IF NOT EXISTS t_api_request_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    path VARCHAR(500) NOT NULL,
+    status_code INT NOT NULL,
+    duration_ms INT NOT NULL,
+    request_body TEXT,
+    response_body TEXT,
+    environment VARCHAR(20) NOT NULL DEFAULT 'sandbox',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_merchant_env (merchant_id, environment),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Domain whitelist table
 CREATE TABLE IF NOT EXISTS t_domain_whitelist (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
