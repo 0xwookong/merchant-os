@@ -16,13 +16,13 @@ describe("注册页面", () => {
     expect(screen.getByRole("heading", { name: "auth.register.title" })).toBeDefined();
   });
 
-  it("渲染所有必填表单字段：邮箱、密码、确认密码、公司名称、联系人姓名", () => {
+  it("渲染表单字段：邮箱、密码、确认密码（无公司名和联系人）", () => {
     render(<RegisterPage />);
     expect(screen.getAllByText("auth.register.email").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("auth.register.password").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("auth.register.confirmPassword").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("auth.register.companyName").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("auth.register.contactName").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("auth.register.companyName")).toBeNull();
+    expect(screen.queryByText("auth.register.contactName")).toBeNull();
   });
 
   it("渲染提交按钮", () => {

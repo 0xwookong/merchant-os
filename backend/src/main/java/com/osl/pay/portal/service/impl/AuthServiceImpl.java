@@ -65,34 +65,47 @@ public class AuthServiceImpl implements AuthService {
 
         validatePassword(request.getPassword(), request.getEmail());
 
-        // Check company name uniqueness
-        Long existingMerchantCount = merchantMapper.selectCount(
-                new LambdaQueryWrapper<Merchant>()
-                        .eq(Merchant::getCompanyName, request.getCompanyName()));
-
-        // Check email uniqueness
+        // Check email uniqueness (company name is auto-generated, always unique)
         Long existingUserCount = merchantUserMapper.selectCount(
                 new LambdaQueryWrapper<MerchantUser>()
                         .eq(MerchantUser::getEmail, request.getEmail()));
 
-        // Unified error: do NOT reveal which check failed (prevents enumeration)
-        if (existingMerchantCount > 0 || existingUserCount > 0) {
-            auditService.log(AuditEventType.REGISTER, httpRequest, false,
-                    "duplicate: company=" + (existingMerchantCount > 0) + ", email=" + (existingUserCount > 0));
+        if (existingUserCount > 0) {
+            auditService.log(AuditEventType.REGISTER, httpRequest, false, "duplicate email");
             throw new BizException(40002, "注册信息有误，请检查后重试或联系客服");
         }
 
+        // Auto-generate company name if not provided (Stripe-like minimal registration)
+        String companyName = (request.getCompanyName() != null && !request.getCompanyName().isBlank())
+                ? request.getCompanyName()
+                : "M-" + UUID.randomUUID().toString().substring(0, 8);
+
+        // Check company name uniqueness (only if user provided one)
+        if (request.getCompanyName() != null && !request.getCompanyName().isBlank()) {
+            Long existingMerchantCount = merchantMapper.selectCount(
+                    new LambdaQueryWrapper<Merchant>()
+                            .eq(Merchant::getCompanyName, companyName));
+            if (existingMerchantCount > 0) {
+                throw new BizException(40002, "注册信息有误，请检查后重试或联系客服");
+            }
+        }
+
         Merchant merchant = new Merchant();
-        merchant.setCompanyName(request.getCompanyName());
+        merchant.setCompanyName(companyName);
         merchant.setStatus(MerchantStatus.ACTIVE);
         merchant.setKybStatus(KybStatus.NOT_STARTED);
         merchantMapper.insert(merchant);
+
+        // Default contact name to email prefix if not provided
+        String contactName = (request.getContactName() != null && !request.getContactName().isBlank())
+                ? request.getContactName()
+                : request.getEmail().split("@")[0];
 
         MerchantUser user = new MerchantUser();
         user.setMerchantId(merchant.getId());
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setContactName(request.getContactName());
+        user.setContactName(contactName);
         user.setRole(UserRole.ADMIN);
         user.setStatus(UserStatus.ACTIVE);
         user.setEmailVerified(false);

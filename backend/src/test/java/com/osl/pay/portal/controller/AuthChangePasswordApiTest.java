@@ -3,11 +3,16 @@ package com.osl.pay.portal.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.osl.pay.portal.model.dto.*;
 import com.osl.pay.portal.repository.ApiCredentialMapper;
+import com.osl.pay.portal.repository.ApiRequestLogMapper;
 import com.osl.pay.portal.repository.AuditLogMapper;
+import com.osl.pay.portal.repository.DomainWhitelistMapper;
+import com.osl.pay.portal.repository.KybApplicationMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
+import com.osl.pay.portal.repository.OnboardingApplicationMapper;
 import com.osl.pay.portal.repository.OrderMapper;
 import com.osl.pay.portal.repository.MerchantUserMapper;
 import com.osl.pay.portal.repository.WebhookConfigMapper;
+import com.osl.pay.portal.repository.WebhookLogMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,12 +41,22 @@ class AuthChangePasswordApiTest {
     @Autowired private OrderMapper orderMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
+    @Autowired private ApiRequestLogMapper apiRequestLogMapper;
+    @Autowired private WebhookLogMapper webhookLogMapper;
+    @Autowired private DomainWhitelistMapper domainWhitelistMapper;
+    @Autowired private KybApplicationMapper kybApplicationMapper;
+    @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private StringRedisTemplate redis;
 
     @BeforeEach
     void cleanUp() {
         auditLogMapper.delete(null);
+        apiRequestLogMapper.delete(null);
+        webhookLogMapper.delete(null);
+        domainWhitelistMapper.delete(null);
+        kybApplicationMapper.delete(null);
+        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);

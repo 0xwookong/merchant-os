@@ -4,8 +4,8 @@ interface RegisterRequest {
   email: string;
   password: string;
   confirmPassword: string;
-  companyName: string;
-  contactName: string;
+  companyName?: string;
+  contactName?: string;
 }
 
 interface RegisterResponse {

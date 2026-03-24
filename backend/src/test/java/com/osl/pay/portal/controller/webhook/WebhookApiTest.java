@@ -37,6 +37,8 @@ class WebhookApiTest {
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private WebhookLogMapper webhookLogMapper;
+    @Autowired private DomainWhitelistMapper domainWhitelistMapper;
+    @Autowired private ApiRequestLogMapper apiRequestLogMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private StringRedisTemplate redis;
 
@@ -45,7 +47,9 @@ class WebhookApiTest {
     @BeforeEach
     void setUp() throws Exception {
         auditLogMapper.delete(null);
+        apiRequestLogMapper.delete(null);
         webhookLogMapper.delete(null);
+        domainWhitelistMapper.delete(null);
         kybApplicationMapper.delete(null);
         onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);

@@ -21,11 +21,11 @@ public class RegisterRequest {
     @Size(max = 72, message = "密码长度不能超过 72 个字符")
     private String confirmPassword;
 
-    @NotBlank(message = "公司名称不能为空")
+    /** Optional — auto-generated if not provided */
     @Size(max = 200, message = "公司名称不能超过 200 字符")
     private String companyName;
 
-    @NotBlank(message = "联系人姓名不能为空")
+    /** Optional — defaults to email prefix if not provided */
     @Size(max = 100, message = "联系人姓名不能超过 100 字符")
     private String contactName;
 }

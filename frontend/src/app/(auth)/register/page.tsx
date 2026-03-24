@@ -11,16 +11,12 @@ import {
   EyeIcon,
   EyeSlashIcon,
   ArrowRightIcon,
-  BuildingOffice2Icon,
-  UserIcon,
 } from "@heroicons/react/24/outline";
 
 interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
-  companyName?: string;
-  contactName?: string;
 }
 
 export default function RegisterPage() {
@@ -29,8 +25,6 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    companyName: "",
-    contactName: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState("");
@@ -68,14 +62,6 @@ export default function RegisterPage() {
       errs.confirmPassword = t("auth.validation.confirmPasswordRequired");
     } else if (form.password !== form.confirmPassword) {
       errs.confirmPassword = t("auth.validation.confirmPasswordMismatch");
-    }
-
-    if (!form.companyName.trim()) {
-      errs.companyName = t("auth.validation.companyNameRequired");
-    }
-
-    if (!form.contactName.trim()) {
-      errs.contactName = t("auth.validation.contactNameRequired");
     }
 
     return errs;
@@ -235,50 +221,6 @@ export default function RegisterPage() {
             </button>
           </div>
           {errors.confirmPassword && <p className="mt-1 text-xs text-[var(--error)]">{errors.confirmPassword}</p>}
-        </div>
-
-        {/* Company Name */}
-        <div>
-          <label htmlFor="companyName" className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">
-            {t("auth.register.companyName")}
-          </label>
-          <div className="relative">
-            <BuildingOffice2Icon className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--gray-400)]" />
-            <input
-              id="companyName"
-              name="companyName"
-              type="text"
-              value={form.companyName}
-              onChange={handleChange}
-              placeholder={t("auth.register.companyName.placeholder")}
-              className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-black)] focus:border-transparent transition-shadow ${
-                errors.companyName ? "border-red-300 bg-[var(--error-soft)]" : "border-[var(--gray-300)]"
-              }`}
-            />
-          </div>
-          {errors.companyName && <p className="mt-1 text-xs text-[var(--error)]">{errors.companyName}</p>}
-        </div>
-
-        {/* Contact Name */}
-        <div>
-          <label htmlFor="contactName" className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">
-            {t("auth.register.contactName")}
-          </label>
-          <div className="relative">
-            <UserIcon className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--gray-400)]" />
-            <input
-              id="contactName"
-              name="contactName"
-              type="text"
-              value={form.contactName}
-              onChange={handleChange}
-              placeholder={t("auth.register.contactName.placeholder")}
-              className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-black)] focus:border-transparent transition-shadow ${
-                errors.contactName ? "border-red-300 bg-[var(--error-soft)]" : "border-[var(--gray-300)]"
-              }`}
-            />
-          </div>
-          {errors.contactName && <p className="mt-1 text-xs text-[var(--error)]">{errors.contactName}</p>}
         </div>
 
         <button

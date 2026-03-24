@@ -33,6 +33,11 @@ class OrderApiTest {
     @Autowired private OrderMapper orderMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
+    @Autowired private ApiRequestLogMapper apiRequestLogMapper;
+    @Autowired private WebhookLogMapper webhookLogMapper;
+    @Autowired private DomainWhitelistMapper domainWhitelistMapper;
+    @Autowired private KybApplicationMapper kybApplicationMapper;
+    @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private StringRedisTemplate redis;
 
@@ -41,6 +46,11 @@ class OrderApiTest {
     @BeforeEach
     void cleanUp() throws Exception {
         auditLogMapper.delete(null);
+        apiRequestLogMapper.delete(null);
+        webhookLogMapper.delete(null);
+        domainWhitelistMapper.delete(null);
+        kybApplicationMapper.delete(null);
+        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
