@@ -6,11 +6,20 @@ import { useRouter } from "next/navigation";
 import { authService, type LoginResponse, type MerchantSelectItem } from "@/services/authService";
 import { setAccessToken, setRefreshToken } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
+import {
+  EnvelopeIcon,
+  LockClosedIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  ArrowRightIcon,
+  BuildingOffice2Icon,
+} from "@heroicons/react/24/outline";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [merchants, setMerchants] = useState<MerchantSelectItem[] | null>(null);
@@ -54,31 +63,39 @@ export default function LoginPage() {
   if (merchants) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-[var(--gray-900)]">选择商户</h1>
+        <div className="text-center">
+          <div className="w-12 h-12 bg-[var(--gray-100)] rounded-xl flex items-center justify-center mx-auto mb-4">
+            <BuildingOffice2Icon className="w-6 h-6 text-[var(--gray-600)]" />
+          </div>
+          <h1 className="text-xl font-semibold text-[var(--gray-900)]">选择商户</h1>
           <p className="text-sm text-[var(--gray-500)] mt-1">
             您的账号关联了多个商户，请选择要登录的商户
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {merchants.map((m) => (
             <button
               key={m.merchantId}
               onClick={() => handleLogin(m.merchantId)}
               disabled={loading}
-              className="w-full text-left bg-white border border-[var(--gray-200)] rounded-lg p-4 hover:bg-[var(--gray-50)] hover:shadow-sm transition-all disabled:opacity-50"
+              className="w-full text-left border border-[var(--gray-200)] rounded-xl p-4 hover:bg-[var(--gray-50)] hover:border-[var(--gray-300)] transition-all disabled:opacity-50 group"
             >
-              <div className="font-medium text-[var(--gray-900)]">{m.companyName}</div>
-              <div className="text-xs text-[var(--gray-500)] mt-1">
-                角色: {m.role === "ADMIN" ? "管理员" : m.role === "BUSINESS" ? "业务人员" : "技术人员"}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-[var(--gray-900)]">{m.companyName}</div>
+                  <div className="text-xs text-[var(--gray-500)] mt-0.5">
+                    {m.role === "ADMIN" ? "管理员" : m.role === "BUSINESS" ? "业务人员" : "技术人员"}
+                  </div>
+                </div>
+                <ArrowRightIcon className="w-4 h-4 text-[var(--gray-400)] group-hover:text-[var(--gray-700)] transition-colors" />
               </div>
             </button>
           ))}
         </div>
 
         {error && (
-          <div className="bg-[var(--error-soft)] border border-red-200 rounded-lg px-4 py-3 text-sm text-[var(--error)]">
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
             {error}
           </div>
         )}
@@ -87,7 +104,7 @@ export default function LoginPage() {
           onClick={() => { setMerchants(null); setError(""); }}
           className="w-full text-sm text-[var(--gray-500)] hover:text-[var(--gray-700)] transition-colors"
         >
-          ← 返回登录
+          &larr; 返回登录
         </button>
       </div>
     );
@@ -95,67 +112,108 @@ export default function LoginPage() {
 
   // Login form
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-[var(--gray-900)]">登录</h1>
-        <p className="text-sm text-[var(--gray-500)] mt-1">登录您的 OSLPay 商户账户</p>
+    <div className="space-y-8">
+      {/* Header with logo */}
+      <div className="text-center">
+        <div className="w-12 h-12 bg-[var(--primary-black)] rounded-xl flex items-center justify-center mx-auto mb-4">
+          <span className="text-[var(--neon-green)] font-bold text-xl">O</span>
+        </div>
+        <h1 className="text-xl font-semibold text-[var(--gray-900)]">欢迎回来</h1>
+        <p className="text-sm text-[var(--gray-500)] mt-1">登录您的 OSL Pay 商户账户</p>
       </div>
 
       {error && (
-        <div className="bg-[var(--error-soft)] border border-red-200 rounded-lg px-4 py-3 text-sm text-[var(--error)]">
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-[var(--gray-700)] mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">
             邮箱
           </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setError(""); }}
-            placeholder="your@company.com"
-            className="w-full border border-[var(--gray-300)] rounded-lg px-4 py-2.5 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="relative">
+            <EnvelopeIcon className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--gray-400)]" />
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError(""); }}
+              placeholder="your@company.com"
+              className="w-full border border-[var(--gray-300)] rounded-xl pl-10 pr-4 py-3 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-black)] focus:border-transparent transition-shadow"
+            />
+          </div>
         </div>
 
+        {/* Password */}
         <div>
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-1.5">
             <label htmlFor="password" className="block text-sm font-medium text-[var(--gray-700)]">
               密码
             </label>
-            <Link href="/forgot-password" className="text-xs text-[var(--gray-500)] hover:text-[var(--gray-700)] transition-colors">
+            <Link href="/forgot-password" className="text-xs text-[var(--gray-500)] hover:text-[var(--gray-900)] transition-colors">
               忘记密码？
             </Link>
           </div>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); setError(""); }}
-            placeholder="输入密码"
-            className="w-full border border-[var(--gray-300)] rounded-lg px-4 py-2.5 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="relative">
+            <LockClosedIcon className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--gray-400)]" />
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError(""); }}
+              placeholder="输入密码"
+              className="w-full border border-[var(--gray-300)] rounded-xl pl-10 pr-11 py-3 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-black)] focus:border-transparent transition-shadow"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-[var(--gray-400)] hover:text-[var(--gray-600)] transition-colors"
+              aria-label={showPassword ? "隐藏密码" : "显示密码"}
+            >
+              {showPassword ? <EyeSlashIcon className="w-4.5 h-4.5" /> : <EyeIcon className="w-4.5 h-4.5" />}
+            </button>
+          </div>
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[var(--primary-black)] text-white font-medium py-2.5 px-5 rounded-lg hover:bg-[#1a1a1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-[var(--primary-black)] text-white font-medium py-3 px-5 rounded-xl hover:bg-[#1a1a1a] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center justify-center gap-2"
         >
-          {loading ? "登录中..." : "登录"}
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              登录中...
+            </>
+          ) : (
+            <>
+              登录
+              <ArrowRightIcon className="w-4 h-4" />
+            </>
+          )}
         </button>
       </form>
 
-      <p className="text-center text-sm text-[var(--gray-500)]">
-        没有账号？{" "}
-        <Link href="/register" className="font-medium text-[var(--gray-700)] hover:text-[var(--gray-900)] transition-colors">
-          去注册
-        </Link>
-      </p>
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-[var(--gray-200)]" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-3 text-xs text-[var(--gray-400)]">还没有账号？</span>
+        </div>
+      </div>
+
+      <Link
+        href="/register"
+        className="block w-full text-center border border-[var(--gray-300)] text-[var(--gray-700)] font-medium py-3 px-5 rounded-xl hover:bg-[var(--gray-50)] hover:border-[var(--gray-400)] transition-all text-sm"
+      >
+        创建商户账户
+      </Link>
     </div>
   );
 }
