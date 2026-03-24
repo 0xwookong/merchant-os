@@ -59,6 +59,31 @@ CREATE TABLE IF NOT EXISTS t_kyb_application (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Order table (payment orders)
+CREATE TABLE IF NOT EXISTS t_order (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    order_no VARCHAR(50) NOT NULL COMMENT 'e.g. ORD20240303001',
+    fiat_amount DECIMAL(18,2) NOT NULL,
+    fiat_currency VARCHAR(10) NOT NULL COMMENT 'USD/EUR/GBP',
+    crypto_amount DECIMAL(18,8),
+    crypto_currency VARCHAR(10) COMMENT 'BTC/ETH/USDT',
+    crypto_network VARCHAR(20) COMMENT 'ERC20/TRC20/BEP20',
+    wallet_address VARCHAR(200) COMMENT '目标钱包地址',
+    payment_method VARCHAR(20) NOT NULL COMMENT 'CARD/GOOGLEPAY/APPLEPAY',
+    status VARCHAR(20) NOT NULL COMMENT 'CREATED/PROCESSING/SUCCESSED/COMPLETED/FAILED',
+    tx_hash VARCHAR(100),
+    block_height BIGINT,
+    confirmations INT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_order_no (order_no),
+    INDEX idx_merchant_id (merchant_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at),
+    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Onboarding application table (merchant onboarding)
 CREATE TABLE IF NOT EXISTS t_onboarding_application (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,

@@ -30,6 +30,7 @@ class OnboardingApiTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
+    @Autowired private OrderMapper orderMapper;
     @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private StringRedisTemplate redis;
@@ -38,6 +39,7 @@ class OnboardingApiTest {
     void cleanUp() {
         auditLogMapper.delete(null);
         onboardingMapper.delete(null);
+        orderMapper.delete(null);
         merchantUserMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");

@@ -7,6 +7,7 @@ import com.osl.pay.portal.model.entity.MerchantUser;
 import com.osl.pay.portal.model.enums.*;
 import com.osl.pay.portal.repository.AuditLogMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
+import com.osl.pay.portal.repository.OrderMapper;
 import com.osl.pay.portal.repository.MerchantUserMapper;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
@@ -35,6 +36,7 @@ class AuthLoginApiTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
+    @Autowired private OrderMapper orderMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private StringRedisTemplate redis;
@@ -42,6 +44,7 @@ class AuthLoginApiTest {
     @BeforeEach
     void cleanUp() {
         auditLogMapper.delete(null);
+        orderMapper.delete(null);
         merchantUserMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");

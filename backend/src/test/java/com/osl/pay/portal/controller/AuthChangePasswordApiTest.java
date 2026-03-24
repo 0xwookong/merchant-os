@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.osl.pay.portal.model.dto.*;
 import com.osl.pay.portal.repository.AuditLogMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
+import com.osl.pay.portal.repository.OrderMapper;
 import com.osl.pay.portal.repository.MerchantUserMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +31,14 @@ class AuthChangePasswordApiTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
+    @Autowired private OrderMapper orderMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private StringRedisTemplate redis;
 
     @BeforeEach
     void cleanUp() {
         auditLogMapper.delete(null);
+        orderMapper.delete(null);
         merchantUserMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");
