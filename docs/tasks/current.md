@@ -1,19 +1,18 @@
-# Task-021: 成员与权限管理
+# Task-023: MCP Server 实现
 
 ## Status: In Progress
 
 ## PRD Reference
-docs/prd/10-member-permission.md
+docs/prd/09-mcp-integration.md — §2「MCP Server」
 
 ## Scope
-- 前端: `/business/members` 页面（成员列表 + 邀请对话框 + 移除）
-- 后端:
-  - `GET /api/v1/members` — 成员列表
-  - `POST /api/v1/members/invite` — 邀请成员（发邮件）
-  - `DELETE /api/v1/members/{id}` — 移除成员
-- 数据库: 复用 t_merchant_user（添加 invited_by 字段暂不需要，邀请状态用 email_verified 区分）
+- 后端: MCP SSE 端点 + 6 个工具实现
+  - `GET /api/v1/mcp/sse` — SSE 连接（推送工具定义）
+  - `POST /api/v1/mcp/tools/call` — 工具调用
+- 6 个工具: getQuote, createOrder, queryOrder, generateSignature, getCurrencyList, getGuide
 
 ## Development Plan
-- [ ] 1. Backend: MemberService + MemberController (list/invite/remove)
-- [ ] 2. Backend tests
-- [ ] 3. Frontend: memberService + i18n + page + test
+- [ ] 1. MCP 协议 DTO（ToolDefinition, ToolCallRequest, ToolCallResponse）
+- [ ] 2. McpToolService（6 个工具实现）
+- [ ] 3. McpController（SSE + tool call endpoint）
+- [ ] 4. 后端测试

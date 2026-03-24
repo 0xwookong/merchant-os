@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/change-password").authenticated()
                 // Auth endpoints that are public
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/mcp/**").permitAll()
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()
             )
