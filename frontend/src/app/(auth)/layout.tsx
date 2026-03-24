@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { getRefreshToken } from "@/lib/auth";
+import { useI18n } from "@/providers/language-provider";
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 
 export default function AuthLayout({
   children,
@@ -12,6 +14,7 @@ export default function AuthLayout({
 }) {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const { locale, setLocale } = useI18n();
 
   // If user already has a valid session, redirect away from auth pages
   useEffect(() => {
@@ -63,11 +66,10 @@ export default function AuthLayout({
         {/* Tagline */}
         <div className="relative">
           <h2 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
-            安全合规的<br />
-            加密货币<br />
+            安全合规的加密货币<br />
             <span className="text-[var(--neon-green)]">支付网关</span>
           </h2>
-          <p className="text-gray-400 mt-6 max-w-md leading-relaxed">
+          <p className="text-gray-400 mt-6 max-w-md leading-relaxed text-sm">
             OSL Pay 是 OSL Group (HKEX: 863) 旗下的专业支付解决方案，为金融机构和金融科技平台提供安全的法币与数字资产转换服务。
           </p>
         </div>
@@ -79,17 +81,31 @@ export default function AuthLayout({
       </div>
 
       {/* Right — form area */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-[var(--bg-light)]">
-        <div className="w-full max-w-md">
-          {/* Mobile logo */}
-          <div className="flex items-center justify-center gap-3 mb-8 lg:hidden">
-            <div className="w-10 h-10 bg-[var(--primary-black)] rounded-lg flex items-center justify-center">
-              <span className="text-[var(--neon-green)] font-bold text-lg">O</span>
+      <div className="flex-1 flex flex-col bg-[var(--bg-light)]">
+        {/* Top bar with language switcher */}
+        <div className="flex items-center justify-end p-4 lg:p-6">
+          <button
+            onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--gray-600)] hover:bg-white hover:shadow-sm border border-transparent hover:border-[var(--gray-200)] transition-all"
+          >
+            <GlobeAltIcon className="w-4 h-4" />
+            {locale === "zh" ? "English" : "中文"}
+          </button>
+        </div>
+
+        {/* Form centered */}
+        <div className="flex-1 flex items-center justify-center px-6 pb-12">
+          <div className="w-full max-w-md">
+            {/* Mobile logo */}
+            <div className="flex items-center justify-center gap-3 mb-8 lg:hidden">
+              <div className="w-10 h-10 bg-[var(--primary-black)] rounded-lg flex items-center justify-center">
+                <span className="text-[var(--neon-green)] font-bold text-lg">O</span>
+              </div>
+              <span className="text-xl font-semibold text-[var(--gray-900)]">OSL Pay</span>
             </div>
-            <span className="text-xl font-semibold text-[var(--gray-900)]">OSL Pay</span>
-          </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-[var(--gray-200)] p-8">
-            {children}
+            <div className="bg-white rounded-2xl shadow-sm border border-[var(--gray-200)] p-8">
+              {children}
+            </div>
           </div>
         </div>
       </div>
