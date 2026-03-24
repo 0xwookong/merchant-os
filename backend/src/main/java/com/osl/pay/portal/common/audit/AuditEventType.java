@@ -14,4 +14,5 @@ public final class AuditEventType {
     public static final String PASSWORD_RESET = "PASSWORD_RESET";
     public static final String PASSWORD_CHANGE = "PASSWORD_CHANGE";
     public static final String RATE_LIMITED = "RATE_LIMITED";
+    public static final String CREDENTIAL_GENERATED = "CREDENTIAL_GENERATED";
 }

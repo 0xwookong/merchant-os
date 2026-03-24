@@ -107,6 +107,22 @@ CREATE TABLE IF NOT EXISTS t_onboarding_application (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- API credential table (merchant API keys)
+CREATE TABLE IF NOT EXISTS t_api_credential (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    app_id VARCHAR(64) NOT NULL COMMENT '应用唯一标识 osl_app_UUID',
+    api_public_key TEXT NOT NULL COMMENT 'RSA 2048 公钥 PEM',
+    api_private_key TEXT NOT NULL COMMENT 'RSA 2048 私钥 PEM',
+    webhook_public_key TEXT NOT NULL COMMENT 'Webhook RSA 2048 公钥 PEM',
+    webhook_private_key TEXT NOT NULL COMMENT 'Webhook RSA 2048 私钥 PEM',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_merchant_id (merchant_id),
+    UNIQUE KEY uk_app_id (app_id),
+    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
 CREATE TABLE IF NOT EXISTS t_audit_log (

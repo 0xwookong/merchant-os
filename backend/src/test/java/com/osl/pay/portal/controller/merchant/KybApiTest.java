@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.osl.pay.portal.model.dto.KybSubmitRequest;
 import com.osl.pay.portal.model.dto.LoginRequest;
 import com.osl.pay.portal.model.dto.RegisterRequest;
+import com.osl.pay.portal.repository.ApiCredentialMapper;
 import com.osl.pay.portal.repository.AuditLogMapper;
 import com.osl.pay.portal.repository.KybApplicationMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
@@ -35,6 +36,7 @@ class KybApiTest {
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
     @Autowired private OrderMapper orderMapper;
+    @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private KybApplicationMapper kybApplicationMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private StringRedisTemplate redis;
@@ -43,6 +45,7 @@ class KybApiTest {
     void cleanUp() {
         auditLogMapper.delete(null);
         kybApplicationMapper.delete(null);
+        apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
         merchantMapper.delete(null);

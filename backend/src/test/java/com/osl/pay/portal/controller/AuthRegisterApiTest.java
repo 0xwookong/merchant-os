@@ -8,6 +8,7 @@ import com.osl.pay.portal.model.enums.KybStatus;
 import com.osl.pay.portal.model.enums.MerchantStatus;
 import com.osl.pay.portal.model.enums.UserRole;
 import com.osl.pay.portal.model.enums.UserStatus;
+import com.osl.pay.portal.repository.ApiCredentialMapper;
 import com.osl.pay.portal.repository.AuditLogMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
 import com.osl.pay.portal.repository.OrderMapper;
@@ -37,12 +38,14 @@ class AuthRegisterApiTest {
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
     @Autowired private OrderMapper orderMapper;
+    @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private StringRedisTemplate redis;
 
     @BeforeEach
     void cleanUp() {
         auditLogMapper.delete(null);
+        apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
         merchantMapper.delete(null);

@@ -5,6 +5,7 @@ import com.osl.pay.portal.model.dto.*;
 import com.osl.pay.portal.model.entity.Merchant;
 import com.osl.pay.portal.model.entity.MerchantUser;
 import com.osl.pay.portal.model.enums.*;
+import com.osl.pay.portal.repository.ApiCredentialMapper;
 import com.osl.pay.portal.repository.AuditLogMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
 import com.osl.pay.portal.repository.OrderMapper;
@@ -37,6 +38,7 @@ class AuthLoginApiTest {
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
     @Autowired private OrderMapper orderMapper;
+    @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private StringRedisTemplate redis;
@@ -44,6 +46,7 @@ class AuthLoginApiTest {
     @BeforeEach
     void cleanUp() {
         auditLogMapper.delete(null);
+        apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
         merchantMapper.delete(null);

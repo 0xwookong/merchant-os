@@ -31,6 +31,7 @@ class OnboardingApiTest {
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
     @Autowired private OrderMapper orderMapper;
+    @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private StringRedisTemplate redis;
@@ -39,6 +40,7 @@ class OnboardingApiTest {
     void cleanUp() {
         auditLogMapper.delete(null);
         onboardingMapper.delete(null);
+        apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
         merchantMapper.delete(null);
