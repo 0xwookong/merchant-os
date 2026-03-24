@@ -65,6 +65,10 @@ export const authService = {
     return api.post<LoginResponse>("/api/v1/auth/refresh");
   },
 
+  logout(): Promise<string> {
+    return api.post<string>("/api/v1/auth/logout");
+  },
+
   forgotPassword(data: ForgotPasswordRequest): Promise<string> {
     return api.post<string>("/api/v1/auth/forgot-password", data);
   },
