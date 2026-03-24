@@ -40,6 +40,10 @@ export const onboardingService = {
   saveDraft(data: OnboardingSaveDraftRequest): Promise<OnboardingResponse> {
     return api.post<OnboardingResponse>("/api/v1/onboarding/save-draft", data);
   },
+
+  resetToDraft(): Promise<OnboardingResponse> {
+    return api.post<OnboardingResponse>("/api/v1/onboarding/reset");
+  },
 };
 
 export type { OnboardingResponse, OnboardingSaveDraftRequest };

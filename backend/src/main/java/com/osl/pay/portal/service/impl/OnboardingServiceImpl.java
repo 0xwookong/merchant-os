@@ -2,6 +2,7 @@ package com.osl.pay.portal.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.osl.pay.portal.common.audit.AuditService;
+import com.osl.pay.portal.common.context.EnvironmentContext;
 import com.osl.pay.portal.common.exception.BizException;
 import com.osl.pay.portal.model.dto.OnboardingResponse;
 import com.osl.pay.portal.model.dto.OnboardingSaveDraftRequest;
@@ -70,7 +71,8 @@ public class OnboardingServiceImpl implements OnboardingService {
         app.setBusinessDesc(request.getBusinessDesc());
 
         if (request.isSubmit()) {
-            app.setStatus("SUBMITTED");
+            // Sandbox auto-approves, production waits for manual review
+            app.setStatus(EnvironmentContext.isSandbox() ? "APPROVED" : "SUBMITTED");
         }
 
         if (app.getId() == null) {
@@ -83,6 +85,26 @@ public class OnboardingServiceImpl implements OnboardingService {
             auditService.log(ONBOARDING_SUBMIT, null, merchantId, null, httpRequest, true, null);
         }
 
+        return toResponse(app);
+    }
+
+    @Override
+    @Transactional
+    public OnboardingResponse resetToDraft(Long merchantId, HttpServletRequest httpRequest) {
+        OnboardingApplication app = findLatest(merchantId);
+        if (app == null) {
+            throw new BizException(40001, "暂无入驻申请");
+        }
+        if (!"REJECTED".equals(app.getStatus())) {
+            throw new BizException(40001, "只有被拒绝的申请才能重新提交");
+        }
+
+        app.setStatus("DRAFT");
+        app.setCurrentStep(1);
+        app.setRejectReason(null);
+        onboardingMapper.updateById(app);
+
+        auditService.log("ONBOARDING_RESET", null, merchantId, null, httpRequest, true, null);
         return toResponse(app);
     }
 

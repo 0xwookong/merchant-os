@@ -183,8 +183,8 @@ class OnboardingApiTest {
     class Submit {
 
         @Test
-        @DisplayName("填写完整后提交 → 状态变为 SUBMITTED")
-        void should_submit_when_allFieldsFilled() throws Exception {
+        @DisplayName("沙箱环境提交 → 状态直接变为 APPROVED（自动审批）")
+        void should_autoApprove_when_sandbox() throws Exception {
             String token = registerVerifyAndLogin();
 
             OnboardingSaveDraftRequest req = fullDraft();
@@ -192,6 +192,23 @@ class OnboardingApiTest {
 
             mockMvc.perform(post("/api/v1/onboarding/save-draft")
                             .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.status").value("APPROVED"));
+        }
+
+        @Test
+        @DisplayName("生产环境提交 → 状态变为 SUBMITTED")
+        void should_setSubmitted_when_production() throws Exception {
+            String token = registerVerifyAndLogin();
+
+            OnboardingSaveDraftRequest req = fullDraft();
+            req.setSubmit(true);
+
+            mockMvc.perform(post("/api/v1/onboarding/save-draft")
+                            .header("Authorization", "Bearer " + token)
+                            .header("X-Environment", "production")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isOk())
@@ -214,7 +231,7 @@ class OnboardingApiTest {
         }
 
         @Test
-        @DisplayName("已提交后再保存草稿 → HTTP 400 '申请已提交'")
+        @DisplayName("生产环境已提交后再保存草稿 → HTTP 400 '申请已提交'")
         void should_return400_when_alreadySubmitted() throws Exception {
             String token = registerVerifyAndLogin();
 
@@ -222,16 +239,70 @@ class OnboardingApiTest {
             req.setSubmit(true);
             mockMvc.perform(post("/api/v1/onboarding/save-draft")
                     .header("Authorization", "Bearer " + token)
+                    .header("X-Environment", "production")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(req)));
 
-            // Try to save draft again
             mockMvc.perform(post("/api/v1/onboarding/save-draft")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(draftStep1())))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").value("申请已提交，不能修改"));
+        }
+    }
+
+    @Nested
+    @DisplayName("重新提交")
+    class Reset {
+
+        @Test
+        @DisplayName("REJECTED 状态重置 → 状态回退为 DRAFT，数据保留")
+        void should_resetToDraft_when_rejected() throws Exception {
+            String token = registerVerifyAndLogin();
+
+            // Submit in production → SUBMITTED
+            OnboardingSaveDraftRequest req = fullDraft();
+            req.setSubmit(true);
+            mockMvc.perform(post("/api/v1/onboarding/save-draft")
+                    .header("Authorization", "Bearer " + token)
+                    .header("X-Environment", "production")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(req)));
+
+            // Manually set to REJECTED (simulating admin review)
+            var app = onboardingMapper.selectList(null).get(0);
+            app.setStatus("REJECTED");
+            app.setRejectReason("信息不完整");
+            onboardingMapper.updateById(app);
+
+            // Reset
+            mockMvc.perform(post("/api/v1/onboarding/reset")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.status").value("DRAFT"))
+                    .andExpect(jsonPath("$.data.companyName").value("Test Corp Ltd"));
+        }
+
+        @Test
+        @DisplayName("非 REJECTED 状态重置 → HTTP 400")
+        void should_return400_when_notRejected() throws Exception {
+            String token = registerVerifyAndLogin();
+
+            // Submit in production → SUBMITTED
+            OnboardingSaveDraftRequest req = fullDraft();
+            req.setSubmit(true);
+            mockMvc.perform(post("/api/v1/onboarding/save-draft")
+                    .header("Authorization", "Bearer " + token)
+                    .header("X-Environment", "production")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(req)));
+
+            // Try reset while SUBMITTED → fail
+            mockMvc.perform(post("/api/v1/onboarding/reset")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("只有被拒绝的申请才能重新提交"));
         }
     }
 }

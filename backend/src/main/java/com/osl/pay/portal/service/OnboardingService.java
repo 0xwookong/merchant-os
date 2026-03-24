@@ -9,4 +9,6 @@ public interface OnboardingService {
     OnboardingResponse getCurrent(Long merchantId);
 
     OnboardingResponse saveDraft(OnboardingSaveDraftRequest request, Long merchantId, HttpServletRequest httpRequest);
+
+    OnboardingResponse resetToDraft(Long merchantId, HttpServletRequest httpRequest);
 }

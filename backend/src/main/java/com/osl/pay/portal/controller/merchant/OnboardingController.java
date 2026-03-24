@@ -29,4 +29,10 @@ public class OnboardingController {
                                                 HttpServletRequest httpRequest) {
         return Result.ok(onboardingService.saveDraft(request, user.getMerchantId(), httpRequest));
     }
+
+    @PostMapping("/reset")
+    public Result<OnboardingResponse> resetToDraft(@AuthenticationPrincipal AuthUserDetails user,
+                                                    HttpServletRequest httpRequest) {
+        return Result.ok(onboardingService.resetToDraft(user.getMerchantId(), httpRequest));
+    }
 }

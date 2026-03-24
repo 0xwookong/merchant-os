@@ -13,6 +13,20 @@ import {
 
 type Step = 1 | 2 | 3;
 
+const COUNTRY_CODES = [
+  { value: "+86", label: "🇨🇳 +86" },
+  { value: "+852", label: "🇭🇰 +852" },
+  { value: "+1", label: "🇺🇸 +1" },
+  { value: "+44", label: "🇬🇧 +44" },
+  { value: "+81", label: "🇯🇵 +81" },
+  { value: "+82", label: "🇰🇷 +82" },
+  { value: "+65", label: "🇸🇬 +65" },
+  { value: "+61", label: "🇦🇺 +61" },
+  { value: "+49", label: "🇩🇪 +49" },
+  { value: "+33", label: "🇫🇷 +33" },
+  { value: "+971", label: "🇦🇪 +971" },
+];
+
 const BUSINESS_TYPES = [
   { value: "E_COMMERCE", label: "电商" },
   { value: "GAMING", label: "游戏" },
@@ -115,12 +129,103 @@ export default function OnboardingPage() {
     return <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-[var(--gray-300)] border-t-[var(--primary-black)] rounded-full animate-spin" /></div>;
   }
 
-  // Status display
-  if (appStatus === "SUBMITTED" || appStatus === "UNDER_REVIEW") {
-    return <StatusCard icon={<ClockIcon className="w-8 h-8 text-[var(--warning)]" />} title="入驻申请审核中" desc="您的申请已提交，我们将尽快审核。" />;
-  }
-  if (appStatus === "APPROVED") {
-    return <StatusCard icon={<CheckCircleIcon className="w-8 h-8 text-[var(--success)]" />} title="入驻申请已通过" desc="恭喜！您的商户入驻已通过审核。" />;
+  const handleReset = async () => {
+    setSaving(true);
+    try {
+      const res = await onboardingService.resetToDraft();
+      setAppStatus(res.status);
+      setStep(1);
+      // Pre-fill form with previous data
+      setForm({
+        submit: false,
+        currentStep: 1,
+        companyName: res.companyName ?? "",
+        companyAddress: res.companyAddress ?? "",
+        contactName: res.contactName ?? "",
+        contactPhone: res.contactPhone ?? "",
+        contactEmail: res.contactEmail ?? "",
+        businessType: res.businessType ?? "E_COMMERCE",
+        monthlyVolume: res.monthlyVolume ?? "10K_50K",
+        supportedFiat: res.supportedFiat ?? "USD",
+        supportedCrypto: res.supportedCrypto ?? "USDT",
+        businessDesc: res.businessDesc ?? "",
+      });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "重置失败");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Status tracking view (non-DRAFT states)
+  if (appStatus && appStatus !== "DRAFT") {
+    return (
+      <div className="max-w-3xl space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--gray-900)]">入驻申请</h1>
+          <p className="text-sm text-[var(--gray-500)] mt-1">申请进度追踪</p>
+        </div>
+
+        {/* Status banner */}
+        {(appStatus === "SUBMITTED" || appStatus === "UNDER_REVIEW") && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
+            <ClockIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+            <p className="text-sm text-blue-800 font-medium">申请已提交，正在审核中。审核结果将通过邮件通知。</p>
+          </div>
+        )}
+        {appStatus === "APPROVED" && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+            <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
+            <p className="text-sm text-green-800 font-medium">入驻申请已通过，商户支付能力已开通。</p>
+          </div>
+        )}
+        {appStatus === "REJECTED" && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
+            <XCircleIcon className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">申请未通过</p>
+              <p className="text-sm text-[var(--gray-600)] mt-1">{form.businessDesc ? "请根据要求修改后重新提交" : "请联系客服了解详情"}</p>
+            </div>
+            <button onClick={handleReset} disabled={saving}
+              className="text-sm font-medium text-red-700 hover:text-red-900 underline flex-shrink-0">
+              {saving ? "重置中..." : "重新提交"}
+            </button>
+          </div>
+        )}
+
+        {/* Timeline */}
+        <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-8">
+          <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-5">申请进度</h2>
+          <div className="space-y-4">
+            <TimelineItem done label="提交申请" active={appStatus === "SUBMITTED"} />
+            <TimelineItem done={appStatus === "UNDER_REVIEW" || appStatus === "APPROVED" || appStatus === "REJECTED"} label="资料审核中" active={appStatus === "UNDER_REVIEW"} />
+            <TimelineItem done={appStatus === "APPROVED"} failed={appStatus === "REJECTED"} label={appStatus === "REJECTED" ? "审核未通过" : appStatus === "APPROVED" ? "审核通过" : "审核结果"} />
+          </div>
+        </div>
+
+        {/* Info preview */}
+        <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-8">
+          <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-5">已提交信息</h2>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+            <Info label="公司名称" value={form.companyName} />
+            <Info label="公司地址" value={form.companyAddress} />
+            <Info label="联系人" value={form.contactName} />
+            <Info label="电话" value={form.contactPhone} />
+            <Info label="邮箱" value={form.contactEmail} />
+            <Info label="业务类型" value={BUSINESS_TYPES.find((t) => t.value === form.businessType)?.label} />
+            <Info label="月交易量" value={VOLUME_RANGES.find((v) => v.value === form.monthlyVolume)?.label} />
+            <Info label="法币" value={form.supportedFiat} />
+            <Info label="加密货币" value={form.supportedCrypto} />
+          </div>
+          {form.businessDesc && (
+            <div className="mt-4 text-sm">
+              <span className="text-[var(--gray-500)]">业务描述：</span>
+              <span className="text-[var(--gray-900)]">{form.businessDesc}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -161,7 +266,11 @@ export default function OnboardingPage() {
           <Field label="公司名称" value={form.companyName ?? ""} onChange={(v) => updateField("companyName", v)} placeholder="商户公司全称" />
           <Field label="公司地址" value={form.companyAddress ?? ""} onChange={(v) => updateField("companyAddress", v)} placeholder="详细地址" />
           <Field label="联系人姓名" value={form.contactName ?? ""} onChange={(v) => updateField("contactName", v)} placeholder="主联系人" />
-          <Field label="联系电话" value={form.contactPhone ?? ""} onChange={(v) => updateField("contactPhone", v)} placeholder="+86-13800138000" />
+          <PhoneField
+            label="联系电话"
+            value={form.contactPhone ?? ""}
+            onChange={(v) => updateField("contactPhone", v)}
+          />
           <Field label="联系邮箱" value={form.contactEmail ?? ""} onChange={(v) => updateField("contactEmail", v)} placeholder="contact@company.com" type="email" />
           <div className="flex justify-end pt-3">
             <button onClick={() => saveDraft(2)} disabled={saving} className="bg-[var(--primary-black)] text-white text-sm font-medium py-2.5 px-6 rounded-lg hover:bg-[#1a1a1a] transition-colors disabled:opacity-50">
@@ -298,6 +407,57 @@ function Info({ label, value }: { label: string; value?: string | null }) {
     <div>
       <dt className="text-[var(--gray-500)]">{label}</dt>
       <dd className="font-medium text-[var(--gray-900)] mt-0.5">{value || "-"}</dd>
+    </div>
+  );
+}
+
+function PhoneField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  // Parse stored value like "+86-13800138000" into code and number
+  const dashIdx = value.indexOf("-");
+  const code = dashIdx > 0 ? value.substring(0, dashIdx) : "+86";
+  const number = dashIdx > 0 ? value.substring(dashIdx + 1) : value.replace(/^\+\d+/, "");
+
+  const handleCodeChange = (newCode: string) => {
+    onChange(number ? `${newCode}-${number}` : newCode);
+  };
+  const handleNumberChange = (newNumber: string) => {
+    onChange(`${code}-${newNumber}`);
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">{label}</label>
+      <div className="flex gap-2">
+        <select
+          value={code}
+          onChange={(e) => handleCodeChange(e.target.value)}
+          className="w-28 border border-[var(--gray-300)] rounded-lg px-3 py-3 text-sm text-[var(--gray-900)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          {COUNTRY_CODES.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+        <input
+          type="tel"
+          value={number}
+          onChange={(e) => handleNumberChange(e.target.value)}
+          placeholder="请输入电话号码"
+          className="flex-1 border border-[var(--gray-300)] rounded-lg px-4 py-3 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+    </div>
+  );
+}
+
+function TimelineItem({ done, active, failed, label }: { done?: boolean; active?: boolean; failed?: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+        failed ? "bg-red-500" : done ? "bg-green-500" : active ? "bg-amber-500 animate-pulse" : "bg-[var(--gray-300)]"
+      }`} />
+      <span className={`text-sm ${
+        failed ? "text-red-700 font-medium" : done ? "text-[var(--gray-900)]" : active ? "text-amber-700 font-medium" : "text-[var(--gray-400)]"
+      }`}>{label}</span>
     </div>
   );
 }
