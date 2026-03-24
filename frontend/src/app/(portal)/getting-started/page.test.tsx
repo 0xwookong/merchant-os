@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import GettingStartedPage from "./page";
 
 // Mock providers
+vi.mock("@/providers/language-provider", () => ({ useI18n: () => ({ t: (k: string) => k, locale: "zh", setLocale: vi.fn() }) }));
 vi.mock("@/providers/environment-provider", () => ({
   useEnvironment: () => ({ environment: "sandbox", isSandbox: true, toggleEnvironment: vi.fn() }),
 }));
@@ -15,17 +16,17 @@ vi.mock("next/navigation", () => ({
 describe("快速开始页面", () => {
   afterEach(() => cleanup());
 
-  it("渲染页面标题'快速开始'", () => {
+  it("渲染页面标题", () => {
     render(<GettingStartedPage />);
-    const headings = screen.getAllByRole("heading", { name: "快速开始" });
+    const headings = screen.getAllByRole("heading", { name: "gettingStarted.title" });
     expect(headings.length).toBeGreaterThanOrEqual(1);
   });
 
   it("默认展示 WebSDK 模式（Tab 选中 + 步骤 1-4 可见）", () => {
     render(<GettingStartedPage />);
-    expect(screen.getAllByText("WebSDK 接入").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("访问 Web SDK 测试页面").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("填写 KYC 信息").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("gettingStarted.mode.websdk").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("gettingStarted.websdk.step1").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("gettingStarted.websdk.step2").length).toBeGreaterThanOrEqual(1);
   });
 
   it("展示测试卡号表格（3 种卡）", () => {
@@ -41,11 +42,11 @@ describe("快速开始页面", () => {
     expect(screen.getAllByText(/43,000 EUR/).length).toBeGreaterThanOrEqual(1);
   });
 
-  it("展示快速链接卡片（API 文档、签名工具、Webhook 管理）", () => {
+  it("展示快速链接卡片", () => {
     render(<GettingStartedPage />);
-    expect(screen.getAllByText("API 文档").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("签名工具").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Webhook 管理").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("gettingStarted.quickLink.docs").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("gettingStarted.quickLink.signature").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("gettingStarted.quickLink.webhooks").length).toBeGreaterThanOrEqual(1);
   });
 
   it("展示技术支持联系邮箱", () => {

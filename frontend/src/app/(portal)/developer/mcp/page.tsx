@@ -17,27 +17,27 @@ const ENDPOINTS = {
   production: { api: "https://openapi.osl-pay.com", mcp: "https://mcp.osl-pay.com/sse" },
 };
 
-const MCP_TOOLS = [
-  { name: "oslpay_get_quote", desc: "获取法币到加密货币的报价", descEn: "Get fiat-to-crypto quote" },
-  { name: "oslpay_create_order", desc: "创建支付订单", descEn: "Create payment order" },
-  { name: "oslpay_query_order", desc: "查询订单状态", descEn: "Query order status" },
-  { name: "oslpay_generate_signature", desc: "生成 API 请求签名", descEn: "Generate API signature" },
-  { name: "oslpay_get_currency_list", desc: "获取支持的加密货币列表", descEn: "Get supported currencies" },
-  { name: "oslpay_get_guide", desc: "获取快速开始指南", descEn: "Get quick start guide" },
-];
-
-const EXAMPLES = [
-  "使用 OSL Pay API 获取 100 USD 到 USDT 的报价",
-  "创建一个支付订单，金额 100 USD，使用银行卡支付",
-  "查询订单 ORD123456 的状态",
-  "生成 API 请求签名",
-  "如何集成 OSL Pay API？给我一个完整的流程",
-];
-
 export default function McpPage() {
   const { t } = useI18n();
   const { isSandbox, environment } = useEnvironment();
   const [copiedConfig, setCopiedConfig] = useState(false);
+
+  const MCP_TOOLS = [
+    { name: "oslpay_get_quote", desc: t("mcp.tool.oslpay_get_quote") },
+    { name: "oslpay_create_order", desc: t("mcp.tool.oslpay_create_order") },
+    { name: "oslpay_query_order", desc: t("mcp.tool.oslpay_query_order") },
+    { name: "oslpay_generate_signature", desc: t("mcp.tool.oslpay_generate_signature") },
+    { name: "oslpay_get_currency_list", desc: t("mcp.tool.oslpay_get_currency_list") },
+    { name: "oslpay_get_guide", desc: t("mcp.tool.oslpay_get_guide") },
+  ];
+
+  const EXAMPLES = [
+    t("mcp.example.1"),
+    t("mcp.example.2"),
+    t("mcp.example.3"),
+    t("mcp.example.4"),
+    t("mcp.example.5"),
+  ];
 
   const endpoints = isSandbox ? ENDPOINTS.sandbox : ENDPOINTS.production;
 
@@ -163,7 +163,7 @@ export default function McpPage() {
             <h2 className="font-semibold text-[var(--gray-900)]">{t("mcp.support.title")}</h2>
           </div>
           <p className="text-sm text-[var(--gray-600)] mb-3">
-            MCP 集成如遇问题，请联系技术支持团队：
+            {t("mcp.support.desc")}
           </p>
           <a href="mailto:support@osl-pay.com" className="text-sm font-medium text-blue-600 hover:underline">
             {t("mcp.support.email")}

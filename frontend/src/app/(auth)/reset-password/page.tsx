@@ -3,18 +3,20 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/providers/language-provider";
 import { authService } from "@/services/authService";
 import { ApiError } from "@/lib/api";
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="text-center py-8 text-sm text-[var(--gray-500)]">加载中...</div>}>
+    <Suspense fallback={<div className="text-center py-8 text-sm text-[var(--gray-500)]">Loading...</div>}>
       <ResetPasswordContent />
     </Suspense>
   );
 }
 
 function ResetPasswordContent() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [newPassword, setNewPassword] = useState("");
@@ -26,10 +28,10 @@ function ResetPasswordContent() {
   if (!token) {
     return (
       <div className="text-center space-y-4">
-        <h2 className="text-xl font-semibold text-[var(--gray-900)]">链接无效</h2>
-        <p className="text-sm text-[var(--gray-500)]">缺少重置令牌参数</p>
+        <h2 className="text-xl font-semibold text-[var(--gray-900)]">{t("auth.resetPassword.invalidLink")}</h2>
+        <p className="text-sm text-[var(--gray-500)]">{t("auth.resetPassword.missingToken")}</p>
         <Link href="/forgot-password" className="inline-block text-sm font-medium text-[var(--gray-700)] hover:text-[var(--gray-900)]">
-          重新申请 →
+          {t("auth.resetPassword.retry")}
         </Link>
       </div>
     );
@@ -39,11 +41,11 @@ function ResetPasswordContent() {
     e.preventDefault();
 
     if (newPassword.length < 8) {
-      setError("密码至少 8 个字符");
+      setError(t("auth.resetPassword.minLength"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("两次密码不一致");
+      setError(t("auth.resetPassword.mismatch"));
       return;
     }
 
@@ -54,7 +56,7 @@ function ResetPasswordContent() {
       await authService.resetPassword({ token, newPassword, confirmPassword });
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "网络错误，请稍后重试");
+      setError(err instanceof ApiError ? err.message : t("auth.resetPassword.networkError"));
     } finally {
       setLoading(false);
     }
@@ -68,13 +70,13 @@ function ResetPasswordContent() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-[var(--gray-900)]">密码重置成功</h2>
-        <p className="text-sm text-[var(--gray-500)]">请使用新密码登录</p>
+        <h2 className="text-xl font-semibold text-[var(--gray-900)]">{t("auth.resetPassword.success.title")}</h2>
+        <p className="text-sm text-[var(--gray-500)]">{t("auth.resetPassword.success.message")}</p>
         <Link
           href="/login"
           className="inline-block mt-4 bg-[var(--primary-black)] text-white font-medium py-2.5 px-5 rounded-lg hover:bg-[#1a1a1a] transition-colors"
         >
-          去登录
+          {t("auth.resetPassword.success.goLogin")}
         </Link>
       </div>
     );
@@ -83,8 +85,8 @@ function ResetPasswordContent() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--gray-900)]">重置密码</h1>
-        <p className="text-sm text-[var(--gray-500)] mt-1">设置您的新密码</p>
+        <h1 className="text-2xl font-semibold text-[var(--gray-900)]">{t("auth.resetPassword.title")}</h1>
+        <p className="text-sm text-[var(--gray-500)] mt-1">{t("auth.resetPassword.subtitle")}</p>
       </div>
 
       {error && (
@@ -96,27 +98,27 @@ function ResetPasswordContent() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="newPassword" className="block text-sm font-medium text-[var(--gray-700)] mb-1">
-            新密码
+            {t("auth.resetPassword.newPassword")}
           </label>
           <input
             id="newPassword"
             type="password"
             value={newPassword}
             onChange={(e) => { setNewPassword(e.target.value); setError(""); }}
-            placeholder="至少 8 位，含大小写和数字"
+            placeholder={t("auth.resetPassword.placeholder")}
             className="w-full border border-[var(--gray-300)] rounded-lg px-4 py-2.5 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <div>
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--gray-700)] mb-1">
-            确认密码
+            {t("auth.resetPassword.confirmPassword")}
           </label>
           <input
             id="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
-            placeholder="再次输入新密码"
+            placeholder={t("auth.resetPassword.confirmPlaceholder")}
             className="w-full border border-[var(--gray-300)] rounded-lg px-4 py-2.5 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -126,7 +128,7 @@ function ResetPasswordContent() {
           disabled={loading}
           className="w-full bg-[var(--primary-black)] text-white font-medium py-2.5 px-5 rounded-lg hover:bg-[#1a1a1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "重置中..." : "重置密码"}
+          {loading ? t("auth.resetPassword.submitting") : t("auth.resetPassword.submit")}
         </button>
       </form>
     </div>

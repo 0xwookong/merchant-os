@@ -16,22 +16,23 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
-const ALL_EVENTS = [
-  { key: "order.created", label: "订单已创建", group: "订单事件" },
-  { key: "order.completed", label: "订单已完成", group: "订单事件" },
-  { key: "order.failed", label: "订单失败", group: "订单事件" },
-  { key: "order_status_change", label: "订单状态变更", group: "订单事件" },
-  { key: "payment.success", label: "支付成功", group: "支付事件" },
-  { key: "payment.refund", label: "支付退款", group: "支付事件" },
-  { key: "kyc.approved", label: "KYC 审核通过", group: "KYC 事件" },
-  { key: "kyc.rejected", label: "KYC 审核拒绝", group: "KYC 事件" },
-  { key: "kyc_status_change", label: "KYC 状态变更", group: "KYC 事件" },
-  { key: "defi_account_bind_status", label: "DeFi 绑定状态", group: "DeFi 事件" },
-  { key: "defi_account_auth_status", label: "DeFi 授权状态", group: "DeFi 事件" },
-];
-
 export default function WebhooksPage() {
   const { t } = useI18n();
+
+  const ALL_EVENTS = [
+    { key: "order.created", label: t("webhooks.event.order.created"), group: t("webhooks.eventGroup.order") },
+    { key: "order.completed", label: t("webhooks.event.order.completed"), group: t("webhooks.eventGroup.order") },
+    { key: "order.failed", label: t("webhooks.event.order.failed"), group: t("webhooks.eventGroup.order") },
+    { key: "order_status_change", label: t("webhooks.event.order_status_change"), group: t("webhooks.eventGroup.order") },
+    { key: "payment.success", label: t("webhooks.event.payment.success"), group: t("webhooks.eventGroup.payment") },
+    { key: "payment.refund", label: t("webhooks.event.payment.refund"), group: t("webhooks.eventGroup.payment") },
+    { key: "kyc.approved", label: t("webhooks.event.kyc.approved"), group: t("webhooks.eventGroup.kyc") },
+    { key: "kyc.rejected", label: t("webhooks.event.kyc.rejected"), group: t("webhooks.eventGroup.kyc") },
+    { key: "kyc_status_change", label: t("webhooks.event.kyc_status_change"), group: t("webhooks.eventGroup.kyc") },
+    { key: "defi_account_bind_status", label: t("webhooks.event.defi_account_bind_status"), group: t("webhooks.eventGroup.defi") },
+    { key: "defi_account_auth_status", label: t("webhooks.event.defi_account_auth_status"), group: t("webhooks.eventGroup.defi") },
+  ];
+
   const [configs, setConfigs] = useState<WebhookConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -84,7 +85,7 @@ export default function WebhooksPage() {
       setShowForm(false);
       fetchConfigs();
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "操作失败");
+      setFormError(err instanceof Error ? err.message : t("common.operationFailed"));
     } finally {
       setFormLoading(false);
     }
@@ -102,7 +103,7 @@ export default function WebhooksPage() {
       const msg = await webhookService.testPush(id);
       setTestResult({ id, msg });
     } catch (err: unknown) {
-      setTestResult({ id, msg: err instanceof Error ? err.message : "失败" });
+      setTestResult({ id, msg: err instanceof Error ? err.message : t("common.failed") });
     }
   };
 
@@ -234,7 +235,7 @@ export default function WebhooksPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button onClick={() => toggleLogs(config.id)} title="Logs"
+                  <button onClick={() => toggleLogs(config.id)} title={t("webhooks.pushLogs")}
                     className={`p-2 rounded-lg hover:bg-[var(--gray-100)] transition-colors ${expandedLogs === config.id ? "text-blue-600" : "text-[var(--gray-500)]"}`}>
                     <ClockIcon className="w-4 h-4" />
                   </button>
@@ -257,12 +258,12 @@ export default function WebhooksPage() {
               {expandedLogs === config.id && (
                 <div className="mt-4 border-t border-[var(--gray-100)] pt-4">
                   <h4 className="text-xs font-semibold text-[var(--gray-700)] mb-2 flex items-center gap-1">
-                    <ClockIcon className="w-3.5 h-3.5" /> 推送日志
+                    <ClockIcon className="w-3.5 h-3.5" /> {t("webhooks.pushLogs")}
                   </h4>
                   {logsLoading ? (
                     <div className="py-4 text-center"><div className="w-4 h-4 border-2 border-[var(--gray-300)] border-t-[var(--primary-black)] rounded-full animate-spin mx-auto" /></div>
                   ) : logs.length === 0 ? (
-                    <div className="text-xs text-[var(--gray-400)] py-2">暂无推送日志</div>
+                    <div className="text-xs text-[var(--gray-400)] py-2">{t("webhooks.pushLogs.empty")}</div>
                   ) : (
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {logs.map((l) => (
@@ -272,7 +273,7 @@ export default function WebhooksPage() {
                           {l.httpStatus && <span className="font-mono text-[var(--gray-500)]">HTTP {l.httpStatus}</span>}
                           {l.retryCount > 0 && <span className="text-[var(--gray-400)]">×{l.retryCount}</span>}
                           {l.errorMessage && <span className="text-red-500 truncate max-w-40">{l.errorMessage}</span>}
-                          <span className="ml-auto text-[var(--gray-400)]">{new Date(l.createdAt).toLocaleString("zh-CN")}</span>
+                          <span className="ml-auto text-[var(--gray-400)]">{new Date(l.createdAt).toLocaleString()}</span>
                         </div>
                       ))}
                     </div>

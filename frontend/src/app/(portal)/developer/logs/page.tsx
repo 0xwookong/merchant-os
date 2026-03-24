@@ -83,11 +83,11 @@ export default function LogsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--gray-100)]">
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Method</th>
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Path</th>
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Status</th>
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Duration</th>
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Time</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("logs.table.method")}</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("logs.table.path")}</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("logs.table.status")}</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("logs.table.duration")}</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("logs.table.time")}</th>
               </tr>
             </thead>
             <tbody>
@@ -102,7 +102,7 @@ export default function LogsPage() {
                   <td className="py-3 px-5 font-mono text-[var(--gray-700)] text-xs truncate max-w-64">{log.path}</td>
                   <td className={`py-3 px-5 font-mono font-semibold ${statusColor(log.statusCode)}`}>{log.statusCode}</td>
                   <td className="py-3 px-5 text-[var(--gray-500)] text-xs">{log.durationMs}ms</td>
-                  <td className="py-3 px-5 text-[var(--gray-400)] text-xs">{new Date(log.createdAt).toLocaleString("zh-CN")}</td>
+                  <td className="py-3 px-5 text-[var(--gray-400)] text-xs">{new Date(log.createdAt).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -147,7 +147,7 @@ export default function LogsPage() {
                 </div>
               )}
               {!selectedLog.requestBody && !selectedLog.responseBody && (
-                <p className="text-sm text-[var(--gray-400)] text-center py-4">No body data</p>
+                <p className="text-sm text-[var(--gray-400)] text-center py-4">{t("logs.noBody")}</p>
               )}
             </div>
             <div className="p-5 border-t border-[var(--gray-100)] flex justify-end">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { kybService, type KybSubmitRequest } from "@/services/kybService";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/providers/language-provider";
 import {
   BuildingOffice2Icon,
   UserIcon,
@@ -13,20 +14,22 @@ import {
 
 type Step = 1 | 2 | 3;
 
-const COMPANY_TYPES = [
-  { value: "LIMITED", label: "有限公司" },
-  { value: "PARTNERSHIP", label: "合伙企业" },
-  { value: "SOLE_PROPRIETORSHIP", label: "个人独资" },
-  { value: "OTHER", label: "其他" },
-];
-
-const ID_TYPES = [
-  { value: "ID_CARD", label: "身份证" },
-  { value: "PASSPORT", label: "护照" },
-  { value: "OTHER", label: "其他" },
-];
-
 export default function KybPage() {
+  const { t } = useI18n();
+
+  const COMPANY_TYPES = [
+    { value: "LIMITED", label: t("kyb.companyType.LIMITED") },
+    { value: "PARTNERSHIP", label: t("kyb.companyType.PARTNERSHIP") },
+    { value: "SOLE_PROPRIETORSHIP", label: t("kyb.companyType.SOLE_PROPRIETORSHIP") },
+    { value: "OTHER", label: t("kyb.companyType.OTHER") },
+  ];
+
+  const ID_TYPES = [
+    { value: "ID_CARD", label: t("kyb.idType.ID_CARD") },
+    { value: "PASSPORT", label: t("kyb.idType.PASSPORT") },
+    { value: "OTHER", label: t("kyb.idType.OTHER") },
+  ];
+
   const [kybStatus, setKybStatus] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<string | null>(null);
   const [approvedInfo, setApprovedInfo] = useState<{ companyRegCountry?: string; companyRegNumber?: string; companyType?: string; legalRepName?: string }>({});
@@ -93,7 +96,7 @@ export default function KybPage() {
       const status = await kybService.getStatus();
       setKybStatus(status.kybStatus);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "提交失败，请稍后重试");
+      setError(err instanceof ApiError ? err.message : t("common.submitError"));
     } finally {
       setSubmitting(false);
     }
@@ -108,48 +111,48 @@ export default function KybPage() {
     return (
       <div className="max-w-3xl space-y-8">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--gray-900)]">KYB 认证</h1>
-          <p className="text-sm text-[var(--gray-500)] mt-1">商户资质认证信息</p>
+          <h1 className="text-2xl font-semibold text-[var(--gray-900)]">{t("kyb.title")}</h1>
+          <p className="text-sm text-[var(--gray-500)] mt-1">{t("kyb.subtitle")}</p>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
           <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
-          <p className="text-sm text-green-800 font-medium">KYB 认证已通过，所有功能已开通。</p>
+          <p className="text-sm text-green-800 font-medium">{t("kyb.approved")}</p>
         </div>
         {approvedInfo.companyRegCountry && (
           <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-8">
-            <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-5">认证信息</h2>
+            <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-5">{t("kyb.info.title")}</h2>
             <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-              <div><dt className="text-[var(--gray-500)]">公司注册地</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyRegCountry}</dd></div>
-              <div><dt className="text-[var(--gray-500)]">公司注册号</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyRegNumber}</dd></div>
-              <div><dt className="text-[var(--gray-500)]">公司类型</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyType}</dd></div>
-              <div><dt className="text-[var(--gray-500)]">法定代表人</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.legalRepName}</dd></div>
+              <div><dt className="text-[var(--gray-500)]">{t("kyb.info.registrationCountry")}</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyRegCountry}</dd></div>
+              <div><dt className="text-[var(--gray-500)]">{t("kyb.info.registrationNumber")}</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyRegNumber}</dd></div>
+              <div><dt className="text-[var(--gray-500)]">{t("kyb.info.companyType")}</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.companyType}</dd></div>
+              <div><dt className="text-[var(--gray-500)]">{t("kyb.info.legalRep")}</dt><dd className="font-medium text-[var(--gray-900)] mt-0.5">{approvedInfo.legalRepName}</dd></div>
             </div>
           </div>
         )}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
-          <span className="text-blue-600 text-sm">如需更新公司信息，请联系客服：<span className="font-medium">support@osl-pay.com</span></span>
+          <span className="text-blue-600 text-sm">{t("kyb.updateContact")}<span className="font-medium">support@osl-pay.com</span></span>
         </div>
       </div>
     );
   }
   if (kybStatus === "PENDING") {
-    return <StatusCard icon={<ClockIcon className="w-8 h-8 text-[var(--warning)]" />} title="KYB 认证审核中" desc="您的认证申请已提交，我们将尽快完成审核。审核结果将通过邮件通知。" color="warning" />;
+    return <StatusCard icon={<ClockIcon className="w-8 h-8 text-[var(--warning)]" />} title={t("kyb.pending.title")} desc={t("kyb.pending.desc")} color="warning" />;
   }
 
   // Form for NOT_STARTED, REJECTED, NEED_MORE_INFO
   return (
     <div className="max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--gray-900)]">KYB 认证</h1>
-        <p className="text-sm text-[var(--gray-500)] mt-1">完成商户资质认证以开通全部功能</p>
+        <h1 className="text-2xl font-semibold text-[var(--gray-900)]">{t("kyb.title")}</h1>
+        <p className="text-sm text-[var(--gray-500)] mt-1">{t("kyb.formSubtitle")}</p>
       </div>
 
       {kybStatus === "NEED_MORE_INFO" && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
           <ClockIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-amber-800">需要补充材料</p>
-            <p className="text-sm text-[var(--gray-600)] mt-1">{rejectReason || "审核方要求补充部分信息，请修改后重新提交。如有疑问请联系 support@osl-pay.com"}</p>
+            <p className="text-sm font-medium text-amber-800">{t("kyb.needMoreInfo")}</p>
+            <p className="text-sm text-[var(--gray-600)] mt-1">{rejectReason || t("kyb.needMoreInfoDesc")}</p>
           </div>
         </div>
       )}
@@ -158,8 +161,8 @@ export default function KybPage() {
         <div className="bg-[var(--error-soft)] border border-red-200 rounded-lg p-4 flex gap-3">
           <XCircleIcon className="w-5 h-5 text-[var(--error)] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-[var(--error)]">审核未通过</p>
-            <p className="text-sm text-[var(--gray-600)] mt-1">{rejectReason || "请根据审核要求修改后重新提交，如有疑问请联系 support@osl-pay.com"}</p>
+            <p className="text-sm font-medium text-[var(--error)]">{t("kyb.rejectedTitle")}</p>
+            <p className="text-sm text-[var(--gray-600)] mt-1">{rejectReason || t("kyb.rejectedDesc")}</p>
           </div>
         </div>
       )}
@@ -172,7 +175,7 @@ export default function KybPage() {
               s === step ? "bg-[var(--primary-black)] text-white" : s < step ? "bg-green-500 text-white" : "bg-[var(--gray-200)] text-[var(--gray-500)]"
             }`}>{s < step ? "✓" : s}</div>
             <span className={`text-sm ${s === step ? "font-semibold text-[var(--gray-900)]" : "text-[var(--gray-500)]"}`}>
-              {s === 1 ? "公司信息" : s === 2 ? "法人信息" : "确认提交"}
+              {s === 1 ? t("kyb.step.company") : s === 2 ? t("kyb.step.legalRep") : t("kyb.step.confirm")}
             </span>
             {s < 3 && <div className="w-8 h-px bg-[var(--gray-300)]" />}
           </div>
@@ -188,15 +191,15 @@ export default function KybPage() {
         <div className="bg-white rounded-lg border border-[var(--gray-200)] shadow-sm p-8 space-y-5">
           <div className="flex items-center gap-2 mb-2">
             <BuildingOffice2Icon className="w-5 h-5 text-[var(--gray-500)]" />
-            <h2 className="text-lg font-semibold text-[var(--gray-900)]">公司基本信息</h2>
+            <h2 className="text-lg font-semibold text-[var(--gray-900)]">{t("kyb.section.companyInfo")}</h2>
           </div>
-          <FormField label="公司注册地" value={form.companyRegCountry} onChange={(v) => updateField("companyRegCountry", v)} placeholder="如：Hong Kong" />
-          <FormField label="公司注册号" value={form.companyRegNumber} onChange={(v) => updateField("companyRegNumber", v)} placeholder="公司注册号码" />
-          <FormField label="营业执照号" value={form.businessLicenseNo} onChange={(v) => updateField("businessLicenseNo", v)} placeholder="营业执照编号" />
-          <SelectField label="公司类型" value={form.companyType} onChange={(v) => updateField("companyType", v)} options={COMPANY_TYPES} />
+          <FormField label={t("kyb.field.registrationCountry")} value={form.companyRegCountry} onChange={(v) => updateField("companyRegCountry", v)} placeholder={t("kyb.placeholder.registrationCountry")} />
+          <FormField label={t("kyb.field.registrationNumber")} value={form.companyRegNumber} onChange={(v) => updateField("companyRegNumber", v)} placeholder={t("kyb.placeholder.registrationNumber")} />
+          <FormField label={t("kyb.field.businessLicense")} value={form.businessLicenseNo} onChange={(v) => updateField("businessLicenseNo", v)} placeholder={t("kyb.placeholder.businessLicense")} />
+          <SelectField label={t("kyb.field.companyType")} value={form.companyType} onChange={(v) => updateField("companyType", v)} options={COMPANY_TYPES} />
           <div className="flex justify-end pt-2">
             <button onClick={() => setStep(2)} className="bg-[var(--primary-black)] text-white text-sm font-medium py-2.5 px-5 rounded-lg hover:bg-[#1a1a1a] transition-colors">
-              下一步
+              {t("common.next")}
             </button>
           </div>
         </div>
@@ -207,19 +210,19 @@ export default function KybPage() {
         <div className="bg-white rounded-lg border border-[var(--gray-200)] shadow-sm p-8 space-y-5">
           <div className="flex items-center gap-2 mb-2">
             <UserIcon className="w-5 h-5 text-[var(--gray-500)]" />
-            <h2 className="text-lg font-semibold text-[var(--gray-900)]">法人/实控人信息</h2>
+            <h2 className="text-lg font-semibold text-[var(--gray-900)]">{t("kyb.section.legalRepInfo")}</h2>
           </div>
-          <FormField label="法人姓名" value={form.legalRepName} onChange={(v) => updateField("legalRepName", v)} placeholder="法定代表人姓名" />
-          <FormField label="国籍" value={form.legalRepNationality} onChange={(v) => updateField("legalRepNationality", v)} placeholder="如：中国" />
-          <SelectField label="证件类型" value={form.legalRepIdType} onChange={(v) => updateField("legalRepIdType", v)} options={ID_TYPES} />
-          <FormField label="证件号码" value={form.legalRepIdNumber} onChange={(v) => updateField("legalRepIdNumber", v)} placeholder="证件号码" />
-          <FormField label="持股比例 (%)" value={form.legalRepSharePct?.toString() ?? ""} onChange={(v) => updateField("legalRepSharePct", v ? Number(v) : undefined)} placeholder="如：80" type="number" />
+          <FormField label={t("kyb.field.legalRepName")} value={form.legalRepName} onChange={(v) => updateField("legalRepName", v)} placeholder={t("kyb.placeholder.legalRepName")} />
+          <FormField label={t("kyb.field.nationality")} value={form.legalRepNationality} onChange={(v) => updateField("legalRepNationality", v)} placeholder={t("kyb.placeholder.nationality")} />
+          <SelectField label={t("kyb.field.idType")} value={form.legalRepIdType} onChange={(v) => updateField("legalRepIdType", v)} options={ID_TYPES} />
+          <FormField label={t("kyb.field.idNumber")} value={form.legalRepIdNumber} onChange={(v) => updateField("legalRepIdNumber", v)} placeholder={t("kyb.placeholder.idNumber")} />
+          <FormField label={t("kyb.field.sharePercentage")} value={form.legalRepSharePct?.toString() ?? ""} onChange={(v) => updateField("legalRepSharePct", v ? Number(v) : undefined)} placeholder={t("kyb.placeholder.sharePercentage")} type="number" />
           <div className="flex justify-between pt-2">
             <button onClick={() => setStep(1)} className="text-sm font-medium text-[var(--gray-700)] hover:text-[var(--gray-900)] transition-colors">
-              ← 上一步
+              {t("common.previous")}
             </button>
             <button onClick={() => setStep(3)} className="bg-[var(--primary-black)] text-white text-sm font-medium py-2.5 px-5 rounded-lg hover:bg-[#1a1a1a] transition-colors">
-              下一步
+              {t("common.next")}
             </button>
           </div>
         </div>
@@ -228,24 +231,24 @@ export default function KybPage() {
       {/* Step 3: Confirm & submit */}
       {step === 3 && (
         <div className="bg-white rounded-lg border border-[var(--gray-200)] shadow-sm p-8 space-y-5">
-          <h2 className="text-lg font-semibold text-[var(--gray-900)]">确认信息</h2>
+          <h2 className="text-lg font-semibold text-[var(--gray-900)]">{t("common.confirmInfo")}</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <InfoRow label="公司注册地" value={form.companyRegCountry} />
-            <InfoRow label="公司注册号" value={form.companyRegNumber} />
-            <InfoRow label="营业执照号" value={form.businessLicenseNo} />
-            <InfoRow label="公司类型" value={COMPANY_TYPES.find((t) => t.value === form.companyType)?.label ?? form.companyType} />
-            <InfoRow label="法人姓名" value={form.legalRepName} />
-            <InfoRow label="国籍" value={form.legalRepNationality} />
-            <InfoRow label="证件类型" value={ID_TYPES.find((t) => t.value === form.legalRepIdType)?.label ?? form.legalRepIdType} />
-            <InfoRow label="证件号码" value={form.legalRepIdNumber} />
-            <InfoRow label="持股比例" value={form.legalRepSharePct ? `${form.legalRepSharePct}%` : "-"} />
+            <InfoRow label={t("kyb.field.registrationCountry")} value={form.companyRegCountry} />
+            <InfoRow label={t("kyb.field.registrationNumber")} value={form.companyRegNumber} />
+            <InfoRow label={t("kyb.field.businessLicense")} value={form.businessLicenseNo} />
+            <InfoRow label={t("kyb.field.companyType")} value={COMPANY_TYPES.find((ct) => ct.value === form.companyType)?.label ?? form.companyType} />
+            <InfoRow label={t("kyb.field.legalRepName")} value={form.legalRepName} />
+            <InfoRow label={t("kyb.field.nationality")} value={form.legalRepNationality} />
+            <InfoRow label={t("kyb.field.idType")} value={ID_TYPES.find((it) => it.value === form.legalRepIdType)?.label ?? form.legalRepIdType} />
+            <InfoRow label={t("kyb.field.idNumber")} value={form.legalRepIdNumber} />
+            <InfoRow label={t("kyb.field.sharePercentage")} value={form.legalRepSharePct ? `${form.legalRepSharePct}%` : "-"} />
           </div>
           <div className="flex justify-between pt-4">
             <button onClick={() => setStep(2)} className="text-sm font-medium text-[var(--gray-700)] hover:text-[var(--gray-900)] transition-colors">
-              ← 上一步
+              {t("common.previous")}
             </button>
             <button onClick={handleSubmit} disabled={submitting} className="bg-[var(--primary-black)] text-white text-sm font-medium py-2.5 px-5 rounded-lg hover:bg-[#1a1a1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {submitting ? "提交中..." : "提交认证"}
+              {submitting ? t("common.submitting") : t("kyb.submit")}
             </button>
           </div>
         </div>

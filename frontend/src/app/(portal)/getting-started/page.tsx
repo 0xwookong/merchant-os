@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useEnvironment } from "@/providers/environment-provider";
+import { useI18n } from "@/providers/language-provider";
 import {
   CreditCardIcon,
   CurrencyDollarIcon,
@@ -15,12 +16,6 @@ import {
 
 type Mode = "websdk" | "openapi";
 
-const TEST_CARDS = [
-  { type: "Visa 3DS Frictionless", number: "4242 4242 4242 4242", behavior: "自动通过 3DS 验证" },
-  { type: "Visa 3DS Challenge", number: "4539 3732 9896 7400", behavior: "需用户完成 3DS 挑战" },
-  { type: "Visa 余额不足", number: "4532 2274 1657 1592", behavior: "支付失败" },
-];
-
 const CURRENCY_LIMITS = [
   { fiat: "EUR", crypto: "USDT / USDC", min: "1 EUR", max: "43,000 EUR" },
   { fiat: "EUR", crypto: "ETH", min: "1 EUR", max: "43,000 EUR" },
@@ -32,6 +27,13 @@ const NETWORKS = "ERC20, TRC20, BEP20, Polygon, Arbitrum, Optimism, Solana";
 export default function GettingStartedPage() {
   const [mode, setMode] = useState<Mode>("websdk");
   const { isSandbox } = useEnvironment();
+  const { t } = useI18n();
+
+  const TEST_CARDS = [
+    { type: "Visa 3DS Frictionless", number: "4242 4242 4242 4242", behavior: t("gettingStarted.testCard.frictionless") },
+    { type: "Visa 3DS Challenge", number: "4539 3732 9896 7400", behavior: t("gettingStarted.testCard.challenge") },
+    { type: "Visa Insufficient", number: "4532 2274 1657 1592", behavior: t("gettingStarted.testCard.insufficient") },
+  ];
 
   return (
     <div>
@@ -39,9 +41,9 @@ export default function GettingStartedPage() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-8 lg:p-10 mb-8">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
         <div className="relative">
-          <h1 className="text-3xl font-bold text-white">快速开始</h1>
+          <h1 className="text-3xl font-bold text-white">{t("gettingStarted.title")}</h1>
           <p className="text-gray-400 mt-2 max-w-2xl">
-            选择集成模式，按照步骤快速接入 OSL Pay 加密货币支付网关
+            {t("gettingStarted.subtitle")}
           </p>
         </div>
       </div>
@@ -51,9 +53,9 @@ export default function GettingStartedPage() {
         {/* Mode Tabs */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ModeTab active={mode === "websdk"} onClick={() => setMode("websdk")}
-            icon={<CodeBracketIcon className="w-6 h-6" />} title="WebSDK 接入" desc="快速集成，无需后端开发" tag="推荐" />
+            icon={<CodeBracketIcon className="w-6 h-6" />} title={t("gettingStarted.mode.websdk")} desc={t("gettingStarted.mode.websdkDesc")} tag={t("common.recommended")} />
           <ModeTab active={mode === "openapi"} onClick={() => setMode("openapi")}
-            icon={<DocumentTextIcon className="w-6 h-6" />} title="OpenAPI 接入" desc="完全控制，适合深度定制" />
+            icon={<DocumentTextIcon className="w-6 h-6" />} title={t("gettingStarted.mode.openapi")} desc={t("gettingStarted.mode.openapiDesc")} />
         </div>
         {/* Steps timeline */}
         <div className="relative">
@@ -66,8 +68,8 @@ export default function GettingStartedPage() {
           <section className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-[var(--gray-100)] flex items-center gap-2">
               <CreditCardIcon className="w-5 h-5 text-[var(--gray-400)]" />
-              <h2 className="font-semibold text-[var(--gray-900)]">测试卡号</h2>
-              {isSandbox && <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700">沙箱</span>}
+              <h2 className="font-semibold text-[var(--gray-900)]">{t("gettingStarted.testCards")}</h2>
+              {isSandbox && <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700">{t("common.sandbox")}</span>}
             </div>
             <table className="w-full text-sm">
               <tbody>
@@ -83,14 +85,14 @@ export default function GettingStartedPage() {
               </tbody>
             </table>
             <div className="px-6 py-3 bg-[var(--gray-50)] text-[10px] text-[var(--gray-400)]">
-              有效期：未来任意日期 &middot; CVV：任意 3 位数字
+              {t("gettingStarted.cardHint")}
             </div>
           </section>
 
           <section className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-[var(--gray-100)] flex items-center gap-2">
               <CurrencyDollarIcon className="w-5 h-5 text-[var(--gray-400)]" />
-              <h2 className="font-semibold text-[var(--gray-900)]">支持的货币和网络</h2>
+              <h2 className="font-semibold text-[var(--gray-900)]">{t("gettingStarted.currencies")}</h2>
             </div>
             <table className="w-full text-sm">
               <tbody>
@@ -106,24 +108,24 @@ export default function GettingStartedPage() {
                 ))}
               </tbody>
             </table>
-            <div className="px-6 py-3 bg-[var(--gray-50)] text-[10px] text-[var(--gray-400)]">网络：{NETWORKS}</div>
+            <div className="px-6 py-3 bg-[var(--gray-50)] text-[10px] text-[var(--gray-400)]">{t("gettingStarted.networks")} {NETWORKS}</div>
           </section>
         </div>
 
         {/* Quick Links */}
         <section>
-          <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-4">快速链接</h2>
+          <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-4">{t("gettingStarted.quickLinks")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <QuickLinkCard href="/developer/docs" icon={<DocumentTextIcon className="w-6 h-6" />} title="API 文档" desc="浏览 AI 友好的交互式 API 文档" />
-            <QuickLinkCard href="/developer/signature" icon={<FingerPrintIcon className="w-6 h-6" />} title="签名工具" desc="在线生成和验证签名" />
-            <QuickLinkCard href="/developer/webhooks" icon={<BellAlertIcon className="w-6 h-6" />} title="Webhook 管理" desc="配置端点，接收实时通知" />
+            <QuickLinkCard href="/developer/docs" icon={<DocumentTextIcon className="w-6 h-6" />} title={t("gettingStarted.quickLink.docs")} desc={t("gettingStarted.quickLink.docsDesc")} />
+            <QuickLinkCard href="/developer/signature" icon={<FingerPrintIcon className="w-6 h-6" />} title={t("gettingStarted.quickLink.signature")} desc={t("gettingStarted.quickLink.signatureDesc")} />
+            <QuickLinkCard href="/developer/webhooks" icon={<BellAlertIcon className="w-6 h-6" />} title={t("gettingStarted.quickLink.webhooks")} desc={t("gettingStarted.quickLink.webhooksDesc")} />
           </div>
         </section>
 
         {/* Support */}
         <section className="rounded-xl bg-gradient-to-r from-[var(--gray-50)] to-white border border-[var(--gray-200)] p-6 text-center">
           <p className="text-sm text-[var(--gray-600)]">
-            需要技术支持？联系我们：
+            {t("common.supportContact")}
             <a href="mailto:support@osl-pay.com" className="font-medium text-[var(--gray-900)] ml-1 hover:underline">support@osl-pay.com</a>
           </p>
         </section>
@@ -153,51 +155,53 @@ function ModeTab({ active, onClick, icon, title, desc, tag }: {
 }
 
 function WebSDKSteps({ isSandbox }: { isSandbox: boolean }) {
+  const { t } = useI18n();
   const baseUrl = isSandbox ? "https://ramptest.osl-pay.com" : "https://ramp.osl-pay.com";
   return (
     <>
-      <StepCard step={1} title="访问 Web SDK 测试页面">
-        <p className="text-sm text-[var(--gray-600)]">使用测试 appId 访问 Web SDK：</p>
+      <StepCard step={1} title={t("gettingStarted.websdk.step1")}>
+        <p className="text-sm text-[var(--gray-600)]">{t("gettingStarted.websdk.step1Desc")}</p>
         <code className="block mt-2 px-4 py-3 bg-gray-900 rounded-lg text-xs font-mono text-green-400 break-all">
           {baseUrl}/?appId=your_test_appId
         </code>
-        <p className="text-[11px] text-[var(--gray-400)] mt-2">如需获取测试 appId，请联系客户经理</p>
+        <p className="text-[11px] text-[var(--gray-400)] mt-2">{t("gettingStarted.websdk.appIdHint")}</p>
       </StepCard>
-      <StepCard step={2} title="填写 KYC 信息">
-        <p className="text-sm text-[var(--gray-600)]">在沙箱环境中，KYC 信息不会被验证。可以上传任意文件进行测试。</p>
+      <StepCard step={2} title={t("gettingStarted.websdk.step2")}>
+        <p className="text-sm text-[var(--gray-600)]">{t("gettingStarted.websdk.step2Desc")}</p>
       </StepCard>
-      <StepCard step={3} title="使用测试卡号支付">
-        <p className="text-sm text-[var(--gray-600)]">在支付页面选择借记卡/信用卡选项，使用下方提供的测试卡号（不要输入真实卡号）。</p>
+      <StepCard step={3} title={t("gettingStarted.websdk.step3")}>
+        <p className="text-sm text-[var(--gray-600)]">{t("gettingStarted.websdk.step3Desc")}</p>
       </StepCard>
-      <StepCard step={4} title="查看支持的货币和网络" last>
-        <p className="text-sm text-[var(--gray-600)]">查看下方支持的法币、加密货币组合和限额信息。</p>
+      <StepCard step={4} title={t("gettingStarted.websdk.step4")} last>
+        <p className="text-sm text-[var(--gray-600)]">{t("gettingStarted.websdk.step4Desc")}</p>
       </StepCard>
     </>
   );
 }
 
 function OpenAPISteps() {
+  const { t } = useI18n();
   return (
     <>
-      <StepCard step={1} title="获取 API 凭证">
-        <p className="text-sm text-[var(--gray-600)]">前往开发者控制台，查看并复制 App ID、API 公钥和 Webhook 公钥。</p>
-        <StepLink href="/developer/credentials" text="前往开发者控制台" />
+      <StepCard step={1} title={t("gettingStarted.openapi.step1")}>
+        <p className="text-sm text-[var(--gray-600)]">{t("gettingStarted.openapi.step1Desc")}</p>
+        <StepLink href="/developer/credentials" text={t("gettingStarted.openapi.credentialsLink")} />
       </StepCard>
-      <StepCard step={2} title="实现签名逻辑">
-        <p className="text-sm text-[var(--gray-600)]">签名字符串格式：</p>
+      <StepCard step={2} title={t("gettingStarted.openapi.step2")}>
+        <p className="text-sm text-[var(--gray-600)]">{t("gettingStarted.openapi.step2Desc")}</p>
         <code className="block mt-2 px-4 py-3 bg-gray-900 rounded-lg text-xs font-mono text-green-400">
           appId=[your_app_id]&timestamp=[unix_timestamp]
         </code>
-        <p className="text-sm text-[var(--gray-600)] mt-2">使用 RSA SHA256withRSA 算法对签名字符串进行签名。</p>
-        <StepLink href="/developer/signature" text="使用签名工具测试" />
+        <p className="text-sm text-[var(--gray-600)] mt-2">{t("gettingStarted.openapi.step2Hint")}</p>
+        <StepLink href="/developer/signature" text={t("gettingStarted.openapi.signatureLink")} />
       </StepCard>
-      <StepCard step={3} title="调用 API 接口">
-        <p className="text-sm text-[var(--gray-600)]">参考 API 文档，使用您选择的编程语言调用 OSL Pay 的 OpenAPI 接口。</p>
-        <StepLink href="/developer/docs" text="查看 API 文档" />
+      <StepCard step={3} title={t("gettingStarted.openapi.step3")}>
+        <p className="text-sm text-[var(--gray-600)]">{t("gettingStarted.openapi.step3Desc")}</p>
+        <StepLink href="/developer/docs" text={t("gettingStarted.openapi.docsLink")} />
       </StepCard>
-      <StepCard step={4} title="配置 Webhook" last>
-        <p className="text-sm text-[var(--gray-600)]">配置 Webhook 端点以接收订单状态变更、KYC 状态等实时通知。</p>
-        <StepLink href="/developer/webhooks" text="配置 Webhook" />
+      <StepCard step={4} title={t("gettingStarted.openapi.step4")} last>
+        <p className="text-sm text-[var(--gray-600)]">{t("gettingStarted.openapi.step4Desc")}</p>
+        <StepLink href="/developer/webhooks" text={t("gettingStarted.openapi.webhooksLink")} />
       </StepCard>
     </>
   );
