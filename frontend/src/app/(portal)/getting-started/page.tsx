@@ -35,20 +35,20 @@ export default function GettingStartedPage() {
   const { isSandbox } = useEnvironment();
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 max-w-5xl">
       {/* Hero header */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-8 lg:p-10">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
         <div className="relative">
           <h1 className="text-3xl font-bold text-white">快速开始</h1>
-          <p className="text-gray-400 mt-2 max-w-xl">
+          <p className="text-gray-400 mt-2 max-w-lg">
             选择集成模式，按照步骤快速接入 OSL Pay 加密货币支付网关
           </p>
         </div>
       </div>
 
       {/* Mode Tabs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
         <ModeTab
           active={mode === "websdk"}
           onClick={() => setMode("websdk")}
@@ -67,7 +67,7 @@ export default function GettingStartedPage() {
       </div>
 
       {/* Steps */}
-      <div className="relative">
+      <div className="relative max-w-3xl">
         {/* Vertical line */}
         <div className="absolute left-[19px] top-0 bottom-0 w-px bg-[var(--gray-200)]" />
         <div className="space-y-0">
@@ -131,7 +131,7 @@ export default function GettingStartedPage() {
       </div>
 
       {/* Quick Links */}
-      <section>
+      <section className="max-w-3xl">
         <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-4">快速链接</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <QuickLinkCard href="/developer/docs" icon={<DocumentTextIcon className="w-6 h-6" />} title="API 文档" desc="浏览 AI 友好的交互式 API 文档" />
@@ -141,7 +141,7 @@ export default function GettingStartedPage() {
       </section>
 
       {/* Support */}
-      <section className="rounded-xl bg-gradient-to-r from-[var(--gray-50)] to-white border border-[var(--gray-200)] p-6 text-center">
+      <section className="max-w-3xl rounded-xl bg-gradient-to-r from-[var(--gray-50)] to-white border border-[var(--gray-200)] p-6 text-center">
         <p className="text-sm text-[var(--gray-600)]">
           需要技术支持？联系我们：
           <a href="mailto:support@osl-pay.com" className="font-medium text-[var(--gray-900)] ml-1 hover:underline">support@osl-pay.com</a>
