@@ -40,9 +40,13 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public Result<LoginResponse> refresh(HttpServletRequest httpRequest,
+    public Result<LoginResponse> refresh(@RequestBody(required = false) RefreshRequest body,
+                                         HttpServletRequest httpRequest,
                                          HttpServletResponse httpResponse) {
-        String refreshToken = extractRefreshTokenFromCookie(httpRequest);
+        // Try body first (localStorage dev flow), then cookie (production httpOnly flow)
+        String refreshToken = (body != null && body.getRefreshToken() != null)
+                ? body.getRefreshToken()
+                : extractRefreshTokenFromCookie(httpRequest);
         return Result.ok(authService.refreshToken(refreshToken, httpRequest, httpResponse));
     }
 

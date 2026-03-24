@@ -280,14 +280,22 @@ export default function DocsPage() {
 
 /* ─── Code Samples Component ─── */
 
-const LANGUAGES = ["cURL", "TypeScript", "Python", "Java", "Go", "Rust"] as const;
-type Lang = typeof LANGUAGES[number];
+const LANGUAGES = [
+  { key: "cURL", label: "cURL", color: "text-yellow-400" },
+  { key: "TypeScript", label: "TypeScript", color: "text-blue-400" },
+  { key: "Python", label: "Python", color: "text-green-400" },
+  { key: "Java", label: "Java", color: "text-orange-400" },
+  { key: "Go", label: "Go", color: "text-cyan-400" },
+  { key: "Rust", label: "Rust", color: "text-red-400" },
+] as const;
+type Lang = typeof LANGUAGES[number]["key"];
 
 function CodeSamples({ endpoint }: { endpoint: EndpointDetail }) {
   const [lang, setLang] = useState<Lang>("cURL");
   const [copied, setCopied] = useState(false);
 
   const code = useMemo(() => generateCode(endpoint, lang), [endpoint, lang]);
+  const activeLang = LANGUAGES.find((l) => l.key === lang)!;
 
   const handleCopy = async () => {
     try {
@@ -299,26 +307,42 @@ function CodeSamples({ endpoint }: { endpoint: EndpointDetail }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-[var(--gray-900)]">Code Samples</h3>
-        <button onClick={handleCopy}
-          className="flex items-center gap-1 p-1.5 rounded hover:bg-[var(--gray-200)] transition-colors" aria-label="Copy code">
-          {copied ? <CheckIcon className="w-4 h-4 text-green-600" /> : <ClipboardDocumentIcon className="w-4 h-4 text-[var(--gray-400)]" />}
-        </button>
-      </div>
-      <div className="flex flex-wrap gap-1 mb-2">
-        {LANGUAGES.map((l) => (
-          <button key={l} onClick={() => setLang(l)}
-            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-              lang === l ? "bg-[var(--gray-900)] text-white" : "bg-[var(--gray-100)] text-[var(--gray-600)] hover:bg-[var(--gray-200)]"
-            }`}>
-            {l}
+      <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">Code Samples</h3>
+      <div className="rounded-xl overflow-hidden border border-[var(--gray-700)] bg-[var(--gray-900)]">
+        {/* Language tabs bar */}
+        <div className="flex items-center justify-between bg-[#1e1e2e] px-1 py-1 border-b border-[var(--gray-700)]">
+          <div className="flex">
+            {LANGUAGES.map((l) => (
+              <button key={l.key} onClick={() => setLang(l.key)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  lang === l.key
+                    ? "bg-[var(--gray-900)] text-white shadow-sm"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                }`}>
+                {l.label}
+              </button>
+            ))}
+          </div>
+          <button onClick={handleCopy}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-white rounded-md hover:bg-white/10 transition-colors mr-1"
+            aria-label="Copy code">
+            {copied ? (
+              <><CheckIcon className="w-3.5 h-3.5 text-green-400" /><span className="text-green-400">Copied</span></>
+            ) : (
+              <><ClipboardDocumentIcon className="w-3.5 h-3.5" /><span>Copy</span></>
+            )}
           </button>
-        ))}
+        </div>
+        {/* Code block */}
+        <div className="relative">
+          <span className={`absolute top-3 right-3 text-[10px] font-medium ${activeLang.color} opacity-50`}>
+            {activeLang.label}
+          </span>
+          <pre className="text-[13px] leading-5 font-mono text-gray-300 p-4 overflow-x-auto max-h-[420px] overflow-y-auto whitespace-pre">
+            {code}
+          </pre>
+        </div>
       </div>
-      <pre className="text-xs font-mono bg-[var(--gray-900)] text-gray-300 rounded-lg p-4 overflow-x-auto max-h-96 overflow-y-auto whitespace-pre">
-        {code}
-      </pre>
     </div>
   );
 }

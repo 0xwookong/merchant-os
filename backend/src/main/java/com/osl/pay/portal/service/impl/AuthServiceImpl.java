@@ -219,8 +219,10 @@ public class AuthServiceImpl implements AuthService {
         auditService.log(AuditEventType.LOGIN_SUCCESS, user.getId(), user.getMerchantId(),
                 user.getEmail(), httpRequest, true, null);
 
-        return LoginResponse.success(accessToken, user.getId(), user.getMerchantId(),
+        LoginResponse resp = LoginResponse.success(accessToken, user.getId(), user.getMerchantId(),
                 user.getEmail(), user.getRole().getValue(), merchant.getCompanyName());
+        resp.setRefreshToken(refreshToken); // TODO: remove before production (TD-003)
+        return resp;
     }
 
     // ===== Refresh Token (with rotation) =====
@@ -261,7 +263,9 @@ public class AuthServiceImpl implements AuthService {
 
         auditService.log(AuditEventType.TOKEN_REFRESH, userId, merchantId, email, httpRequest, true, null);
 
-        return LoginResponse.success(newAccessToken, userId, merchantId, email, role, companyName);
+        LoginResponse resp = LoginResponse.success(newAccessToken, userId, merchantId, email, role, companyName);
+        resp.setRefreshToken(newRefreshToken); // TODO: remove before production (TD-003)
+        return resp;
     }
 
     // ===== Logout =====

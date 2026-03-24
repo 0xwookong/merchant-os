@@ -133,6 +133,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | M-10 | 无安全响应头 | MEDIUM | Task-004 | next.config.ts 配置 CSP/HSTS |
 | M-1 | CSRF 已禁用 | MEDIUM | 文档化 | SPA + SameSite=Strict 可接受，需文档 |
 | M-11 | 浏览器返回按钮导致加载死循环 | MEDIUM | 独立 Task | auth/portal 页面间客户端重定向存在历史栈问题，需用 Next.js Middleware 在服务端处理 |
+| TD-003 | Refresh Token 临时使用 localStorage | HIGH | 上线前 | 开发阶段 HTTP 无法使用 httpOnly cookie，临时改为 localStorage 存储 refresh token 并通过 request body 传递。上线前必须改回 httpOnly cookie（搜索 TD-003 注释） |
 
 ---
 

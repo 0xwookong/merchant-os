@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
+import { getRefreshToken } from "@/lib/auth";
 
 export default function AuthLayout({
   children,
@@ -15,7 +16,7 @@ export default function AuthLayout({
   // If user already has a valid session, redirect away from auth pages
   useEffect(() => {
     authService
-      .refresh()
+      .refresh(getRefreshToken())
       .then((res) => {
         if (res.authenticated) {
           router.replace("/");

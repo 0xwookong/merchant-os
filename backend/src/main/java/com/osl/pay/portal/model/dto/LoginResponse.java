@@ -17,6 +17,12 @@ public class LoginResponse {
     /** Only set when authenticated=true */
     private String accessToken;
 
+    /**
+     * Refresh token returned in body for localStorage-based dev flow.
+     * TODO: Remove before production — use httpOnly cookie only (see backlog TD-003).
+     */
+    private String refreshToken;
+
     private Long userId;
     private Long merchantId;
     private String email;

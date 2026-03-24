@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { setAccessToken, clearAccessToken } from "@/lib/auth";
+import { setAccessToken, clearAccessToken, getRefreshToken, setRefreshToken, clearRefreshToken } from "@/lib/auth";
 import { authService, type LoginResponse } from "@/services/authService";
 
 interface AuthUser {
@@ -33,13 +33,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount: try to restore session via refresh token (httpOnly cookie auto-sent)
+  // On mount: try to restore session via refresh token (localStorage in dev, cookie in prod)
   useEffect(() => {
+    const storedRefreshToken = getRefreshToken();
     authService
-      .refresh()
+      .refresh(storedRefreshToken)
       .then((res) => {
         if (res.authenticated && res.accessToken) {
           setAccessToken(res.accessToken);
+          if (res.refreshToken) setRefreshToken(res.refreshToken);
           setUser({
             userId: res.userId!,
             merchantId: res.merchantId!,
@@ -60,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback((response: LoginResponse) => {
     if (response.authenticated && response.accessToken) {
       setAccessToken(response.accessToken);
+      if (response.refreshToken) setRefreshToken(response.refreshToken);
       setUser({
         userId: response.userId!,
         merchantId: response.merchantId!,
@@ -77,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Logout API failure should not block local cleanup
     }
     clearAccessToken();
+    clearRefreshToken();
     setUser(null);
   }, []);
 

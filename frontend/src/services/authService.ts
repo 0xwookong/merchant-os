@@ -30,6 +30,7 @@ interface MerchantSelectItem {
 interface LoginResponse {
   authenticated: boolean;
   accessToken?: string;
+  refreshToken?: string; // TODO: remove before production (TD-003)
   userId?: number;
   merchantId?: number;
   email?: string;
@@ -67,8 +68,8 @@ export const authService = {
     return api.post<LoginResponse>("/api/v1/auth/login", data);
   },
 
-  refresh(): Promise<LoginResponse> {
-    return api.post<LoginResponse>("/api/v1/auth/refresh");
+  refresh(refreshToken: string | null): Promise<LoginResponse> {
+    return api.post<LoginResponse>("/api/v1/auth/refresh", { refreshToken });
   },
 
   logout(): Promise<string> {

@@ -19,6 +19,9 @@ vi.mock("@/lib/auth", () => ({
   setAccessToken: (...args: unknown[]) => mockSetAccessToken(...args),
   clearAccessToken: (...args: unknown[]) => mockClearAccessToken(...args),
   getAccessToken: () => null,
+  getRefreshToken: () => null,
+  setRefreshToken: vi.fn(),
+  clearRefreshToken: vi.fn(),
 }));
 
 /** 测试用消费者组件：展示 AuthContext 的状态 */
