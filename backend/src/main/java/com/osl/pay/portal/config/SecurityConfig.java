@@ -38,6 +38,9 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/health").permitAll()
+                // Auth endpoints that require authentication
+                .requestMatchers("/api/v1/auth/change-password").authenticated()
+                // Auth endpoints that are public
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()

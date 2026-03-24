@@ -48,6 +48,12 @@ interface ResetPasswordRequest {
   confirmPassword: string;
 }
 
+interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export const authService = {
   register(data: RegisterRequest): Promise<RegisterResponse> {
     return api.post<RegisterResponse>("/api/v1/auth/register", data);
@@ -76,10 +82,14 @@ export const authService = {
   resetPassword(data: ResetPasswordRequest): Promise<string> {
     return api.post<string>("/api/v1/auth/reset-password", data);
   },
+
+  changePassword(data: ChangePasswordRequest): Promise<string> {
+    return api.post<string>("/api/v1/auth/change-password", data);
+  },
 };
 
 export type {
   RegisterRequest, RegisterResponse,
   LoginRequest, LoginResponse, MerchantSelectItem,
-  ForgotPasswordRequest, ResetPasswordRequest,
+  ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest,
 };

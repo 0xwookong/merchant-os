@@ -12,5 +12,6 @@ public final class AuditEventType {
     public static final String TOKEN_REFRESH = "TOKEN_REFRESH";
     public static final String PASSWORD_RESET_REQUEST = "PASSWORD_RESET_REQUEST";
     public static final String PASSWORD_RESET = "PASSWORD_RESET";
+    public static final String PASSWORD_CHANGE = "PASSWORD_CHANGE";
     public static final String RATE_LIMITED = "RATE_LIMITED";
 }

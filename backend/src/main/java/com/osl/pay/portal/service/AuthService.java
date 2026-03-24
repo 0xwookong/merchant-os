@@ -19,4 +19,10 @@ public interface AuthService {
     void forgotPassword(ForgotPasswordRequest request, HttpServletRequest httpRequest);
 
     void resetPassword(ResetPasswordRequest request, HttpServletRequest httpRequest);
+
+    /**
+     * Change password for the currently authenticated user.
+     * Requires valid old password. Revokes refresh token after success.
+     */
+    void changePassword(ChangePasswordRequest request, HttpServletRequest httpRequest);
 }

@@ -46,6 +46,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         "/api/v1/auth/login",           new int[]{10, 60},
         "/api/v1/auth/register",        new int[]{5, 3600},
         "/api/v1/auth/forgot-password", new int[]{5, 3600},
+        "/api/v1/auth/change-password", new int[]{5, 3600},
         "/api/v1/auth/reset-password",  new int[]{10, 3600},
         "/api/v1/auth/verify-email",    new int[]{10, 60},
         "/api/v1/auth/refresh",         new int[]{20, 60}

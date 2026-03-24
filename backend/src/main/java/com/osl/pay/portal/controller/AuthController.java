@@ -67,6 +67,13 @@ public class AuthController {
         return Result.ok("密码重置成功，请使用新密码登录");
     }
 
+    @PostMapping("/change-password")
+    public Result<String> changePassword(@Valid @RequestBody ChangePasswordRequest request,
+                                         HttpServletRequest httpRequest) {
+        authService.changePassword(request, httpRequest);
+        return Result.ok("密码修改成功，请重新登录");
+    }
+
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
         if (request.getCookies() == null) return null;
         return Arrays.stream(request.getCookies())

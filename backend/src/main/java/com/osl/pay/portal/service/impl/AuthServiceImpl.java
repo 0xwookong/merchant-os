@@ -363,6 +363,53 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    // ===== Change Password =====
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest request, HttpServletRequest httpRequest) {
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BizException(40001, "两次密码不一致");
+        }
+
+        // Get current user from SecurityContext
+        var auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof AuthUserDetails userDetails)) {
+            throw new BizException(40101, "未登录");
+        }
+
+        MerchantUser user = merchantUserMapper.selectById(userDetails.getUserId());
+        if (user == null) {
+            throw new BizException(40101, "用户不存在");
+        }
+
+        // Verify old password
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            auditService.log(AuditEventType.PASSWORD_CHANGE, user.getId(), user.getMerchantId(),
+                    user.getEmail(), httpRequest, false, "wrong old password");
+            throw new BizException(40101, "旧密码错误");
+        }
+
+        // Check new password != old password
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+            throw new BizException(40001, "新密码不能与旧密码相同");
+        }
+
+        validatePassword(request.getNewPassword(), user.getEmail());
+
+        merchantUserMapper.update(new LambdaUpdateWrapper<MerchantUser>()
+                .eq(MerchantUser::getId, user.getId())
+                .set(MerchantUser::getPasswordHash, passwordEncoder.encode(request.getNewPassword())));
+
+        // Revoke refresh token → force re-login
+        authRedis.revokeRefreshToken(user.getId(), user.getMerchantId());
+        authRedis.resetFailCount(user.getId());
+
+        auditService.log(AuditEventType.PASSWORD_CHANGE, user.getId(), user.getMerchantId(),
+                user.getEmail(), httpRequest, true, null);
+    }
+
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         Cookie cookie = new Cookie("refresh_token", refreshToken);
         cookie.setHttpOnly(true);
