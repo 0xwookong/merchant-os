@@ -35,6 +35,13 @@ export const MENU_CONFIG: MenuItem[] = [
     roles: ["ADMIN", "BUSINESS"],
     children: [
       {
+        key: "kyb",
+        label: "KYB 认证",
+        icon: "ShieldCheckIcon",
+        path: "/kyb",
+        roles: ["ADMIN"],
+      },
+      {
         key: "onboarding",
         label: "入驻申请",
         icon: "DocumentTextIcon",

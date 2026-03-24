@@ -19,6 +19,7 @@ import {
   FingerPrintIcon,
   ClipboardDocumentListIcon,
   CpuChipIcon,
+  ShieldCheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
@@ -37,6 +38,7 @@ const ICON_MAP: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>
   FingerPrintIcon,
   ClipboardDocumentListIcon,
   CpuChipIcon,
+  ShieldCheckIcon,
 };
 
 export default function Sidebar() {

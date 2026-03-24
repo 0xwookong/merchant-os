@@ -8,11 +8,11 @@ describe("菜单配置 - 角色过滤", () => {
     expect(keys).toEqual(["getting-started", "dashboard", "business", "developer"]);
   });
 
-  it("ADMIN 角色 → 业务管理包含入驻申请和成员与权限", () => {
+  it("ADMIN 角色 → 业务管理包含 KYB 认证、入驻申请和成员与权限", () => {
     const items = filterMenuByRole(MENU_CONFIG, "ADMIN");
     const business = items.find((i) => i.key === "business");
     const childKeys = business?.children?.map((c) => c.key);
-    expect(childKeys).toEqual(["onboarding", "members"]);
+    expect(childKeys).toEqual(["kyb", "onboarding", "members"]);
   });
 
   it("ADMIN 角色 → 开发者套件包含全部 7 个子菜单", () => {
