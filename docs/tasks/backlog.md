@@ -92,7 +92,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | 016 | API 文档引擎 - 在线试用 | ✅ Done (2026-03-24) |
 | 017 | Webhook - 配置管理 | ✅ Done (2026-03-24) |
 | 018 | Webhook - 推送日志 | ✅ Done (2026-03-24) |
-| 019 | 域名白名单 | ⏳ Pending |
+| 019 | 域名白名单 | ✅ Done (2026-03-24) |
 | 020 | API 请求日志 | ⏳ Pending |
 | 021 | 成员与权限管理 | ⏳ Pending |
 | 022 | MCP 配置中心 | ⏳ Pending |
