@@ -266,6 +266,27 @@ const en = {
   "members.status.ACTIVE": "Active",
   "members.status.PENDING": "Pending",
   "members.cancel": "Cancel",
+
+  // mcp
+  "mcp.title": "MCP Configuration",
+  "mcp.subtitle": "Call OSLPay API directly from AI coding assistants without manual signature handling",
+  "mcp.env.title": "Current Environment",
+  "mcp.env.api": "API Endpoint",
+  "mcp.env.mcp": "MCP Endpoint",
+  "mcp.config.title": "MCP Configuration",
+  "mcp.config.copy": "Copy Config",
+  "mcp.config.copied": "Copied",
+  "mcp.config.desc": "Copy the following config to your AI coding assistant's config file",
+  "mcp.tools.title": "Available Tools",
+  "mcp.guide.title": "Setup Guide",
+  "mcp.guide.step1": "Copy the MCP configuration JSON above",
+  "mcp.guide.step2": "Open your AI coding assistant (Cursor / Windsurf / Claude etc.)",
+  "mcp.guide.step3": "Go to Settings → MCP → Edit config file",
+  "mcp.guide.step4": "Paste the config and save",
+  "mcp.guide.step5": "Restart the assistant and use natural language to call APIs",
+  "mcp.examples.title": "Example Prompts",
+  "mcp.support.title": "Technical Support",
+  "mcp.support.email": "support@osl-pay.com",
 };
 
 export default en;

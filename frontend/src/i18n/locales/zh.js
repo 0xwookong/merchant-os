@@ -266,6 +266,27 @@ const zh = {
   "members.status.ACTIVE": "已激活",
   "members.status.PENDING": "待接受",
   "members.cancel": "取消",
+
+  // mcp
+  "mcp.title": "MCP 配置中心",
+  "mcp.subtitle": "通过 AI 编程助手直接调用 OSLPay API，无需手动处理签名",
+  "mcp.env.title": "当前环境",
+  "mcp.env.api": "API 端点",
+  "mcp.env.mcp": "MCP 端点",
+  "mcp.config.title": "MCP 配置",
+  "mcp.config.copy": "复制配置",
+  "mcp.config.copied": "已复制",
+  "mcp.config.desc": "将以下配置复制到 AI 编程助手的配置文件中",
+  "mcp.tools.title": "可用工具",
+  "mcp.guide.title": "配置指南",
+  "mcp.guide.step1": "复制上方 MCP 配置 JSON",
+  "mcp.guide.step2": "打开 AI 编程助手（Cursor / Windsurf / Claude 等）",
+  "mcp.guide.step3": "进入设置 → MCP → 编辑配置文件",
+  "mcp.guide.step4": "粘贴配置并保存",
+  "mcp.guide.step5": "重启 AI 助手，在对话中直接使用自然语言调用",
+  "mcp.examples.title": "示例提示词",
+  "mcp.support.title": "技术支持",
+  "mcp.support.email": "support@osl-pay.com",
 };
 
 export default zh;
