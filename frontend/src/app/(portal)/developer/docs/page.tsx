@@ -244,6 +244,11 @@ export default function DocsPage() {
                 </pre>
               </div>
 
+              {/* Code Samples */}
+              <div className="p-6 border-b border-[var(--gray-100)]">
+                <CodeSamples endpoint={selectedEndpoint} />
+              </div>
+
               {/* AI Context Block */}
               <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
@@ -271,4 +276,276 @@ export default function DocsPage() {
       </div>
     </div>
   );
+}
+
+/* ─── Code Samples Component ─── */
+
+const LANGUAGES = ["cURL", "TypeScript", "Python", "Java", "Go", "Rust"] as const;
+type Lang = typeof LANGUAGES[number];
+
+function CodeSamples({ endpoint }: { endpoint: EndpointDetail }) {
+  const [lang, setLang] = useState<Lang>("cURL");
+  const [copied, setCopied] = useState(false);
+
+  const code = useMemo(() => generateCode(endpoint, lang), [endpoint, lang]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* */ }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-[var(--gray-900)]">Code Samples</h3>
+        <button onClick={handleCopy}
+          className="flex items-center gap-1 p-1.5 rounded hover:bg-[var(--gray-200)] transition-colors" aria-label="Copy code">
+          {copied ? <CheckIcon className="w-4 h-4 text-green-600" /> : <ClipboardDocumentIcon className="w-4 h-4 text-[var(--gray-400)]" />}
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-1 mb-2">
+        {LANGUAGES.map((l) => (
+          <button key={l} onClick={() => setLang(l)}
+            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+              lang === l ? "bg-[var(--gray-900)] text-white" : "bg-[var(--gray-100)] text-[var(--gray-600)] hover:bg-[var(--gray-200)]"
+            }`}>
+            {l}
+          </button>
+        ))}
+      </div>
+      <pre className="text-xs font-mono bg-[var(--gray-900)] text-gray-300 rounded-lg p-4 overflow-x-auto max-h-96 overflow-y-auto whitespace-pre">
+        {code}
+      </pre>
+    </div>
+  );
+}
+
+function getExampleBody(endpoint: EndpointDetail): string | null {
+  if (!endpoint.requestBody) return null;
+  try {
+    const content = (endpoint.requestBody as Record<string, unknown>).content as Record<string, unknown> | undefined;
+    if (!content) return null;
+    const json = content["application/json"] as Record<string, unknown> | undefined;
+    if (!json) return null;
+    const example = json.example;
+    if (example) return JSON.stringify(example, null, 2);
+    return '{\n  "key": "value"\n}';
+  } catch {
+    return '{\n  "key": "value"\n}';
+  }
+}
+
+function generateCode(ep: EndpointDetail, lang: Lang): string {
+  const baseUrl = "https://openapitest.osl-pay.com";
+  const url = `${baseUrl}${ep.path}`;
+  const body = getExampleBody(ep);
+  const hasBody = ep.method === "POST" || ep.method === "PUT" || ep.method === "PATCH";
+
+  switch (lang) {
+    case "cURL":
+      return generateCurl(ep, url, body, hasBody);
+    case "TypeScript":
+      return generateTypeScript(ep, url, body, hasBody);
+    case "Python":
+      return generatePython(ep, url, body, hasBody);
+    case "Java":
+      return generateJava(ep, url, body, hasBody);
+    case "Go":
+      return generateGo(ep, url, body, hasBody);
+    case "Rust":
+      return generateRust(ep, url, body, hasBody);
+  }
+}
+
+function generateCurl(ep: EndpointDetail, url: string, body: string | null, hasBody: boolean): string {
+  const lines = [
+    `curl -X ${ep.method} '${url}' \\`,
+    `  -H 'Content-Type: application/json' \\`,
+    `  -H 'open-api-appid: YOUR_APP_ID' \\`,
+    `  -H 'open-api-timestamp: UNIX_TIMESTAMP' \\`,
+    `  -H 'open-api-sign: YOUR_SIGNATURE'`,
+  ];
+  if (hasBody && body) {
+    lines[lines.length - 1] += " \\";
+    lines.push(`  -d '${body.replace(/\n/g, "\n  ")}'`);
+  }
+  return lines.join("\n");
+}
+
+function generateTypeScript(ep: EndpointDetail, url: string, body: string | null, hasBody: boolean): string {
+  return `// ${ep.summary}
+// npm install node-fetch (or use built-in fetch)
+import crypto from "crypto";
+
+const APP_ID = "YOUR_APP_ID";
+const PRIVATE_KEY = \`-----BEGIN PRIVATE KEY-----
+YOUR_PRIVATE_KEY_HERE
+-----END PRIVATE KEY-----\`;
+
+const timestamp = Math.floor(Date.now() / 1000).toString();
+const signStr = \`appId=\${APP_ID}&timestamp=\${timestamp}\`;
+const sign = crypto.sign("sha256", Buffer.from(signStr), {
+  key: PRIVATE_KEY,
+  padding: crypto.constants.RSA_PKCS1_PADDING,
+}).toString("base64");
+
+const response = await fetch("${url}", {
+  method: "${ep.method}",
+  headers: {
+    "Content-Type": "application/json",
+    "open-api-appid": APP_ID,
+    "open-api-timestamp": timestamp,
+    "open-api-sign": sign,
+  },${hasBody && body ? `\n  body: JSON.stringify(${body}),` : ""}
+});
+
+const data = await response.json();
+console.log(data);`;
+}
+
+function generatePython(ep: EndpointDetail, url: string, body: string | null, hasBody: boolean): string {
+  return `# ${ep.summary}
+# pip install requests cryptography
+import time, base64, json, requests
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+
+APP_ID = "YOUR_APP_ID"
+PRIVATE_KEY_PEM = """-----BEGIN PRIVATE KEY-----
+YOUR_PRIVATE_KEY_HERE
+-----END PRIVATE KEY-----"""
+
+timestamp = str(int(time.time()))
+sign_str = f"appId={APP_ID}&timestamp={timestamp}"
+
+private_key = serialization.load_pem_private_key(PRIVATE_KEY_PEM.encode(), password=None)
+signature = private_key.sign(sign_str.encode(), padding.PKCS1v15(), hashes.SHA256())
+sign = base64.b64encode(signature).decode()
+
+headers = {
+    "Content-Type": "application/json",
+    "open-api-appid": APP_ID,
+    "open-api-timestamp": timestamp,
+    "open-api-sign": sign,
+}
+${hasBody && body
+    ? `\ndata = ${body}\n\nresponse = requests.${ep.method.toLowerCase()}("${url}", headers=headers, json=data)`
+    : `\nresponse = requests.${ep.method.toLowerCase()}("${url}", headers=headers)`}
+print(response.json())`;
+}
+
+function generateJava(ep: EndpointDetail, url: string, body: string | null, hasBody: boolean): string {
+  return `// ${ep.summary}
+import java.net.URI;
+import java.net.http.*;
+import java.security.*;
+import java.util.Base64;
+
+public class ApiExample {
+    public static void main(String[] args) throws Exception {
+        String appId = "YOUR_APP_ID";
+        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        String signStr = "appId=" + appId + "&timestamp=" + timestamp;
+
+        // Load private key and sign
+        // PrivateKey privateKey = loadPrivateKey("private_pkcs8.pem");
+        Signature sig = Signature.getInstance("SHA256withRSA");
+        // sig.initSign(privateKey);
+        // sig.update(signStr.getBytes());
+        // String sign = Base64.getEncoder().encodeToString(sig.sign());
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("${url}"))
+            .header("Content-Type", "application/json")
+            .header("open-api-appid", appId)
+            .header("open-api-timestamp", timestamp)
+            .header("open-api-sign", "YOUR_SIGNATURE")
+            .method("${ep.method}", ${hasBody && body
+              ? `HttpRequest.BodyPublishers.ofString("""\n${body.split("\n").map(l => "                " + l).join("\n")}\n                """)`
+              : "HttpRequest.BodyPublishers.noBody()"})
+            .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+    }
+}`;
+}
+
+function generateGo(ep: EndpointDetail, url: string, body: string | null, hasBody: boolean): string {
+  return `// ${ep.summary}
+package main
+
+import (
+\t"crypto"
+\t"crypto/rand"
+\t"crypto/rsa"
+\t"crypto/sha256"
+\t"encoding/base64"
+\t"fmt"
+\t"io"
+\t"net/http"
+\t"strings"
+\t"time"
+)
+
+func main() {
+\tappID := "YOUR_APP_ID"
+\ttimestamp := fmt.Sprintf("%d", time.Now().Unix())
+\tsignStr := fmt.Sprintf("appId=%s&timestamp=%s", appID, timestamp)
+
+\t// Sign with RSA SHA256
+\thashed := sha256.Sum256([]byte(signStr))
+\t// signature, _ := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, hashed[:])
+\t// sign := base64.StdEncoding.EncodeToString(signature)
+
+${hasBody && body
+    ? `\tbody := strings.NewReader(\`${body}\`)
+\treq, _ := http.NewRequest("${ep.method}", "${url}", body)`
+    : `\treq, _ := http.NewRequest("${ep.method}", "${url}", nil)`}
+\treq.Header.Set("Content-Type", "application/json")
+\treq.Header.Set("open-api-appid", appID)
+\treq.Header.Set("open-api-timestamp", timestamp)
+\treq.Header.Set("open-api-sign", "YOUR_SIGNATURE")
+
+\tresp, _ := http.DefaultClient.Do(req)
+\tdefer resp.Body.Close()
+\tdata, _ := io.ReadAll(resp.Body)
+\tfmt.Println(string(data))
+}`;
+}
+
+function generateRust(ep: EndpointDetail, url: string, body: string | null, hasBody: boolean): string {
+  return `// ${ep.summary}
+// Cargo.toml: reqwest = { version = "0.12", features = ["json"] }
+//             tokio = { version = "1", features = ["full"] }
+
+use reqwest;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let app_id = "YOUR_APP_ID";
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_secs()
+        .to_string();
+    let sign_str = format!("appId={}&timestamp={}", app_id, timestamp);
+    // let sign = rsa_sha256_sign(&sign_str, &private_key);
+
+    let client = reqwest::Client::new();
+    let response = client
+        .${ep.method.toLowerCase()}("${url}")
+        .header("Content-Type", "application/json")
+        .header("open-api-appid", app_id)
+        .header("open-api-timestamp", &timestamp)
+        .header("open-api-sign", "YOUR_SIGNATURE")${hasBody && body ? `\n        .body(r#"${body}"#.to_string())` : ""}
+        .send()
+        .await?;
+
+    println!("{}", response.text().await?);
+    Ok(())
+}`;
 }
