@@ -95,7 +95,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | 019 | 域名白名单 | ✅ Done (2026-03-24) |
 | 020 | API 请求日志 | ✅ Done (2026-03-24) |
 | 021 | 成员与权限管理 | ✅ Done (2026-03-24) |
-| 022 | MCP 配置中心 | ⏳ Pending |
+| 022 | MCP 配置中心 | ✅ Done (2026-03-24) |
 | 023 | MCP Server 实现 | ⏳ Pending |
 
 ---
