@@ -329,7 +329,7 @@ class AuthRegisterApiTest {
             mockMvc.perform(get("/api/v1/auth/verify-email").param("token", "nonexistent-token"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value(40003))
-                    .andExpect(jsonPath("$.message").value("验证链接无效或已过期"));
+                    .andExpect(jsonPath("$.message").value("验证链接无效或已过期，如已验证请直接登录"));
         }
     }
 }

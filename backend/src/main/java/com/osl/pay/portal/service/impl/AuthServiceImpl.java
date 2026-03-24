@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthRedisService authRedis;
     private final AuditService auditService;
+
+    @Value("${server.ssl.enabled:false}")
+    private boolean sslEnabled;
 
     private static final Pattern UPPERCASE = Pattern.compile("[A-Z]");
     private static final Pattern LOWERCASE = Pattern.compile("[a-z]");
@@ -113,7 +117,7 @@ public class AuthServiceImpl implements AuthService {
         Long userId = authRedis.getAndDeleteVerifyToken(token);
         if (userId == null) {
             auditService.log(AuditEventType.EMAIL_VERIFIED, httpRequest, false, "invalid/expired token");
-            throw new BizException(40003, "验证链接无效或已过期");
+            throw new BizException(40003, "验证链接无效或已过期，如已验证请直接登录");
         }
 
         MerchantUser user = merchantUserMapper.selectById(userId);
@@ -275,10 +279,10 @@ public class AuthServiceImpl implements AuthService {
         // Clear cookie regardless
         Cookie cookie = new Cookie("refresh_token", "");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(sslEnabled);
         cookie.setPath("/api/v1/auth/refresh");
         cookie.setMaxAge(0);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", sslEnabled ? "Strict" : "Lax");
         httpResponse.addCookie(cookie);
 
         SecurityContextHolder.clearContext();
@@ -413,10 +417,10 @@ public class AuthServiceImpl implements AuthService {
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         Cookie cookie = new Cookie("refresh_token", refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(sslEnabled); // false in dev (HTTP), true in prod (HTTPS)
         cookie.setPath("/api/v1/auth/refresh");
         cookie.setMaxAge((int) jwtService.getRefreshExpireSeconds());
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", sslEnabled ? "Strict" : "Lax");
         response.addCookie(cookie);
     }
 

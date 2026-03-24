@@ -121,7 +121,8 @@ class AuthLoginApiTest {
             Cookie refreshCookie = result.getResponse().getCookie("refresh_token");
             assertThat(refreshCookie).isNotNull();
             assertThat(refreshCookie.isHttpOnly()).isTrue();
-            assertThat(refreshCookie.getSecure()).isTrue();
+            // Secure=false in test/dev (HTTP), true in prod (HTTPS)
+            assertThat(refreshCookie.getSecure()).isFalse();
             assertThat(refreshCookie.getPath()).isEqualTo("/api/v1/auth/refresh");
 
             // 验证 Redis 中存储了 refresh token

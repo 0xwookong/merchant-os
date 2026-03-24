@@ -1,4 +1,5 @@
 import { getAccessToken } from "./auth";
+import { getEnvironment } from "./environment";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -35,7 +36,7 @@ async function request<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  // TODO: Task-005 will add X-Environment header from environment context
+  headers["X-Environment"] = getEnvironment();
 
   let res: Response;
   try {

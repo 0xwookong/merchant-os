@@ -1,0 +1,46 @@
+# Test profile: uses a separate database to avoid wiping dev data
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/oslpay_portal_test?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  profiles:
+    active: dev
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+oslpay:
+  api:
+    production-url: https://openapi.osl-pay.com
+    sandbox-url: https://openapitest.osl-pay.com
+  mcp:
+    production-url: https://mcp.osl-pay.com/sse
+    sandbox-url: https://mcptest.osl-pay.com/sse
+
+jwt:
+  secret: oslpay-merchant-portal-jwt-secret-key-for-dev-only-change-in-production-at-least-256-bits
+  access-expire-hours: 2
+  refresh-expire-days: 7
+
+auth:
+  verify-token-expire-minutes: 30
+  reset-token-expire-minutes: 30
+  login-max-fail-count: 5
+  login-lock-minutes: 15
+  verify-base-url: http://localhost:3000/verify-email
+  reset-base-url: http://localhost:3000/reset-password
