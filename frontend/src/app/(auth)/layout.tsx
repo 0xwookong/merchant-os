@@ -86,9 +86,9 @@ export default function AuthLayout({
         <div className="flex items-center justify-end p-4 lg:p-6">
           <button
             onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--gray-600)] hover:bg-white hover:shadow-sm border border-transparent hover:border-[var(--gray-200)] transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-[var(--gray-500)] hover:text-[var(--gray-900)] transition-colors"
           >
-            <GlobeAltIcon className="w-4 h-4" />
+            <GlobeAltIcon className="w-3.5 h-3.5" />
             {locale === "zh" ? "English" : "中文"}
           </button>
         </div>
