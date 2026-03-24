@@ -186,6 +186,18 @@ const en = {
   "docs.detail.clickToView": "Click an endpoint to view details",
   "docs.loading": "Loading...",
   "docs.error": "Failed to load",
+  "docs.tryIt.title": "Try It",
+  "docs.tryIt.send": "Send Request",
+  "docs.tryIt.sending": "Sending...",
+  "docs.tryIt.response": "Response",
+  "docs.tryIt.statusCode": "Status",
+  "docs.tryIt.duration": "Duration",
+  "docs.tryIt.headers": "Headers",
+  "docs.tryIt.body": "Request Body (JSON)",
+  "docs.tryIt.sandboxOnly": "Sandbox environment only",
+  "docs.tryIt.appId": "App ID",
+  "docs.tryIt.timestamp": "Timestamp (auto-generated)",
+  "docs.tryIt.sign": "Signature (sign manually)",
 };
 
 export default en;

@@ -34,6 +34,20 @@ export interface EndpointDetail {
   aiContextBlock: string;
 }
 
+export interface ProxyRequest {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: string;
+}
+
+export interface ProxyResponse {
+  statusCode: number;
+  headers: Record<string, string>;
+  body: string;
+  durationMs: number;
+}
+
 export const docsService = {
   listEndpoints(category?: string): Promise<EndpointListResult> {
     const params: Record<string, string> = {};
@@ -43,5 +57,9 @@ export const docsService = {
 
   getEndpointDetail(operationId: string): Promise<EndpointDetail> {
     return api.get<EndpointDetail>(`/api/v1/docs/endpoints/${operationId}`);
+  },
+
+  proxy(data: ProxyRequest): Promise<ProxyResponse> {
+    return api.post<ProxyResponse>("/api/v1/docs/proxy", data);
   },
 };

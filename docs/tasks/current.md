@@ -1,116 +1,72 @@
-# Task-014: API 文档引擎 - 端点列表与详情
+# Task-016: API 文档引擎 - 在线试用 (Try It)
 
 ## Status: Verifying
 
 ## PRD Reference
-docs/prd/05-api-doc-engine.md — §2.1-2.2「OpenAPI 规范结构化转换」「AI Context Block」、§3「API 端点分类」、§5「文档引擎后端接口」
+docs/prd/05-api-doc-engine.md — §2.5「在线试用（Try It）」
 
 ## Scope
-- 前端: `/developer/docs` 页面（分类导航 + 端点列表 + 端点详情面板）
-- 后端: 2 个 API
-  - `GET /api/v1/docs/endpoints` — 端点列表（支持分类筛选）
-  - `GET /api/v1/docs/endpoints/{operationId}` — 端点详情 + AI Context Block
-- 数据源: 内置 OpenAPI 3.0 YAML 规范文件（描述 OSLPay 支付 API 的 16 个端点）
+- 前端: 在端点详情面板中添加 Try It 面板（填参数、发请求、展示响应）
+- 后端: `POST /api/v1/docs/proxy` — 沙箱代理转发（解决 CORS，后端转发请求到 openapitest.osl-pay.com）
+- 数据库: 无
 
 ## 设计要点
 
-### 数据源
-- 后端 resources 目录下放置 `oslpay-openapi.yaml`（OSLPay 支付 API 规范）
-- 应用启动时解析并缓存，不涉及数据库
-- 每个端点提取: method, path, summary, description, tags, parameters, requestBody, responses
+### 后端代理
+- 前端不能直接请求 openapitest.osl-pay.com（CORS 限制）
+- 后端代理: 接收前端请求参数，转发到沙箱 API，返回响应
+- 仅限沙箱环境（X-Environment: sandbox），生产环境拒绝代理
 
-### 端点列表 API 响应结构
-```json
-{
-  "categories": [
-    { "key": "user", "label": "用户管理", "count": 2 },
-    { "key": "quote", "label": "报价", "count": 1 },
-    ...
-  ],
-  "endpoints": [
-    {
-      "operationId": "createUser",
-      "method": "POST",
-      "path": "/api/v1/users",
-      "summary": "用户注册",
-      "category": "user",
-      "tags": ["User Management"]
-    }
-  ]
-}
-```
-
-### 端点详情 API 响应结构
-```json
-{
-  "operationId": "createUser",
-  "method": "POST",
-  "path": "/api/v1/users",
-  "summary": "...",
-  "description": "...",
-  "category": "user",
-  "parameters": [...],
-  "requestBody": { "contentType": "application/json", "schema": {...}, "example": {...} },
-  "responses": { "200": {...}, "400": {...} },
-  "aiContextBlock": "structured AI-friendly text block"
-}
-```
-
-### 前端页面布局
-- 左侧: 分类导航（6 个分类）+ 搜索框
-- 右侧: 端点列表 → 点击展开详情面板
-- 详情面板: 请求参数表、响应结构、AI Context Block（可复制）
+### 前端 Try It 面板
+- 在端点详情 Code Samples 下方新增 "Try It" 区域
+- 自动根据端点 parameters + requestBody 生成表单字段
+- Header 参数（appId, timestamp, sign）预填或自动计算
+- 发送按钮 + 响应展示（状态码 + JSON body，语法高亮）
+- Loading 状态 + 错误处理
 
 ## Test Cases (TDD)
 
 ### 后端功能测试
-1. **端点列表**: GET /api/v1/docs/endpoints → 200，返回 categories + endpoints
-2. **分类筛选**: ?category=order → 仅返回订单相关端点
-3. **端点详情**: GET /api/v1/docs/endpoints/createUser → 200，返回完整详情
-4. **AI Context Block**: 详情响应中包含 aiContextBlock 字段
-5. **不存在的端点**: GET /api/v1/docs/endpoints/notExist → 404
+1. **代理转发**: POST /api/v1/docs/proxy + 有效参数 → 200，返回代理响应
+2. **仅沙箱**: X-Environment: production → 400 "在线试用仅支持沙箱环境"
+3. **缺失参数**: method/url 为空 → 400
 
 ### 后端安全测试
-6. **未认证访问**: 无 JWT → 403
-7. **operationId 注入**: 特殊字符 operationId → 404（安全处理）
+4. **未认证**: 无 JWT → 403
+5. **URL 限制**: 仅允许转发到 openapitest.osl-pay.com 域名
 
 ### 前端功能测试
-8. **渲染分类导航**: 6 个分类可见
-9. **渲染端点列表**: 显示端点方法 + 路径 + 摘要
-10. **端点搜索**: 输入关键词过滤端点
+6. **渲染 Try It 区域**: 端点详情中显示 Try It 面板
+7. **展示发送按钮**: Send Request 按钮可见
 
 ### 安全检查清单
 - [x] 认证: 需要 JWT
 - [x] 频率限制: 全局 RateLimitFilter
-- [x] 信息泄漏: 不涉及（公开 API 文档数据）
-- [x] 输入校验: operationId 白名单匹配，category 枚举校验
-- [x] 租户隔离: 不涉及（文档数据所有商户共享）
-- [x] HTTP 状态码: 404 端点不存在
-- [x] 日志安全: 无敏感数据
+- [x] URL 白名单: 仅允许转发到沙箱域名，防 SSRF
+- [x] 环境限制: 仅沙箱环境可用
+- [x] 输入校验: URL/method/headers 校验
 
 ## Development Plan
 
 ### 后端
-- [x] 1. 创建 `oslpay-openapi.yaml` 规范文件（16 个端点，6 个分类）
-- [x] 2. 创建 DocEngineService（@PostConstruct 解析 + 内存缓存）
-- [x] 3. 创建 DTO（EndpointSummary, EndpointDetail, CategoryInfo, EndpointListResult）
-- [x] 4. 创建 DocsController（2 个 GET 端点）
-- [x] 5. 编写后端测试 DocsApiTest（6 个测试）
+- [ ] 1. 创建 ProxyRequest/ProxyResponse DTO
+- [ ] 2. 创建 DocsProxyService（HTTP 转发 + 域名白名单）
+- [ ] 3. 在 DocsController 添加 POST /api/v1/docs/proxy
+- [ ] 4. 编写后端测试
 
 ### 前端
-- [x] 6. 创建 docsService.ts
-- [x] 7. 添加 i18n 翻译键（docs namespace，zh+en）
-- [x] 8. 创建 /developer/docs/page.tsx（分类pills + 搜索 + 列表 + 详情面板 + AI Context Block）
-- [x] 9. 编写前端测试（4 个测试）
+- [ ] 5. 添加 i18n 翻译键
+- [ ] 6. 在 docs page 端点详情中添加 TryItPanel 组件
+- [ ] 7. 编写前端测试
 
 ## Execution Log
 
-### 2026-03-24 18:57
-- 后端: oslpay-openapi.yaml（16 端点，6 分类）+ DocEngineService（Jackson YAML 解析 + $ref 解析 + AI Context Block 生成）+ DocsController
-- 后端测试: 6 个全部通过（列表、分类筛选、详情、AI Context、404、未认证）
-- 前端: docsService.ts + i18n + docs page（搜索框 + 分类 pills + 端点列表 + 详情面板 + 参数表 + 响应 JSON + AI Context 暗色代码块）
-- 前端测试: 4 个全部通过
-- 全量: 后端 106 通过，前端 52 通过
+### 2026-03-24 19:20
+- 后端: DocsProxyService（HttpClient 转发 + 域名白名单 SSRF 防护 + 仅沙箱环境）+ ProxyRequest/ProxyResponse DTO + DocsController 添加 POST /proxy
+- 后端测试: 3 个新增全部通过（生产环境拒绝、非白名单域名拒绝、缺失参数拒绝）
+- 前端: TryItPanel 组件（URL 预览 + App ID 输入 + JSON body 编辑器 + Send 按钮 + 响应暗色展示 + 状态码+耗时）
+- 前端测试: 52 全部通过
+- 全量: 后端 109 通过，前端 52 通过
 
 ## Next Step
-Task-015: API 文档引擎 - AI 提示词与代码生成
+Task-017: Webhook 配置管理

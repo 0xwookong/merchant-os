@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -168,6 +169,60 @@ class DocsApiTest {
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").value("端点不存在"));
+        }
+    }
+
+    @Nested
+    @DisplayName("沙箱代理")
+    class Proxy {
+
+        @Test
+        @DisplayName("生产环境请求代理 → 400 '在线试用仅支持沙箱环境'")
+        void should_reject_when_productionEnv() throws Exception {
+            String body = objectMapper.writeValueAsString(Map.of(
+                    "method", "GET",
+                    "url", "https://openapitest.osl-pay.com/api/v1/config/currencies",
+                    "headers", Map.of("Content-Type", "application/json")
+            ));
+
+            mockMvc.perform(post("/api/v1/docs/proxy")
+                            .header("Authorization", "Bearer " + token)
+                            .header("X-Environment", "production")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("在线试用仅支持沙箱环境"));
+        }
+
+        @Test
+        @DisplayName("非白名单域名 → 400 '仅允许请求沙箱 API 端点'")
+        void should_reject_when_invalidHost() throws Exception {
+            String body = objectMapper.writeValueAsString(Map.of(
+                    "method", "GET",
+                    "url", "https://evil.com/steal",
+                    "headers", Map.of()
+            ));
+
+            mockMvc.perform(post("/api/v1/docs/proxy")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("仅允许请求沙箱 API 端点"));
+        }
+
+        @Test
+        @DisplayName("缺失 method → 400")
+        void should_reject_when_missingMethod() throws Exception {
+            String body = objectMapper.writeValueAsString(Map.of(
+                    "url", "https://openapitest.osl-pay.com/api/v1/config/currencies"
+            ));
+
+            mockMvc.perform(post("/api/v1/docs/proxy")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
         }
     }
 

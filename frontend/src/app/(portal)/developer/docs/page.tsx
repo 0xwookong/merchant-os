@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useI18n } from "@/providers/language-provider";
+import { useEnvironment } from "@/providers/environment-provider";
 import { docsService, type EndpointSummary, type EndpointDetail, type CategoryInfo } from "@/services/docsService";
 import {
   MagnifyingGlassIcon,
@@ -9,6 +10,7 @@ import {
   CheckIcon,
   ChevronRightIcon,
   ExclamationTriangleIcon,
+  PlayIcon,
 } from "@heroicons/react/24/outline";
 
 const METHOD_COLORS: Record<string, string> = {
@@ -249,6 +251,11 @@ export default function DocsPage() {
                 <CodeSamples endpoint={selectedEndpoint} />
               </div>
 
+              {/* Try It */}
+              <div className="p-6 border-b border-[var(--gray-100)]">
+                <TryItPanel endpoint={selectedEndpoint} />
+              </div>
+
               {/* AI Context Block */}
               <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
@@ -345,6 +352,145 @@ function CodeSamples({ endpoint }: { endpoint: EndpointDetail }) {
       </div>
     </div>
   );
+}
+
+/* ─── Try It Panel ─── */
+
+const SANDBOX_BASE = "https://openapitest.osl-pay.com";
+
+function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
+  const { t } = useI18n();
+  const { isSandbox } = useEnvironment();
+  const [appId, setAppId] = useState("YOUR_APP_ID");
+  const [bodyText, setBodyText] = useState(() => {
+    const ex = getExampleBody(endpoint);
+    return ex || "";
+  });
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState<{ statusCode: number; body: string; durationMs: number } | null>(null);
+  const [error, setError] = useState("");
+
+  // Reset when endpoint changes
+  useEffect(() => {
+    const ex = getExampleBody(endpoint);
+    setBodyText(ex || "");
+    setResponse(null);
+    setError("");
+  }, [endpoint.operationId]);
+
+  const handleSend = async () => {
+    setLoading(true);
+    setError("");
+    setResponse(null);
+
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const url = `${SANDBOX_BASE}${endpoint.path}`;
+    const hasBody = endpoint.method === "POST" || endpoint.method === "PUT" || endpoint.method === "PATCH";
+
+    try {
+      const res = await docsService.proxy({
+        method: endpoint.method,
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "open-api-appid": appId,
+          "open-api-timestamp": timestamp,
+          "open-api-sign": "PLACEHOLDER_SIGN",
+        },
+        body: hasBody ? bodyText : undefined,
+      });
+      setResponse(res);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isSandbox) {
+    return (
+      <div>
+        <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">{t("docs.tryIt.title")}</h3>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-700">
+          {t("docs.tryIt.sandboxOnly")}
+        </div>
+      </div>
+    );
+  }
+
+  const hasBody = endpoint.method === "POST" || endpoint.method === "PUT" || endpoint.method === "PATCH";
+  const formattedBody = response?.body ? tryFormatJson(response.body) : "";
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-4">
+        <PlayIcon className="w-4 h-4 text-[var(--gray-500)]" />
+        <h3 className="text-sm font-semibold text-[var(--gray-900)]">{t("docs.tryIt.title")}</h3>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700 font-medium">Sandbox</span>
+      </div>
+
+      <div className="space-y-3">
+        {/* URL preview */}
+        <div className="flex items-center gap-2 bg-[var(--gray-50)] border border-[var(--gray-200)] rounded-lg px-3 py-2">
+          <span className={`shrink-0 px-2 py-0.5 rounded text-xs font-mono font-semibold ${METHOD_COLORS[endpoint.method] || ""}`}>
+            {endpoint.method}
+          </span>
+          <span className="text-xs font-mono text-[var(--gray-600)] truncate">{SANDBOX_BASE}{endpoint.path}</span>
+        </div>
+
+        {/* App ID */}
+        <div>
+          <label className="block text-xs font-medium text-[var(--gray-600)] mb-1">{t("docs.tryIt.appId")}</label>
+          <input type="text" value={appId} onChange={(e) => setAppId(e.target.value)}
+            className="w-full border border-[var(--gray-300)] rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+
+        {/* Body */}
+        {hasBody && (
+          <div>
+            <label className="block text-xs font-medium text-[var(--gray-600)] mb-1">{t("docs.tryIt.body")}</label>
+            <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} rows={6}
+              className="w-full border border-[var(--gray-300)] rounded-lg px-3 py-2 text-xs font-mono resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          </div>
+        )}
+
+        {/* Send button */}
+        <button onClick={handleSend} disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
+          <PlayIcon className="w-4 h-4" />
+          {loading ? t("docs.tryIt.sending") : t("docs.tryIt.send")}
+        </button>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700">{error}</div>
+        )}
+
+        {/* Response */}
+        {response && (
+          <div className="rounded-xl overflow-hidden border border-[var(--gray-700)] bg-[var(--gray-900)]">
+            <div className="flex items-center gap-4 px-4 py-2 bg-[#1e1e2e] border-b border-[var(--gray-700)]">
+              <span className="text-xs text-gray-400">{t("docs.tryIt.response")}</span>
+              <span className={`text-xs font-mono font-semibold ${response.statusCode < 400 ? "text-green-400" : "text-red-400"}`}>
+                {response.statusCode}
+              </span>
+              <span className="text-xs text-gray-500">{response.durationMs}ms</span>
+            </div>
+            <pre className="text-[13px] leading-5 font-mono text-gray-300 p-4 overflow-x-auto max-h-80 overflow-y-auto whitespace-pre">
+              {formattedBody}
+            </pre>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function tryFormatJson(str: string): string {
+  try {
+    return JSON.stringify(JSON.parse(str), null, 2);
+  } catch {
+    return str;
+  }
 }
 
 function getExampleBody(endpoint: EndpointDetail): string | null {

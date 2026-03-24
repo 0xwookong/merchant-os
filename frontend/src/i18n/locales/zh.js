@@ -186,6 +186,18 @@ const zh = {
   "docs.detail.clickToView": "点击端点查看详情",
   "docs.loading": "加载中...",
   "docs.error": "加载失败",
+  "docs.tryIt.title": "在线试用",
+  "docs.tryIt.send": "发送请求",
+  "docs.tryIt.sending": "请求中...",
+  "docs.tryIt.response": "响应",
+  "docs.tryIt.statusCode": "状态码",
+  "docs.tryIt.duration": "耗时",
+  "docs.tryIt.headers": "请求头",
+  "docs.tryIt.body": "请求体 (JSON)",
+  "docs.tryIt.sandboxOnly": "仅在沙箱环境可用",
+  "docs.tryIt.appId": "App ID",
+  "docs.tryIt.timestamp": "Timestamp (自动生成)",
+  "docs.tryIt.sign": "Signature (需自行签名)",
 };
 
 export default zh;
