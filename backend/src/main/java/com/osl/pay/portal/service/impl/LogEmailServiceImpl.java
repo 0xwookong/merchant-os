@@ -6,13 +6,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Slf4j
 @Service
 @Profile("dev")
 public class LogEmailServiceImpl implements EmailService {
 
-    @Value("${mail.verify-base-url}")
+    @Value("${auth.verify-base-url}")
     private String verifyBaseUrl;
+
+    @Value("${auth.reset-base-url}")
+    private String resetBaseUrl;
 
     @Override
     public void sendVerificationEmail(String to, String token) {
@@ -21,5 +26,16 @@ public class LogEmailServiceImpl implements EmailService {
         log.info("To: {}", to);
         log.info("Verify Link: {}", verifyLink);
         log.info("=========================================");
+    }
+
+    @Override
+    public void sendPasswordResetEmail(String to, Map<String, String> resetTokens) {
+        log.info("========== PASSWORD RESET ==========");
+        log.info("To: {}", to);
+        resetTokens.forEach((companyName, token) -> {
+            String resetLink = resetBaseUrl + "?token=" + token;
+            log.info("Company: {} → Reset Link: {}", companyName, resetLink);
+        });
+        log.info("====================================");
     }
 }

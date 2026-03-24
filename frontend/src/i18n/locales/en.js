@@ -50,6 +50,41 @@ const en = {
   "auth.validation.confirmPasswordMismatch": "Passwords do not match",
   "auth.validation.companyNameRequired": "Company name is required",
   "auth.validation.contactNameRequired": "Contact name is required",
+
+  // auth - login
+  "auth.login.title": "Sign In",
+  "auth.login.subtitle": "Sign in to your OSLPay merchant account",
+  "auth.login.email": "Email",
+  "auth.login.password": "Password",
+  "auth.login.submit": "Sign In",
+  "auth.login.submitting": "Signing in...",
+  "auth.login.forgotPassword": "Forgot password?",
+  "auth.login.noAccount": "Don't have an account?",
+  "auth.login.goRegister": "Register",
+  "auth.login.selectMerchant.title": "Select Merchant",
+  "auth.login.selectMerchant.subtitle": "Your account is linked to multiple merchants. Please select one.",
+  "auth.login.selectMerchant.back": "← Back to login",
+
+  // auth - forgot password
+  "auth.forgotPassword.title": "Forgot Password",
+  "auth.forgotPassword.subtitle": "Enter your email to receive a password reset link",
+  "auth.forgotPassword.submit": "Send Reset Link",
+  "auth.forgotPassword.submitting": "Sending...",
+  "auth.forgotPassword.sent.title": "Email sent",
+  "auth.forgotPassword.sent.message": "If {email} is registered, you will receive a reset email.",
+  "auth.forgotPassword.backToLogin": "← Back to login",
+
+  // auth - reset password
+  "auth.resetPassword.title": "Reset Password",
+  "auth.resetPassword.subtitle": "Set your new password",
+  "auth.resetPassword.newPassword": "New Password",
+  "auth.resetPassword.confirmPassword": "Confirm Password",
+  "auth.resetPassword.submit": "Reset Password",
+  "auth.resetPassword.submitting": "Resetting...",
+  "auth.resetPassword.success.title": "Password reset successful",
+  "auth.resetPassword.success.message": "Please sign in with your new password",
+  "auth.resetPassword.success.goLogin": "Sign in",
+  "auth.resetPassword.invalidLink": "Invalid link",
 };
 
 export default en;

@@ -1,5 +1,6 @@
 package com.osl.pay.portal.controller;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,17 +12,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class HealthControllerTest {
+@DisplayName("健康检查接口")
+class HealthApiTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void healthEndpointReturnsOk() throws Exception {
+    @DisplayName("无认证访问 /api/v1/health → 返回 200 和成功响应")
+    void should_returnOk_when_noAuth() throws Exception {
         mockMvc.perform(get("/api/v1/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.message").value("success"))
                 .andExpect(jsonPath("$.data").isString());
+    }
+
+    @Test
+    @DisplayName("带 JWT 访问 /api/v1/health → 同样返回 200（公开端点不拒绝认证请求）")
+    void should_returnOk_when_withAuth() throws Exception {
+        mockMvc.perform(get("/api/v1/health")
+                        .header("Authorization", "Bearer fake-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0));
     }
 }

@@ -1,12 +1,13 @@
 package com.osl.pay.portal.service;
 
+import java.util.Map;
+
 public interface EmailService {
 
-    /**
-     * Send email verification link to the user.
-     *
-     * @param to    recipient email address
-     * @param token verification token
-     */
     void sendVerificationEmail(String to, String token);
+
+    /**
+     * Send password reset email. Each entry in resetTokens maps companyName to its reset token.
+     */
+    void sendPasswordResetEmail(String to, Map<String, String> resetTokens);
 }

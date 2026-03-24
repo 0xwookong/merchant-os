@@ -4,6 +4,7 @@ import com.osl.pay.portal.common.result.Result;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,10 +15,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BizException.class)
-    @ResponseStatus(HttpStatus.OK)
-    public Result<Void> handleBizException(BizException e) {
+    public ResponseEntity<Result<Void>> handleBizException(BizException e) {
         log.warn("Business exception: code={}, message={}", e.getCode(), e.getMessage());
-        return Result.error(e.getCode(), e.getMessage());
+        HttpStatus httpStatus = mapToHttpStatus(e.getCode());
+        return ResponseEntity.status(httpStatus).body(Result.error(e.getCode(), e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -43,5 +44,26 @@ public class GlobalExceptionHandler {
     public Result<Void> handleException(Exception e) {
         log.error("Unexpected exception", e);
         return Result.error(50000, "Internal server error");
+    }
+
+    /**
+     * Map business error code ranges to HTTP status codes.
+     * 400xx → 400 Bad Request
+     * 401xx → 401 Unauthorized
+     * 403xx → 403 Forbidden
+     * 404xx → 404 Not Found
+     * 429xx → 429 Too Many Requests
+     * 500xx → 500 Internal Server Error
+     */
+    private HttpStatus mapToHttpStatus(int code) {
+        int category = code / 100;
+        return switch (category) {
+            case 400 -> HttpStatus.BAD_REQUEST;
+            case 401 -> HttpStatus.UNAUTHORIZED;
+            case 403 -> HttpStatus.FORBIDDEN;
+            case 404 -> HttpStatus.NOT_FOUND;
+            case 429 -> HttpStatus.TOO_MANY_REQUESTS;
+            default -> HttpStatus.OK; // Fallback for legacy codes
+        };
     }
 }

@@ -28,14 +28,6 @@ public class MerchantUser {
 
     private Boolean emailVerified;
 
-    private String verifyToken;
-
-    private LocalDateTime verifyTokenExpire;
-
-    private Integer failedLoginCount;
-
-    private LocalDateTime lockedUntil;
-
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 

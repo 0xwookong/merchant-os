@@ -1,17 +1,22 @@
 package com.osl.pay.portal.service;
 
-import com.osl.pay.portal.model.dto.RegisterRequest;
-import com.osl.pay.portal.model.dto.RegisterResponse;
+import com.osl.pay.portal.model.dto.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface AuthService {
 
-    /**
-     * Register a new merchant and its first admin user.
-     */
-    RegisterResponse register(RegisterRequest request);
+    RegisterResponse register(RegisterRequest request, HttpServletRequest httpRequest);
 
-    /**
-     * Verify email address using the token sent during registration.
-     */
-    void verifyEmail(String token);
+    void verifyEmail(String token, HttpServletRequest httpRequest);
+
+    LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
+
+    LoginResponse refreshToken(String refreshToken, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
+
+    void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse);
+
+    void forgotPassword(ForgotPasswordRequest request, HttpServletRequest httpRequest);
+
+    void resetPassword(ResetPasswordRequest request, HttpServletRequest httpRequest);
 }

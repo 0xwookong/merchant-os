@@ -1,3 +1,5 @@
+import { getAccessToken } from "./auth";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 interface ApiResponse<T> {
@@ -8,9 +10,11 @@ interface ApiResponse<T> {
 
 class ApiError extends Error {
   code: number;
-  constructor(code: number, message: string) {
+  httpStatus: number;
+  constructor(code: number, message: string, httpStatus: number = 0) {
     super(message);
     this.code = code;
+    this.httpStatus = httpStatus;
     this.name = "ApiError";
   }
 }
@@ -26,19 +30,39 @@ async function request<T>(
     ...(options.headers as Record<string, string>),
   };
 
-  // TODO: Task-003 will add JWT token from auth context
-  // TODO: Task-005 will add X-Environment header from environment context
-
-  const res = await fetch(url, { ...options, headers });
-
-  if (!res.ok && res.status >= 500) {
-    throw new ApiError(50000, "服务器错误，请稍后重试");
+  const token = getAccessToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const body: ApiResponse<T> = await res.json();
+  // TODO: Task-005 will add X-Environment header from environment context
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers,
+      credentials: "include",
+    });
+  } catch {
+    // Network error (no response at all — server down, CORS blocked, etc)
+    throw new ApiError(0, "网络连接失败，请检查网络后重试");
+  }
+
+  // Try to parse JSON body for all responses (including 4xx)
+  let body: ApiResponse<T>;
+  try {
+    body = await res.json();
+  } catch {
+    // Response is not JSON (e.g., HTML error page from gateway)
+    if (res.status >= 500) {
+      throw new ApiError(50000, "服务器错误，请稍后重试", res.status);
+    }
+    throw new ApiError(res.status, `请求失败 (HTTP ${res.status})`, res.status);
+  }
 
   if (body.code !== 0) {
-    throw new ApiError(body.code, body.message);
+    throw new ApiError(body.code, body.message, res.status);
   }
 
   return body.data;

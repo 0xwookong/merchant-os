@@ -50,6 +50,41 @@ const zh = {
   "auth.validation.confirmPasswordMismatch": "两次密码不一致",
   "auth.validation.companyNameRequired": "公司名称不能为空",
   "auth.validation.contactNameRequired": "联系人姓名不能为空",
+
+  // auth - login
+  "auth.login.title": "登录",
+  "auth.login.subtitle": "登录您的 OSLPay 商户账户",
+  "auth.login.email": "邮箱",
+  "auth.login.password": "密码",
+  "auth.login.submit": "登录",
+  "auth.login.submitting": "登录中...",
+  "auth.login.forgotPassword": "忘记密码？",
+  "auth.login.noAccount": "没有账号？",
+  "auth.login.goRegister": "去注册",
+  "auth.login.selectMerchant.title": "选择商户",
+  "auth.login.selectMerchant.subtitle": "您的账号关联了多个商户，请选择要登录的商户",
+  "auth.login.selectMerchant.back": "← 返回登录",
+
+  // auth - forgot password
+  "auth.forgotPassword.title": "忘记密码",
+  "auth.forgotPassword.subtitle": "输入您的注册邮箱，我们将发送密码重置链接",
+  "auth.forgotPassword.submit": "发送重置链接",
+  "auth.forgotPassword.submitting": "发送中...",
+  "auth.forgotPassword.sent.title": "邮件已发送",
+  "auth.forgotPassword.sent.message": "如果 {email} 已注册，您将收到密码重置邮件。",
+  "auth.forgotPassword.backToLogin": "← 返回登录",
+
+  // auth - reset password
+  "auth.resetPassword.title": "重置密码",
+  "auth.resetPassword.subtitle": "设置您的新密码",
+  "auth.resetPassword.newPassword": "新密码",
+  "auth.resetPassword.confirmPassword": "确认密码",
+  "auth.resetPassword.submit": "重置密码",
+  "auth.resetPassword.submitting": "重置中...",
+  "auth.resetPassword.success.title": "密码重置成功",
+  "auth.resetPassword.success.message": "请使用新密码登录",
+  "auth.resetPassword.success.goLogin": "去登录",
+  "auth.resetPassword.invalidLink": "链接无效",
 };
 
 export default zh;

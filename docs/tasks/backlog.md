@@ -76,7 +76,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 |---|------|--------|
 | 001 | 项目脚手架搭建 | ✅ Done (2026-03-23) |
 | 002 | 商户注册 | ✅ Done (2026-03-23) |
-| 003 | 商户登录 + JWT | ⏳ Pending |
+| 003 | 商户登录 + JWT | ✅ Done (2026-03-24) |
 | 004 | 平台布局壳 | ⏳ Pending |
 | 005 | 全局环境切换 | ⏳ Pending |
 | 006 | 快速开始页面 | ⏳ Pending |
@@ -97,6 +97,41 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | 021 | 成员与权限管理 | ⏳ Pending |
 | 022 | MCP 配置中心 | ⏳ Pending |
 | 023 | MCP Server 实现 | ⏳ Pending |
+
+---
+
+## 技术债务
+
+完整审查报告: `docs/cr-001-security-review.md`
+
+### 在 Task-003 内立即修复（阻塞验收）
+
+| # | 问题 | 严重程度 | 说明 |
+|---|------|----------|------|
+| H-1 | 无请求频率限制 | CRITICAL→HIGH | 所有 auth 端点无 IP 级 rate limiting，DDoS/暴力破解攻击面 |
+| H-2 | Refresh Token 不轮换 | HIGH | 刷新时未生成新 token，被盗后可无限使用 |
+| H-3 | 无登出端点 | HIGH | 无法主动撤销会话 |
+| H-7 | BizException 全返回 HTTP 200 | HIGH | 安全监控无法区分成功/失败请求 |
+| H-8 | 密码无最大长度限制 | HIGH | BCrypt 72 字节限制，超长密码 DoS |
+| M-2/3 | 注册泄漏公司名/邮箱存在性 | MEDIUM | 错误消息暴露信息 |
+| M-4 | 登录时序攻击 | MEDIUM | 邮箱不存在跳过 BCrypt，时间差异暴露存在性 |
+| M-5 | 注册字段无最大长度 | MEDIUM | companyName/contactName 无 @Size(max) |
+| M-6/7 | 无结构化审计日志 + 无 IP/UA | MEDIUM | 安全事件缺少可追溯记录 |
+| C-4 | PII 明文写入日志 | CRITICAL | 邮箱、token 出现在日志中 |
+
+### 在后续 Task 中修复（不阻塞当前验收）
+
+| # | 问题 | 严重程度 | 目标 Task | 说明 |
+|---|------|----------|-----------|------|
+| C-1/2 | 敏感信息硬编码 + Redis 无密码 | CRITICAL | 部署配置 | 生产环境配置覆盖（env vars / Apollo） |
+| C-3 | 生产邮件服务未实现 | CRITICAL | 邮件服务 Task | SMTP/SES 接入 |
+| H-4 | CORS 仅允许 localhost | HIGH | Task-004 | 外部化配置 |
+| H-5 | Swagger 生产环境暴露 | HIGH | 部署配置 | @Profile("dev") 条件化 |
+| H-6 | MyBatis SQL 日志 | HIGH | 部署配置 | 生产 profile 关闭 |
+| M-8 | 前端未使用 i18n | MEDIUM | Task-004 | auth 页面接入 useI18n |
+| M-9 | 前端无 401 自动刷新 | MEDIUM | Task-004 | API client 拦截器 |
+| M-10 | 无安全响应头 | MEDIUM | Task-004 | next.config.ts 配置 CSP/HSTS |
+| M-1 | CSRF 已禁用 | MEDIUM | 文档化 | SPA + SameSite=Strict 可接受，需文档 |
 
 ---
 
