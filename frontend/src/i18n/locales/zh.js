@@ -243,6 +243,29 @@ const zh = {
   "logs.detail.request": "Request Body",
   "logs.detail.response": "Response Body",
   "logs.detail.close": "关闭",
+
+  // members
+  "members.title": "成员与权限",
+  "members.subtitle": "管理团队成员，分配角色和权限",
+  "members.invite": "邀请成员",
+  "members.invite.email": "邮箱",
+  "members.invite.email.placeholder": "member@company.com",
+  "members.invite.role": "角色",
+  "members.invite.name": "联系人姓名",
+  "members.invite.name.placeholder": "成员姓名",
+  "members.invite.submit": "发送邀请",
+  "members.invite.submitting": "发送中...",
+  "members.remove": "移除",
+  "members.remove.confirm": "确定要移除此成员？移除后该成员立即无法访问平台，且操作不可撤销。",
+  "members.role.ADMIN": "管理员",
+  "members.role.BUSINESS": "业务人员",
+  "members.role.TECH": "技术开发",
+  "members.role.ADMIN.desc": "全部权限",
+  "members.role.BUSINESS.desc": "仅看申请/账单",
+  "members.role.TECH.desc": "仅看开发者套件",
+  "members.status.ACTIVE": "已激活",
+  "members.status.PENDING": "待接受",
+  "members.cancel": "取消",
 };
 
 export default zh;

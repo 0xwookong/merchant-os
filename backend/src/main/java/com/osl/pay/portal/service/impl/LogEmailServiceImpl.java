@@ -29,6 +29,15 @@ public class LogEmailServiceImpl implements EmailService {
     }
 
     @Override
+    public void sendInvitation(String to, String contactName) {
+        log.info("========== MEMBER INVITATION ==========");
+        log.info("To: {}", to);
+        log.info("Contact: {}", contactName);
+        log.info("Message: You have been invited to join OSLPay Merchant Portal");
+        log.info("========================================");
+    }
+
+    @Override
     public void sendPasswordResetEmail(String to, Map<String, String> resetTokens) {
         log.info("========== PASSWORD RESET ==========");
         log.info("To: {}", to);

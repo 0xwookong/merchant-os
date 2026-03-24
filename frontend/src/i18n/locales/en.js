@@ -243,6 +243,29 @@ const en = {
   "logs.detail.request": "Request Body",
   "logs.detail.response": "Response Body",
   "logs.detail.close": "Close",
+
+  // members
+  "members.title": "Members & Permissions",
+  "members.subtitle": "Manage team members and assign roles",
+  "members.invite": "Invite Member",
+  "members.invite.email": "Email",
+  "members.invite.email.placeholder": "member@company.com",
+  "members.invite.role": "Role",
+  "members.invite.name": "Contact Name",
+  "members.invite.name.placeholder": "Member name",
+  "members.invite.submit": "Send Invitation",
+  "members.invite.submitting": "Sending...",
+  "members.remove": "Remove",
+  "members.remove.confirm": "Remove this member? They will immediately lose access and this cannot be undone.",
+  "members.role.ADMIN": "Admin",
+  "members.role.BUSINESS": "Business",
+  "members.role.TECH": "Developer",
+  "members.role.ADMIN.desc": "Full access",
+  "members.role.BUSINESS.desc": "Applications & billing only",
+  "members.role.TECH.desc": "Developer tools only",
+  "members.status.ACTIVE": "Active",
+  "members.status.PENDING": "Pending",
+  "members.cancel": "Cancel",
 };
 
 export default en;

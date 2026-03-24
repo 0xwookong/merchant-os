@@ -27,6 +27,12 @@ public class SmtpEmailServiceImpl implements EmailService {
     }
 
     @Override
+    public void sendInvitation(String to, String contactName) {
+        // TODO: Implement actual SMTP sending
+        log.warn("SMTP not configured. Invitation to: {}, name: {}", to, contactName);
+    }
+
+    @Override
     public void sendPasswordResetEmail(String to, Map<String, String> resetTokens) {
         // TODO: Implement actual SMTP sending
         resetTokens.forEach((companyName, token) -> {

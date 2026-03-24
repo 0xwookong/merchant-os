@@ -10,4 +10,6 @@ public interface EmailService {
      * Send password reset email. Each entry in resetTokens maps companyName to its reset token.
      */
     void sendPasswordResetEmail(String to, Map<String, String> resetTokens);
+
+    void sendInvitation(String to, String contactName);
 }
