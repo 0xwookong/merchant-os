@@ -37,11 +37,9 @@ function PortalGuard({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[var(--bg-light)]">
       <Sidebar />
       <TopBar />
-      <main className="ml-60 pt-24 pb-8">
-        <div className="max-w-6xl mx-auto px-8">
-          <KybBanner />
-          {children}
-        </div>
+      <main className="ml-60 pt-24 px-8 pb-8">
+        <KybBanner />
+        {children}
       </main>
     </div>
   );
