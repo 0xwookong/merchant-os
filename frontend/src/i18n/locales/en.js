@@ -198,6 +198,28 @@ const en = {
   "docs.tryIt.appId": "App ID",
   "docs.tryIt.timestamp": "Timestamp (auto-generated)",
   "docs.tryIt.sign": "Signature (sign manually)",
+
+  // webhooks
+  "webhooks.title": "Webhook Management",
+  "webhooks.subtitle": "Configure event push endpoints to receive real-time business notifications",
+  "webhooks.create": "Create Webhook",
+  "webhooks.empty": "No Webhook configurations",
+  "webhooks.empty.desc": "Create a Webhook to receive order status changes, KYC results and other events",
+  "webhooks.url": "Target URL",
+  "webhooks.url.placeholder": "https://your-domain.com/webhook",
+  "webhooks.events": "Subscribe Events",
+  "webhooks.secret": "Signing Secret",
+  "webhooks.status": "Status",
+  "webhooks.createdAt": "Created At",
+  "webhooks.actions": "Actions",
+  "webhooks.edit": "Edit",
+  "webhooks.delete": "Delete",
+  "webhooks.delete.confirm": "Are you sure you want to delete this Webhook? Associated push logs will also be removed.",
+  "webhooks.test": "Test",
+  "webhooks.testing": "Sending...",
+  "webhooks.save": "Save",
+  "webhooks.saving": "Saving...",
+  "webhooks.cancel": "Cancel",
 };
 
 export default en;

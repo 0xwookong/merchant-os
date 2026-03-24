@@ -198,6 +198,28 @@ const zh = {
   "docs.tryIt.appId": "App ID",
   "docs.tryIt.timestamp": "Timestamp (自动生成)",
   "docs.tryIt.sign": "Signature (需自行签名)",
+
+  // webhooks
+  "webhooks.title": "Webhook 管理",
+  "webhooks.subtitle": "配置事件推送端点，接收实时业务通知",
+  "webhooks.create": "创建 Webhook",
+  "webhooks.empty": "暂无 Webhook 配置",
+  "webhooks.empty.desc": "创建 Webhook 接收订单状态变更、KYC 审核结果等事件通知",
+  "webhooks.url": "目标 URL",
+  "webhooks.url.placeholder": "https://your-domain.com/webhook",
+  "webhooks.events": "订阅事件",
+  "webhooks.secret": "签名密钥",
+  "webhooks.status": "状态",
+  "webhooks.createdAt": "创建时间",
+  "webhooks.actions": "操作",
+  "webhooks.edit": "编辑",
+  "webhooks.delete": "删除",
+  "webhooks.delete.confirm": "确定要删除此 Webhook 配置？关联的推送日志将一并清除。",
+  "webhooks.test": "测试",
+  "webhooks.testing": "推送中...",
+  "webhooks.save": "保存",
+  "webhooks.saving": "保存中...",
+  "webhooks.cancel": "取消",
 };
 
 export default zh;

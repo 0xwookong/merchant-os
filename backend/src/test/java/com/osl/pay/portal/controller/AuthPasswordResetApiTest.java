@@ -7,6 +7,7 @@ import com.osl.pay.portal.repository.AuditLogMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
 import com.osl.pay.portal.repository.OrderMapper;
 import com.osl.pay.portal.repository.MerchantUserMapper;
+import com.osl.pay.portal.repository.WebhookConfigMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,11 +35,13 @@ class AuthPasswordResetApiTest {
     @Autowired private OrderMapper orderMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
+    @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private StringRedisTemplate redis;
 
     @BeforeEach
     void cleanUp() {
         auditLogMapper.delete(null);
+        webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);

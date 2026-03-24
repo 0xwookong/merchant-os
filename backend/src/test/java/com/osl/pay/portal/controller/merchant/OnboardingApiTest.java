@@ -34,12 +34,14 @@ class OnboardingApiTest {
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private AuditLogMapper auditLogMapper;
+    @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private StringRedisTemplate redis;
 
     @BeforeEach
     void cleanUp() {
         auditLogMapper.delete(null);
         onboardingMapper.delete(null);
+        webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);

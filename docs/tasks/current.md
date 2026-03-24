@@ -1,72 +1,54 @@
-# Task-016: API 文档引擎 - 在线试用 (Try It)
+# Task-017: Webhook 配置管理
 
 ## Status: Verifying
 
 ## PRD Reference
-docs/prd/05-api-doc-engine.md — §2.5「在线试用（Try It）」
+docs/prd/08-webhook-management.md — §2「Webhook 配置」、§3「Webhook 测试」
 
 ## Scope
-- 前端: 在端点详情面板中添加 Try It 面板（填参数、发请求、展示响应）
-- 后端: `POST /api/v1/docs/proxy` — 沙箱代理转发（解决 CORS，后端转发请求到 openapitest.osl-pay.com）
-- 数据库: 无
+- 前端: `/developer/webhooks` 页面（配置列表 + 创建/编辑对话框 + 测试按钮）
+- 后端: Webhook CRUD + 测试推送
+  - `GET /api/v1/webhooks` — 列表
+  - `POST /api/v1/webhooks` — 创建（自动生成 secret）
+  - `PUT /api/v1/webhooks/{id}` — 更新
+  - `DELETE /api/v1/webhooks/{id}` — 删除
+  - `POST /api/v1/webhooks/{id}/test` — 测试推送
+- 数据库: 新增 `t_webhook_config` 表
 
-## 设计要点
-
-### 后端代理
-- 前端不能直接请求 openapitest.osl-pay.com（CORS 限制）
-- 后端代理: 接收前端请求参数，转发到沙箱 API，返回响应
-- 仅限沙箱环境（X-Environment: sandbox），生产环境拒绝代理
-
-### 前端 Try It 面板
-- 在端点详情 Code Samples 下方新增 "Try It" 区域
-- 自动根据端点 parameters + requestBody 生成表单字段
-- Header 参数（appId, timestamp, sign）预填或自动计算
-- 发送按钮 + 响应展示（状态码 + JSON body，语法高亮）
-- Loading 状态 + 错误处理
+> 注: 5 个端点均为 CRUD + 测试推送，属于一个逻辑模块
 
 ## Test Cases (TDD)
 
 ### 后端功能测试
-1. **代理转发**: POST /api/v1/docs/proxy + 有效参数 → 200，返回代理响应
-2. **仅沙箱**: X-Environment: production → 400 "在线试用仅支持沙箱环境"
-3. **缺失参数**: method/url 为空 → 400
+1. **创建 Webhook**: 有效 URL + 事件 → 200，自动生成 secret
+2. **列表查询**: 返回当前商户的所有 webhook 配置
+3. **更新 Webhook**: 修改 URL + 事件 → 200
+4. **删除 Webhook**: 删除后列表不再包含
+5. **测试推送**: 发送测试消息到配置的 URL
 
 ### 后端安全测试
-4. **未认证**: 无 JWT → 403
-5. **URL 限制**: 仅允许转发到 openapitest.osl-pay.com 域名
-
-### 前端功能测试
-6. **渲染 Try It 区域**: 端点详情中显示 Try It 面板
-7. **展示发送按钮**: Send Request 按钮可见
+6. **未认证**: → 403
+7. **租户隔离**: 商户 A 不能操作商户 B 的配置
+8. **URL 校验**: 非法 URL → 400
 
 ### 安全检查清单
-- [x] 认证: 需要 JWT
-- [x] 频率限制: 全局 RateLimitFilter
-- [x] URL 白名单: 仅允许转发到沙箱域名，防 SSRF
-- [x] 环境限制: 仅沙箱环境可用
-- [x] 输入校验: URL/method/headers 校验
+- [x] 认证 + 租户隔离 + 频率限制 + 输入校验 + HTTP 状态码
 
 ## Development Plan
-
-### 后端
-- [ ] 1. 创建 ProxyRequest/ProxyResponse DTO
-- [ ] 2. 创建 DocsProxyService（HTTP 转发 + 域名白名单）
-- [ ] 3. 在 DocsController 添加 POST /api/v1/docs/proxy
-- [ ] 4. 编写后端测试
-
-### 前端
-- [ ] 5. 添加 i18n 翻译键
-- [ ] 6. 在 docs page 端点详情中添加 TryItPanel 组件
-- [ ] 7. 编写前端测试
+- [ ] 1. 新增 t_webhook_config 表 + Entity + Mapper
+- [ ] 2. 创建 DTO + WebhookService + WebhookController
+- [ ] 3. 编写后端测试
+- [ ] 4. 前端 webhookService + i18n + page + test
 
 ## Execution Log
 
-### 2026-03-24 19:20
-- 后端: DocsProxyService（HttpClient 转发 + 域名白名单 SSRF 防护 + 仅沙箱环境）+ ProxyRequest/ProxyResponse DTO + DocsController 添加 POST /proxy
-- 后端测试: 3 个新增全部通过（生产环境拒绝、非白名单域名拒绝、缺失参数拒绝）
-- 前端: TryItPanel 组件（URL 预览 + App ID 输入 + JSON body 编辑器 + Send 按钮 + 响应暗色展示 + 状态码+耗时）
-- 前端测试: 52 全部通过
-- 全量: 后端 109 通过，前端 52 通过
+### 2026-03-24 19:30
+- 后端: t_webhook_config 表 + Entity + Mapper + WebhookService（CRUD + 测试推送 + secret 自动生成）+ WebhookController（5 endpoints）
+- 后端测试: 7 个全部通过（创建+secret、列表、更新、删除、URL校验、未认证、租户隔离）
+- 前端: webhookService.ts + i18n + webhooks page（配置列表+创建/编辑表单+事件多选+测试推送+secret 复制+删除确认）
+- 前端测试: 3 个全部通过
+- 更新 11 个既有测试文件 FK 清理
+- 全量: 后端 116 通过，前端 55 通过
 
 ## Next Step
-Task-017: Webhook 配置管理
+Task-018: Webhook 推送日志

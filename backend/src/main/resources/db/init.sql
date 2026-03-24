@@ -123,6 +123,20 @@ CREATE TABLE IF NOT EXISTS t_api_credential (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Webhook config table
+CREATE TABLE IF NOT EXISTS t_webhook_config (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    url VARCHAR(500) NOT NULL COMMENT 'Webhook 目标 URL',
+    secret VARCHAR(100) NOT NULL COMMENT '签名密钥',
+    events VARCHAR(1000) NOT NULL COMMENT '订阅事件，逗号分隔',
+    status ENUM('ACTIVE','DISABLED') NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_merchant_id (merchant_id),
+    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
 CREATE TABLE IF NOT EXISTS t_audit_log (

@@ -33,6 +33,7 @@ class OrderApiTest {
     @Autowired private OrderMapper orderMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
+    @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private StringRedisTemplate redis;
 
     private Long merchantId;
@@ -40,6 +41,7 @@ class OrderApiTest {
     @BeforeEach
     void cleanUp() throws Exception {
         auditLogMapper.delete(null);
+        webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);

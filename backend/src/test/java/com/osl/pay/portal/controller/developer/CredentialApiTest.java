@@ -37,6 +37,7 @@ class CredentialApiTest {
     @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
+    @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private StringRedisTemplate redis;
 
     @BeforeEach
@@ -44,6 +45,7 @@ class CredentialApiTest {
         auditLogMapper.delete(null);
         kybApplicationMapper.delete(null);
         onboardingMapper.delete(null);
+        webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
