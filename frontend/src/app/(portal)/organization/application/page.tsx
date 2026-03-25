@@ -12,7 +12,7 @@ import StepConfirm from "./_components/step-confirm";
 import { InfoRow } from "./_components/form-fields";
 import { CheckIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
-const EMPTY_PERSON: PersonInfo = { name: "", nationality: "", idTypeNumber: "", placeOfBirth: "", dateOfBirth: "" };
+const EMPTY_PERSON: PersonInfo = { name: "", nationality: "", idType: "", idNumber: "", placeOfBirth: "", dateOfBirth: "" };
 const EMPTY_UBO: UboInfo = { ...EMPTY_PERSON, residentialAddress: "", sharePercentage: 25 };
 const EMPTY_AUTH: AuthorizedPersonInfo = { ...EMPTY_PERSON, phone: "", email: "" };
 

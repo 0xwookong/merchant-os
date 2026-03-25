@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/providers/language-provider";
-import { Field, Select, PhoneField } from "./form-fields";
+import { Field, Select, PhoneField, DateSelect } from "./form-fields";
 import type { PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo } from "@/services/applicationService";
 import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
 
@@ -20,7 +20,7 @@ interface Props {
   onAuthorizedPersonsChange: (a: AuthorizedPersonInfo[]) => void;
 }
 
-const EMPTY_PERSON: PersonInfo = { name: "", nationality: "", idTypeNumber: "", placeOfBirth: "", dateOfBirth: "" };
+const EMPTY_PERSON: PersonInfo = { name: "", nationality: "", idType: "", idNumber: "", placeOfBirth: "", dateOfBirth: "" };
 const EMPTY_UBO: UboInfo = { ...EMPTY_PERSON, residentialAddress: "", sharePercentage: 25 };
 const EMPTY_AUTH: AuthorizedPersonInfo = { ...EMPTY_PERSON, phone: "", email: "" };
 
@@ -143,6 +143,12 @@ export default function StepLegal({
 
 // ─── Shared sub-components ───
 
+const ID_TYPES = [
+  { value: "PASSPORT", labelKey: "app.idType.PASSPORT" },
+  { value: "ID_CARD", labelKey: "app.idType.ID_CARD" },
+  { value: "DRIVERS_LICENSE", labelKey: "app.idType.DRIVERS_LICENSE" },
+];
+
 function PersonFields({ person, onChange, countries, t }: {
   person: PersonInfo; onChange: (field: string, value: string) => void;
   countries: { value: string; label: string }[]; t: (k: string) => string;
@@ -151,11 +157,13 @@ function PersonFields({ person, onChange, countries, t }: {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Field label={t("app.field.legalRepName")} value={person.name} onChange={(v) => onChange("name", v)} required />
       <Select label={t("app.field.nationality")} value={person.nationality} onChange={(v) => onChange("nationality", v)} options={countries} required placeholder={t("app.ph.select")} />
-      <Field label={t("app.field.idTypeNumber")} value={person.idTypeNumber} onChange={(v) => onChange("idTypeNumber", v)} required
-        placeholder={t("app.ph.idTypeNumber")} hint={t("app.hint.idTypeNumber")} />
+      <Select label={t("app.field.idType")} value={person.idType} onChange={(v) => onChange("idType", v)}
+        options={ID_TYPES.map((o) => ({ value: o.value, label: t(o.labelKey) }))} required placeholder={t("app.ph.select")} />
+      <Field label={t("app.field.idNumber")} value={person.idNumber} onChange={(v) => onChange("idNumber", v)} required
+        placeholder={t("app.ph.idNumber")} />
       <Field label={t("app.field.placeOfBirth")} value={person.placeOfBirth} onChange={(v) => onChange("placeOfBirth", v)} required
         placeholder={t("app.ph.placeOfBirth")} />
-      <Field label={t("app.field.dateOfBirth")} value={person.dateOfBirth} onChange={(v) => onChange("dateOfBirth", v)} required type="date" />
+      <DateSelect label={t("app.field.dateOfBirth")} value={person.dateOfBirth} onChange={(v) => onChange("dateOfBirth", v)} required minYear={1940} />
     </div>
   );
 }

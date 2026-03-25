@@ -3,7 +3,8 @@ import { api } from "@/lib/api";
 // Person info shared by UBO, Director, Authorized Person
 export interface PersonInfo {
   name: string;
-  idTypeNumber: string; // e.g. "Passport: E12345678"
+  idType: string;   // PASSPORT, ID_CARD, DRIVERS_LICENSE
+  idNumber: string;
   placeOfBirth: string;
   dateOfBirth: string;
   nationality: string;

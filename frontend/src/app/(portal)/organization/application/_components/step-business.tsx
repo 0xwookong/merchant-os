@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/providers/language-provider";
-import { Field, Select, CheckboxGroup, TextArea } from "./form-fields";
+import { Field, Select, CheckboxGroup, TextArea, DateSelect } from "./form-fields";
 import type { ApplicationSaveDraftRequest, LicenceInfo } from "@/services/applicationService";
 
 interface Props {
@@ -114,8 +114,8 @@ export default function StepBusiness({ form, update, licenceInfo, onLicenceInfoC
             <Field label={t("app.field.licenceType")} value={lic.licenceType || ""} onChange={(v) => updateLic("licenceType", v)} required
               placeholder={t("app.ph.licenceType")} hint={t("app.hint.licenceType")} />
             <Field label={t("app.field.licenceNumber")} value={lic.licenceNumber || ""} onChange={(v) => updateLic("licenceNumber", v)} required />
-            <Field label={t("app.field.licenceDate")} value={lic.licenceDate || ""} onChange={(v) => updateLic("licenceDate", v)} required type="date" />
-            <Field label={t("app.field.lastAuditDate")} value={lic.lastAuditDate || ""} onChange={(v) => updateLic("lastAuditDate", v)} type="date"
+            <DateSelect label={t("app.field.licenceDate")} value={lic.licenceDate || ""} onChange={(v) => updateLic("licenceDate", v)} required minYear={2000} />
+            <DateSelect label={t("app.field.lastAuditDate")} value={lic.lastAuditDate || ""} onChange={(v) => updateLic("lastAuditDate", v)}
               hint={t("app.hint.lastAuditDate")} />
           </div>
         )}

@@ -152,6 +152,75 @@ export function InfoRow({ label, value }: { label: string; value: string | null 
   );
 }
 
+// Date picker with year/month/day dropdowns — much better for birth dates
+interface DateSelectProps {
+  label: string;
+  value: string; // YYYY-MM-DD
+  onChange: (v: string) => void;
+  required?: boolean;
+  hint?: string;
+  minYear?: number;
+  maxYear?: number;
+}
+
+export function DateSelect({ label, value, onChange, required, hint, minYear = 1940, maxYear }: DateSelectProps) {
+  const max = maxYear || new Date().getFullYear();
+  const parts = (value || "").split("-");
+  const y = parts[0] || "";
+  const m = parts[1] || "";
+  const d = parts[2] || "";
+
+  const update = (year: string, month: string, day: string) => {
+    if (year && month && day) onChange(`${year}-${month}-${day}`);
+    else if (year || month || day) onChange(`${year}-${month}-${day}`);
+    else onChange("");
+  };
+
+  const years = Array.from({ length: max - minYear + 1 }, (_, i) => String(max - i));
+  const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
+  const daysInMonth = y && m ? new Date(Number(y), Number(m), 0).getDate() : 31;
+  const days = Array.from({ length: daysInMonth }, (_, i) => String(i + 1).padStart(2, "0"));
+
+  const selectCls = "appearance-none border border-[var(--gray-300)] rounded-lg pl-3 pr-8 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+
+  return (
+    <div className="block">
+      <Label label={label} required={required} hint={hint} />
+      <div className="mt-1 flex gap-2">
+        <div className="relative">
+          <select value={y} onChange={(e) => update(e.target.value, m, d)} className={`${selectCls} w-24`}>
+            <option value="">----</option>
+            {years.map((yr) => <option key={yr} value={yr}>{yr}</option>)}
+          </select>
+          <DropdownArrow />
+        </div>
+        <div className="relative">
+          <select value={m} onChange={(e) => update(y, e.target.value, d)} className={`${selectCls} w-20`}>
+            <option value="">--</option>
+            {months.map((mo) => <option key={mo} value={mo}>{mo}</option>)}
+          </select>
+          <DropdownArrow />
+        </div>
+        <div className="relative">
+          <select value={d} onChange={(e) => update(y, m, e.target.value)} className={`${selectCls} w-20`}>
+            <option value="">--</option>
+            {days.map((dy) => <option key={dy} value={dy}>{dy}</option>)}
+          </select>
+          <DropdownArrow />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DropdownArrow() {
+  return (
+    <svg className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--gray-400)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
 interface PhoneFieldProps {
   label: string;
   value: string;

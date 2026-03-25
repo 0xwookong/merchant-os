@@ -59,7 +59,8 @@ export default function StepConfirm({
           <div className="grid grid-cols-2 gap-x-8 gap-y-3">
             <InfoRow label={t("app.field.legalRepName")} value={legalRep.name} />
             <InfoRow label={t("app.field.nationality")} value={legalRep.nationality} />
-            <InfoRow label={t("app.field.idTypeNumber")} value={legalRep.idTypeNumber} />
+            <InfoRow label={t("app.field.idType")} value={legalRep.idType} />
+            <InfoRow label={t("app.field.idNumber")} value={legalRep.idNumber} />
             <InfoRow label={t("app.field.placeOfBirth")} value={legalRep.placeOfBirth} />
             <InfoRow label={t("app.field.dateOfBirth")} value={legalRep.dateOfBirth} />
           </div>

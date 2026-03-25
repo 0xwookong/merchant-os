@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/providers/language-provider";
-import { Field, Select, PhoneField } from "./form-fields";
+import { Field, Select, PhoneField, DateSelect } from "./form-fields";
 import type { ApplicationSaveDraftRequest } from "@/services/applicationService";
 
 interface Props {
@@ -68,7 +68,7 @@ export default function StepCompany({ form, update }: Props) {
             placeholder={t("app.ph.taxIdNumber")} hint={t("app.hint.taxIdNumber")} />
           <Select label={t("app.field.companyType")} value={form.companyType || ""} onChange={(v) => update("companyType", v)}
             options={COMPANY_TYPES} required placeholder={t("app.ph.select")} />
-          <Field label={t("app.field.incorporationDate")} value={form.incorporationDate || ""} onChange={(v) => update("incorporationDate", v)} required type="date" />
+          <DateSelect label={t("app.field.incorporationDate")} value={form.incorporationDate || ""} onChange={(v) => update("incorporationDate", v)} required minYear={1950} />
         </div>
       </section>
 
