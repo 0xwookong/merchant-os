@@ -371,7 +371,7 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         }
         String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
         String relativePath = merchantId + "/" + applicationId + "/" + fileName;
-        Path fullPath = Paths.get(uploadBasePath, relativePath);
+        Path fullPath = Paths.get(uploadBasePath, relativePath).toAbsolutePath();
 
         try {
             Files.createDirectories(fullPath.getParent());
