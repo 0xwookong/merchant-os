@@ -18,8 +18,8 @@ export const securityService = {
     return api.post<OtpSetupResponse>("/api/v1/security/otp/setup");
   },
 
-  otpVerifyBind(code: string): Promise<string> {
-    return api.post<string>("/api/v1/security/otp/verify-bind", { code });
+  otpVerifyBind(code: string): Promise<{ recoveryCodes: string[] }> {
+    return api.post<{ recoveryCodes: string[] }>("/api/v1/security/otp/verify-bind", { code });
   },
 
   otpUnbind(code: string): Promise<string> {

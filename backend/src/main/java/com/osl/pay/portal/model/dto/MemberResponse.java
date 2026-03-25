@@ -11,5 +11,6 @@ public class MemberResponse {
     private String email;
     private String role;
     private String status; // ACTIVE, PENDING (invited but not verified)
+    private boolean otpEnabled;
     private LocalDateTime createdAt;
 }

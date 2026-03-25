@@ -115,6 +115,8 @@ export default function LoginPage() {
           )}
         </button>
 
+        <p className="text-center text-xs text-[var(--gray-400)]">{t("auth.login.otp.recoveryHint")}</p>
+
         <button
           onClick={() => { setOtpToken(null); setOtpCode(""); setError(""); }}
           className="w-full text-sm text-[var(--gray-500)] hover:text-[var(--gray-700)] transition-colors"

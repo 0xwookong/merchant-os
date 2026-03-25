@@ -31,7 +31,7 @@ const ROLES = [
 
 const INVITE_EXPIRE_DAYS = 7;
 
-type ConfirmAction = { type: "remove"; member: MemberInfo } | { type: "resend"; member: MemberInfo } | null;
+type ConfirmAction = { type: "remove"; member: MemberInfo } | { type: "resend"; member: MemberInfo } | { type: "resetOtp"; member: MemberInfo } | null;
 
 /** Compute effective status: ACTIVE, PENDING, or EXPIRED */
 function getEffectiveStatus(m: MemberInfo): "ACTIVE" | "PENDING" | "EXPIRED" {
@@ -67,6 +67,7 @@ export default function MembersPage() {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [roleChangeTarget, setRoleChangeTarget] = useState<MemberInfo | null>(null);
+  const [resetOtpTarget, setResetOtpTarget] = useState<MemberInfo | null>(null);
 
   const fetchMembers = useCallback(() => {
     setLoading(true);
@@ -107,7 +108,7 @@ export default function MembersPage() {
         await memberService.remove(confirmAction.member.id);
         fetchMembers();
         setToast({ type: "success", message: t("members.remove.success") });
-      } else {
+      } else if (confirmAction.type === "resend") {
         setResendingId(confirmAction.member.id);
         await memberService.resendInvite(confirmAction.member.id);
         setToast({ type: "success", message: t("members.resend.success") });
@@ -312,6 +313,13 @@ export default function MembersPage() {
                             {resendingId === m.id ? t("members.resend.sending") : t("members.resend")}
                           </button>
                         )}
+                        {!isSelf && m.otpEnabled && (
+                          <button onClick={() => setResetOtpTarget(m)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-amber-600 hover:bg-amber-50 transition-colors"
+                          >
+                            {t("members.resetOtp")}
+                          </button>
+                        )}
                         {!isSelf && (
                           <button onClick={() => setConfirmAction({ type: "remove", member: m })}
                             className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
@@ -329,11 +337,11 @@ export default function MembersPage() {
       )}
 
       <ConfirmDialog
-        open={confirmAction !== null}
+        open={confirmAction !== null && confirmAction.type !== "resetOtp"}
         onClose={() => setConfirmAction(null)}
         onConfirm={handleConfirm}
         loading={confirmLoading}
-        type={confirmAction?.type || "remove"}
+        type={(confirmAction?.type === "resend" ? "resend" : "remove") as "remove" | "resend"}
         memberName={confirmAction?.member.contactName || ""}
         memberEmail={confirmAction?.member.email || ""}
         t={t}
@@ -344,6 +352,15 @@ export default function MembersPage() {
         member={roleChangeTarget}
         onClose={() => setRoleChangeTarget(null)}
         onSuccess={() => { setRoleChangeTarget(null); fetchMembers(); }}
+        setToast={setToast}
+        t={t}
+      />
+
+      <ResetOtpDialog
+        open={resetOtpTarget !== null}
+        member={resetOtpTarget}
+        onClose={() => setResetOtpTarget(null)}
+        onSuccess={() => { setResetOtpTarget(null); fetchMembers(); }}
         setToast={setToast}
         t={t}
       />
@@ -454,6 +471,126 @@ function ConfirmDialog({ open, onClose, onConfirm, loading, type, memberName, me
               {loading
                 ? t("common.loading")
                 : isRemove ? t("members.remove.dialog.confirm") : t("members.resend.dialog.confirm")}
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+function ResetOtpDialog({ open, member, onClose, onSuccess, setToast, t }: {
+  open: boolean;
+  member: MemberInfo | null;
+  onClose: () => void;
+  onSuccess: () => void;
+  setToast: (toast: { type: "success" | "error"; message: string }) => void;
+  t: (key: string) => string;
+}) {
+  const [otpEnabled, setOtpEnabled] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setCode("");
+      setError("");
+      setCodeSent(false);
+      securityService.getOtpStatus().then((s) => setOtpEnabled(s.otpEnabled)).catch(() => {});
+    }
+  }, [open]);
+
+  const handleSendCode = async () => {
+    setSendingCode(true);
+    try {
+      await securityService.sendEmailCode();
+      setCodeSent(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("common.error"));
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!member) return;
+    setLoading(true);
+    setError("");
+    try {
+      await memberService.resetOtp(member.id, otpEnabled ? { otpCode: code } : { emailCode: code });
+      setToast({ type: "success", message: t("members.resetOtp.success") });
+      onSuccess();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("common.error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog.Root open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-lg p-6 space-y-5"
+          aria-describedby="reset-otp-desc"
+        >
+          <div className="mx-auto w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+            <ExclamationTriangleIcon className="w-6 h-6 text-amber-600" />
+          </div>
+
+          <div className="text-center">
+            <Dialog.Title className="text-lg font-semibold text-[var(--gray-900)]">{t("members.resetOtp")}</Dialog.Title>
+            <p id="reset-otp-desc" className="text-sm text-[var(--gray-500)] mt-2">{t("members.resetOtp.desc")}</p>
+          </div>
+
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--gray-50)] border border-[var(--gray-100)]">
+            <div className="w-9 h-9 rounded-full bg-[var(--gray-200)] flex items-center justify-center text-sm font-semibold text-[var(--gray-600)]">
+              {member?.contactName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-[var(--gray-900)] truncate">{member?.contactName}</div>
+              <div className="text-xs text-[var(--gray-500)] truncate">{member?.email}</div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--gray-500)] mb-2">
+              {otpEnabled ? t("members.changeRole.otpCode") : t("members.changeRole.emailCode")}
+            </label>
+            {!otpEnabled && !codeSent && (
+              <button onClick={handleSendCode} disabled={sendingCode}
+                className="mb-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50">
+                {sendingCode ? t("members.changeRole.sendingCode") : t("members.changeRole.sendCode")}
+              </button>
+            )}
+            {!otpEnabled && codeSent && (
+              <p className="mb-2 text-xs text-green-600">{t("members.changeRole.codeSent")}</p>
+            )}
+            <input type="text" value={code}
+              onChange={(e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
+              placeholder="000000" maxLength={6}
+              className="w-full text-center text-xl font-mono tracking-[0.4em] border border-[var(--gray-300)] rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
+              <ExclamationTriangleIcon className="w-4 h-4 text-red-500 shrink-0" />
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button onClick={onClose} disabled={loading}
+              className="flex-1 px-4 py-2.5 border border-[var(--gray-300)] rounded-lg text-sm font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)]">
+              {t("common.cancel")}
+            </button>
+            <button onClick={handleSubmit} disabled={loading || code.length !== 6}
+              className="flex-1 px-4 py-2.5 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              {loading ? t("common.loading") : t("members.resetOtp.confirm")}
             </button>
           </div>
         </Dialog.Content>

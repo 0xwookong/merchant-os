@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS t_merchant_user (
     email_verified TINYINT(1) NOT NULL DEFAULT 0,
     otp_secret VARCHAR(64) DEFAULT NULL COMMENT 'TOTP secret (Base32 encoded)',
     otp_enabled TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Whether OTP 2FA is enabled',
+    otp_recovery_codes TEXT DEFAULT NULL COMMENT 'JSON array of BCrypt-hashed recovery codes',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_merchant_email (merchant_id, email),

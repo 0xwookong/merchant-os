@@ -250,13 +250,18 @@ public class AuthServiceImpl implements AuthService {
             throw new BizException(40101, "验证失败");
         }
 
-        if (!totpService.verify(user.getOtpSecret(), code)) {
-            // Put token back so user can retry (with a fresh token)
+        // Try TOTP code first, then recovery code
+        boolean verified = totpService.verify(user.getOtpSecret(), code);
+        if (!verified) {
+            verified = tryRecoveryCode(user, code);
+        }
+
+        if (!verified) {
+            // Put token back so user can retry
             String newOtpToken = generateToken();
             authRedis.saveOtpLoginToken(newOtpToken, userId);
             auditService.log(AuditEventType.LOGIN_FAILED, userId, user.getMerchantId(),
                     user.getEmail(), httpRequest, false, "wrong OTP");
-            // Return error with new token for retry
             throw new BizException(40106, "验证码错误");
         }
 
@@ -495,6 +500,35 @@ public class AuthServiceImpl implements AuthService {
         cookie.setMaxAge((int) jwtService.getRefreshExpireSeconds());
         cookie.setAttribute("SameSite", sslEnabled ? "Strict" : "Lax");
         response.addCookie(cookie);
+    }
+
+    /**
+     * Try to match a recovery code. If matched, consume it (remove from DB).
+     */
+    private boolean tryRecoveryCode(MerchantUser user, String code) {
+        if (user.getOtpRecoveryCodes() == null) return false;
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<String> hashedCodes = om.readValue(user.getOtpRecoveryCodes(),
+                    om.getTypeFactory().constructCollectionType(java.util.List.class, String.class));
+
+            for (int i = 0; i < hashedCodes.size(); i++) {
+                if (passwordEncoder.matches(code, hashedCodes.get(i))) {
+                    // Consume this recovery code
+                    hashedCodes.remove(i);
+                    String updated = om.writeValueAsString(hashedCodes);
+                    merchantUserMapper.update(new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<MerchantUser>()
+                            .eq(MerchantUser::getId, user.getId())
+                            .set(MerchantUser::getOtpRecoveryCodes, hashedCodes.isEmpty() ? null : updated));
+                    log.info("Recovery code used for userId={}, remaining={}", user.getId(), hashedCodes.size());
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse recovery codes for userId={}", user.getId(), e);
+        }
+        return false;
     }
 
     private String generateToken() {

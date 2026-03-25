@@ -4,6 +4,7 @@ import com.osl.pay.portal.common.result.Result;
 import com.osl.pay.portal.model.dto.ChangeRoleRequest;
 import com.osl.pay.portal.model.dto.InviteMemberRequest;
 import com.osl.pay.portal.model.dto.MemberResponse;
+import com.osl.pay.portal.model.dto.ResetOtpRequest;
 import com.osl.pay.portal.security.AuthUserDetails;
 import com.osl.pay.portal.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,6 +48,16 @@ public class MemberController {
                                               @Valid @RequestBody ChangeRoleRequest request,
                                               HttpServletRequest httpRequest) {
         return Result.ok(memberService.changeRole(user.getMerchantId(), user.getUserId(), id, request, httpRequest));
+    }
+
+    @PostMapping("/{id}/reset-otp")
+    public Result<String> resetOtp(@AuthenticationPrincipal AuthUserDetails user,
+                                    @PathVariable Long id,
+                                    @Valid @RequestBody ResetOtpRequest request,
+                                    HttpServletRequest httpRequest) {
+        memberService.resetOtp(user.getMerchantId(), user.getUserId(), id,
+                request.getOtpCode(), request.getEmailCode(), httpRequest);
+        return Result.ok("OTP 已重置");
     }
 
     @DeleteMapping("/{id}")

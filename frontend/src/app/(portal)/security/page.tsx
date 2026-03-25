@@ -111,12 +111,13 @@ export default function SecurityPage() {
 function OtpBindDialog({ open, onClose, onSuccess, t }: {
   open: boolean; onClose: () => void; onSuccess: () => void; t: (key: string) => string;
 }) {
-  const [step, setStep] = useState<"qr" | "verify">("qr");
+  const [step, setStep] = useState<"qr" | "verify" | "recovery">("qr");
   const [setup, setSetup] = useState<OtpSetupResponse | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -124,6 +125,7 @@ function OtpBindDialog({ open, onClose, onSuccess, t }: {
       setSetup(null);
       setCode("");
       setError("");
+      setRecoveryCodes([]);
       securityService.otpSetup().then(setSetup).catch((e) => {
         setError(e instanceof ApiError ? e.message : t("common.error"));
       });
@@ -134,8 +136,9 @@ function OtpBindDialog({ open, onClose, onSuccess, t }: {
     setLoading(true);
     setError("");
     try {
-      await securityService.otpVerifyBind(code);
-      onSuccess();
+      const res = await securityService.otpVerifyBind(code);
+      setRecoveryCodes(res.recoveryCodes);
+      setStep("recovery");
     } catch (e) {
       setError(e instanceof ApiError ? e.message : t("common.error"));
     } finally {
@@ -211,7 +214,7 @@ function OtpBindDialog({ open, onClose, onSuccess, t }: {
                   {t("security.otp.bind.next")}
                 </button>
               </>
-            ) : (
+            ) : step === "verify" ? (
               <>
                 {/* Step 2: Verify code */}
                 <p className="text-sm text-[var(--gray-600)]">{t("security.otp.bind.step2")}</p>
@@ -248,6 +251,37 @@ function OtpBindDialog({ open, onClose, onSuccess, t }: {
                     {loading ? t("common.loading") : t("security.otp.bind.confirm")}
                   </button>
                 </div>
+              </>
+            ) : (
+              <>
+                {/* Step 3: Show recovery codes */}
+                <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircleIcon className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="text-center">
+                  <p className="text-base font-semibold text-[var(--gray-900)]">{t("security.otp.bind.successTitle")}</p>
+                  <p className="text-sm text-[var(--gray-500)] mt-1">{t("security.otp.bind.recoveryDesc")}</p>
+                </div>
+
+                <div className="bg-[var(--gray-50)] rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    {recoveryCodes.map((rc, i) => (
+                      <code key={i} className="text-sm font-mono text-center text-[var(--gray-700)] bg-white rounded px-3 py-2 border border-[var(--gray-200)]">
+                        {rc}
+                      </code>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 shrink-0" />
+                  <p className="text-xs text-amber-700">{t("security.otp.bind.recoveryWarning")}</p>
+                </div>
+
+                <button onClick={onSuccess}
+                  className="w-full px-4 py-2.5 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+                  {t("security.otp.bind.done")}
+                </button>
               </>
             )}
           </div>

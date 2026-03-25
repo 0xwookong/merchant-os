@@ -35,11 +35,10 @@ public class OtpController {
     }
 
     @PostMapping("/otp/verify-bind")
-    public Result<String> otpVerifyBind(@AuthenticationPrincipal AuthUserDetails user,
-                                         @Valid @RequestBody OtpVerifyRequest request,
-                                         HttpServletRequest httpRequest) {
-        otpService.verifyAndBind(user.getUserId(), request.getCode(), httpRequest);
-        return Result.ok("OTP 绑定成功");
+    public Result<OtpBindResponse> otpVerifyBind(@AuthenticationPrincipal AuthUserDetails user,
+                                                  @Valid @RequestBody OtpVerifyRequest request,
+                                                  HttpServletRequest httpRequest) {
+        return Result.ok(otpService.verifyAndBind(user.getUserId(), request.getCode(), httpRequest));
     }
 
     @PostMapping("/otp/unbind")

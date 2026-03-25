@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -171,6 +172,39 @@ public class MemberServiceImpl implements MemberService {
         return toResponse(target);
     }
 
+    @Override
+    @Transactional
+    public void resetOtp(Long merchantId, Long currentUserId, Long memberId,
+                          String otpCode, String emailCode, HttpServletRequest httpRequest) {
+        if (currentUserId.equals(memberId)) {
+            throw new BizException(40000, "请通过安全设置自行解绑 OTP");
+        }
+
+        MerchantUser target = merchantUserMapper.selectById(memberId);
+        if (target == null || !target.getMerchantId().equals(merchantId)) {
+            throw new BizException(40400, "成员不存在");
+        }
+
+        if (!Boolean.TRUE.equals(target.getOtpEnabled())) {
+            throw new BizException(40000, "该成员未绑定 OTP");
+        }
+
+        // Verify the ADMIN's own identity
+        actionVerification.verify(currentUserId, otpCode, emailCode);
+
+        merchantUserMapper.update(new LambdaUpdateWrapper<MerchantUser>()
+                .eq(MerchantUser::getId, memberId)
+                .set(MerchantUser::getOtpSecret, null)
+                .set(MerchantUser::getOtpEnabled, false)
+                .set(MerchantUser::getOtpRecoveryCodes, null));
+
+        auditService.log("MEMBER_OTP_RESET", currentUserId, merchantId,
+                target.getEmail(), httpRequest, true,
+                "Admin reset OTP for " + target.getContactName());
+
+        log.info("Admin reset OTP: merchantId={}, targetMemberId={}", merchantId, memberId);
+    }
+
     private MemberResponse toResponse(MerchantUser u) {
         MemberResponse r = new MemberResponse();
         r.setId(u.getId());
@@ -178,6 +212,7 @@ public class MemberServiceImpl implements MemberService {
         r.setEmail(u.getEmail());
         r.setRole(u.getRole().getValue());
         r.setStatus(Boolean.TRUE.equals(u.getEmailVerified()) ? "ACTIVE" : "PENDING");
+        r.setOtpEnabled(Boolean.TRUE.equals(u.getOtpEnabled()));
         r.setCreatedAt(u.getCreatedAt());
         return r;
     }

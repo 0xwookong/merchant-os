@@ -32,6 +32,9 @@ public class MerchantUser {
 
     private Boolean otpEnabled;
 
+    /** JSON array of BCrypt-hashed recovery codes, e.g. ["$2a$...", "$2a$..."] */
+    private String otpRecoveryCodes;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 

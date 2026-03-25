@@ -13,4 +13,5 @@ public interface MemberService {
     void remove(Long merchantId, Long currentUserId, Long memberId, HttpServletRequest httpRequest);
     void resendInvite(Long merchantId, Long currentUserId, Long memberId, HttpServletRequest httpRequest);
     MemberResponse changeRole(Long merchantId, Long currentUserId, Long memberId, ChangeRoleRequest request, HttpServletRequest httpRequest);
+    void resetOtp(Long merchantId, Long currentUserId, Long memberId, String otpCode, String emailCode, HttpServletRequest httpRequest);
 }
