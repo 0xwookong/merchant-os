@@ -100,6 +100,7 @@ export default function ApplicationPage() {
 
   function validateCurrentStep(): string | null {
     const blank = (v: string | undefined) => !v || v.trim() === "";
+    const badEmail = (v: string | undefined) => !v || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
     if (step === 1) {
       if (blank(form.counterpartyType)) return t("app.field.counterpartyType") + t("app.validate.required");
       if (blank(form.companyName)) return t("app.field.companyName") + t("app.validate.required");
@@ -113,12 +114,35 @@ export default function ApplicationPage() {
       if (blank(form.country)) return t("app.field.country") + t("app.validate.required");
       if (blank(form.contactName)) return t("app.field.contactName") + t("app.validate.required");
       if (blank(form.contactEmail)) return t("app.field.contactEmail") + t("app.validate.required");
+      if (badEmail(form.contactEmail)) return t("app.validate.invalidEmail");
     }
     if (step === 2) {
-      if (!noUboDecl && ubos.length === 0) return t("app.validate.uboRequired");
-      if (noUboDecl && blank(controlDesc)) return t("app.field.controlStructure") + t("app.validate.required");
-      if (directors.length === 0 || blank(directors[0]?.name)) return t("app.section.directors") + t("app.validate.required");
-      if (authorizedPersons.length === 0 || blank(authorizedPersons[0]?.name)) return t("app.section.authorizedPersons") + t("app.validate.required");
+      if (!noUboDecl) {
+        if (ubos.length === 0) return t("app.validate.uboRequired");
+        for (let i = 0; i < ubos.length; i++) {
+          const u = ubos[i];
+          if (blank(u.name)) return `UBO #${i + 1} — ${t("app.field.legalRepName")}${t("app.validate.required")}`;
+          if (blank(u.idType)) return `UBO #${i + 1} — ${t("app.field.idType")}${t("app.validate.required")}`;
+          if (blank(u.idNumber)) return `UBO #${i + 1} — ${t("app.field.idNumber")}${t("app.validate.required")}`;
+          if (!u.sharePercentage || u.sharePercentage <= 0) return `UBO #${i + 1} — ${t("app.field.sharePercentage")}${t("app.validate.required")}`;
+        }
+      } else {
+        if (blank(controlDesc)) return t("app.field.controlStructure") + t("app.validate.required");
+      }
+      if (directors.length === 0) return t("app.section.directors") + t("app.validate.required");
+      for (let i = 0; i < directors.length; i++) {
+        if (blank(directors[i].name)) return `${t("app.director.title")} #${i + 1} — ${t("app.field.legalRepName")}${t("app.validate.required")}`;
+        if (blank(directors[i].idType)) return `${t("app.director.title")} #${i + 1} — ${t("app.field.idType")}${t("app.validate.required")}`;
+        if (blank(directors[i].idNumber)) return `${t("app.director.title")} #${i + 1} — ${t("app.field.idNumber")}${t("app.validate.required")}`;
+      }
+      if (authorizedPersons.length === 0) return t("app.section.authorizedPersons") + t("app.validate.required");
+      for (let i = 0; i < authorizedPersons.length; i++) {
+        const ap = authorizedPersons[i];
+        if (blank(ap.name)) return `${t("app.authPerson.title")} #${i + 1} — ${t("app.field.legalRepName")}${t("app.validate.required")}`;
+        if (blank(ap.email)) return `${t("app.authPerson.title")} #${i + 1} — ${t("app.field.contactEmail")}${t("app.validate.required")}`;
+        if (badEmail(ap.email)) return `${t("app.authPerson.title")} #${i + 1} — ${t("app.validate.invalidEmail")}`;
+        if (blank(ap.phone)) return `${t("app.authPerson.title")} #${i + 1} — ${t("app.field.contactPhone")}${t("app.validate.required")}`;
+      }
     }
     if (step === 3) {
       if (blank(form.businessType)) return t("app.field.businessType") + t("app.validate.required");

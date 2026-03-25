@@ -1050,6 +1050,7 @@ const en = {
 
   // Validation
   "app.validate.required": " is required",
+  "app.validate.invalidEmail": "Please enter a valid email address",
   "app.validate.uboRequired": "Please add at least one UBO, or declare no UBO",
 };
 

@@ -280,6 +280,8 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         requireField(app.getAddressLine1(), "地址");
         requireField(app.getCity(), "城市");
         requireField(app.getCountry(), "国家/地区");
+        requireField(app.getContactName(), "联系人姓名");
+        requireEmail(app.getContactEmail(), "联系人邮箱");
 
         // Section A: UBOs
         if (!Boolean.TRUE.equals(app.getNoUboDeclaration())) {
@@ -297,9 +299,20 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
             throw new BizException(40000, "请至少添加一位董事");
         }
 
-        // Section A: Authorized Persons (at least 1)
+        // Section A: Authorized Persons (at least 1, with valid email)
         if (app.getAuthorizedPersons() == null || app.getAuthorizedPersons().isEmpty()) {
             throw new BizException(40000, "请至少添加一位授权联系人");
+        }
+        for (int i = 0; i < app.getAuthorizedPersons().size(); i++) {
+            Map<String, Object> ap = app.getAuthorizedPersons().get(i);
+            requireMapField(ap, "name", "授权联系人 #" + (i + 1) + " 姓名");
+            Object email = ap.get("email");
+            if (email == null || email.toString().isBlank()) {
+                throw new BizException(40000, "授权联系人 #" + (i + 1) + " 邮箱不能为空");
+            }
+            if (!email.toString().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+                throw new BizException(40000, "授权联系人 #" + (i + 1) + " 邮箱格式无效");
+            }
         }
 
         // Section B: Business info
@@ -344,6 +357,13 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
     private void requireField(String value, String fieldName) {
         if (isBlank(value)) {
             throw new BizException(40000, fieldName + "不能为空");
+        }
+    }
+
+    private void requireEmail(String value, String fieldName) {
+        requireField(value, fieldName);
+        if (!value.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new BizException(40000, fieldName + "格式无效");
         }
     }
 

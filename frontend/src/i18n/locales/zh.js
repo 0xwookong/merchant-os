@@ -1024,6 +1024,7 @@ const zh = {
   "app.sign.ccoConfirm": "本人已审核此表，并以首席合规官（或等同职位）身份代表公司确认。",
 
   "app.validate.required": "不能为空",
+  "app.validate.invalidEmail": "请输入有效的邮箱地址",
   "app.validate.uboRequired": "请添加至少一位 UBO，或声明无 UBO",
 };
 
