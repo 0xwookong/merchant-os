@@ -109,6 +109,13 @@ const en = {
   "auth.resetPassword.invalidLink": "Invalid link",
   "auth.resetPassword.missingToken": "Missing reset token parameter",
   "auth.resetPassword.retry": "Request again →",
+
+  // auth - activate account (invited members)
+  "auth.activate.title": "Activate Your Account",
+  "auth.activate.subtitle": "Set your password to activate your OSL Pay account",
+  "auth.activate.submit": "Set Password & Activate",
+  "auth.activate.success.title": "Account activated!",
+  "auth.activate.success.message": "Your account is now active. Please sign in with your new password.",
   "auth.resetPassword.minLength": "Password must be at least 8 characters",
   "auth.resetPassword.mismatch": "Passwords do not match",
   "auth.resetPassword.networkError": "Network error, please try again",
@@ -525,6 +532,10 @@ const en = {
   "members.invite.name.placeholder": "Member name",
   "members.invite.submit": "Send Invitation",
   "members.invite.submitting": "Sending...",
+  "members.resend": "Resend Invite",
+  "members.resend.sending": "Sending...",
+  "members.resend.success": "Invitation email has been resent",
+  "members.resend.error": "Failed to resend invitation",
   "members.remove": "Remove",
   "members.remove.confirm": "Remove this member? They will immediately lose access and this cannot be undone.",
   "members.role.ADMIN": "Admin",
@@ -536,6 +547,11 @@ const en = {
   "members.status.ACTIVE": "Active",
   "members.status.PENDING": "Pending",
   "members.cancel": "Cancel",
+  "members.col.name": "Name",
+  "members.col.email": "Email",
+  "members.col.role": "Role",
+  "members.col.status": "Status",
+  "members.col.joined": "Joined",
 
   // mcp
   "mcp.title": "MCP Configuration",
@@ -647,6 +663,55 @@ const en = {
   "changePassword.submit": "Update Password",
   "changePassword.submitting": "Updating...",
   "changePassword.close": "Close",
+
+  // Onboarding Journey (Getting Started page)
+  "journey.title": "Welcome to OSL Pay!",
+  "journey.subtitle": "Complete the following steps to start accepting cryptocurrency payments",
+  "journey.sandboxHint": "While waiting for approval, you can explore the full workflow in sandbox mode",
+  "journey.enterSandbox": "Try Sandbox",
+  "journey.step.completed": "Completed",
+  "journey.step.inProgress": "In Progress",
+  "journey.step.pending": "Pending",
+  "journey.step.locked": "Locked",
+  "journey.step.rejected": "Needs Revision",
+  "journey.step.needMoreInfo": "More Info Required",
+
+  "journey.step1.title": "Create Account",
+  "journey.step1.desc": "Register your merchant account and verify your email address",
+
+  "journey.step2.title": "KYB Verification",
+  "journey.step2.desc": "Submit your company documents for Know Your Business verification. This is required by compliance regulations.",
+  "journey.step2.cta.start": "Start Verification",
+  "journey.step2.cta.continue": "Continue Verification",
+  "journey.step2.cta.view": "View Status",
+  "journey.step2.pendingNote": "Typically takes 1-3 business days to review",
+  "journey.step2.rejectedNote": "Please review the feedback and resubmit",
+
+  "journey.step3.title": "Submit Onboarding Application",
+  "journey.step3.desc": "Provide your business information, settlement details, and supported currencies",
+  "journey.step3.cta.start": "Start Application",
+  "journey.step3.cta.continue": "Continue Application",
+  "journey.step3.cta.view": "View Status",
+  "journey.step3.lockedNote": "Complete KYB verification first to unlock this step",
+  "journey.step3.pendingNote": "Your application is under review",
+
+  "journey.step4.title": "Technical Integration",
+  "journey.step4.desc": "Set up API credentials, configure webhooks, and complete your first sandbox transaction",
+  "journey.step4.sandboxNote": "Available in sandbox mode anytime — no need to wait for approvals",
+  "journey.step4.sub.credentials": "Get API Credentials",
+  "journey.step4.sub.webhooks": "Configure Webhooks",
+  "journey.step4.sub.domains": "Add Domain Whitelist",
+  "journey.step4.sub.progress": "{done} of {total} completed",
+  "journey.step4.cta.invite": "Invite Technical Team",
+
+  "journey.step5.title": "Go Live",
+  "journey.step5.desc": "Switch to production environment and start accepting real payments",
+  "journey.step5.cta": "Switch to Production",
+  "journey.step5.lockedNote": "Complete KYB verification and onboarding first",
+  "journey.step5.readyNote": "You're all set! Switch to production when ready",
+
+  "journey.devGuide.title": "Developer Quick Start",
+  "journey.devGuide.subtitle": "Choose an integration mode and follow the step-by-step guide",
 };
 
 export default en;

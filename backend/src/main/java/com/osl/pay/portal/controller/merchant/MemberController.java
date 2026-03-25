@@ -32,6 +32,14 @@ public class MemberController {
         return Result.ok(memberService.invite(user.getMerchantId(), user.getUserId(), request, httpRequest));
     }
 
+    @PostMapping("/{id}/resend-invite")
+    public Result<String> resendInvite(@AuthenticationPrincipal AuthUserDetails user,
+                                       @PathVariable Long id,
+                                       HttpServletRequest httpRequest) {
+        memberService.resendInvite(user.getMerchantId(), user.getUserId(), id, httpRequest);
+        return Result.ok("已重新发送邀请");
+    }
+
     @DeleteMapping("/{id}")
     public Result<String> remove(@AuthenticationPrincipal AuthUserDetails user,
                                  @PathVariable Long id,

@@ -355,9 +355,16 @@ public class AuthServiceImpl implements AuthService {
 
         validatePassword(request.getNewPassword(), user.getEmail());
 
-        merchantUserMapper.update(new LambdaUpdateWrapper<MerchantUser>()
+        LambdaUpdateWrapper<MerchantUser> updateWrapper = new LambdaUpdateWrapper<MerchantUser>()
                 .eq(MerchantUser::getId, user.getId())
-                .set(MerchantUser::getPasswordHash, passwordEncoder.encode(request.getNewPassword())));
+                .set(MerchantUser::getPasswordHash, passwordEncoder.encode(request.getNewPassword()));
+
+        // Also activate email if not yet verified (handles invited member activation)
+        if (!Boolean.TRUE.equals(user.getEmailVerified())) {
+            updateWrapper.set(MerchantUser::getEmailVerified, true);
+        }
+
+        merchantUserMapper.update(updateWrapper);
 
         authRedis.revokeRefreshToken(user.getId(), user.getMerchantId());
         authRedis.resetFailCount(user.getId());

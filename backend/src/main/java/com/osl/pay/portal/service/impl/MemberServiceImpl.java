@@ -10,6 +10,7 @@ import com.osl.pay.portal.model.entity.MerchantUser;
 import com.osl.pay.portal.model.enums.UserRole;
 import com.osl.pay.portal.model.enums.UserStatus;
 import com.osl.pay.portal.repository.MerchantUserMapper;
+import com.osl.pay.portal.security.AuthRedisService;
 import com.osl.pay.portal.service.EmailService;
 import com.osl.pay.portal.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +32,7 @@ public class MemberServiceImpl implements MemberService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final AuditService auditService;
+    private final AuthRedisService authRedis;
 
     private static final Set<String> VALID_ROLES = Set.of("ADMIN", "BUSINESS", "TECH");
 
@@ -71,8 +73,10 @@ public class MemberServiceImpl implements MemberService {
         user.setEmailVerified(false); // Pending invitation
         merchantUserMapper.insert(user);
 
-        // Send invitation email (uses existing email service)
-        emailService.sendInvitation(request.getEmail(), user.getContactName());
+        // Generate activation token and send invitation email with link
+        String activateToken = UUID.randomUUID().toString().replace("-", "");
+        authRedis.saveResetToken(activateToken, user.getId());
+        emailService.sendInvitation(request.getEmail(), user.getContactName(), activateToken);
 
         auditService.log("MEMBER_INVITED", currentUserId, merchantId,
                 request.getEmail(), httpRequest, true,
@@ -100,6 +104,29 @@ public class MemberServiceImpl implements MemberService {
                 "Removed member: " + user.getContactName());
 
         log.info("Member removed: merchantId={}, memberId={}", merchantId, memberId);
+    }
+
+    @Override
+    public void resendInvite(Long merchantId, Long currentUserId, Long memberId, HttpServletRequest httpRequest) {
+        MerchantUser user = merchantUserMapper.selectById(memberId);
+        if (user == null || !user.getMerchantId().equals(merchantId)) {
+            throw new BizException(40400, "成员不存在");
+        }
+
+        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+            throw new BizException(40000, "该成员已激活，无需重新发送");
+        }
+
+        // Generate new activation token and send
+        String activateToken = UUID.randomUUID().toString().replace("-", "");
+        authRedis.saveResetToken(activateToken, user.getId());
+        emailService.sendInvitation(user.getEmail(), user.getContactName(), activateToken);
+
+        auditService.log("MEMBER_INVITE_RESENT", currentUserId, merchantId,
+                user.getEmail(), httpRequest, true,
+                "Resent invitation to " + user.getEmail());
+
+        log.info("Invitation resent: merchantId={}, memberId={}, email={}", merchantId, memberId, user.getEmail());
     }
 
     private MemberResponse toResponse(MerchantUser u) {

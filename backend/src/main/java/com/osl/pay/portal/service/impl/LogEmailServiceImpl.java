@@ -29,11 +29,12 @@ public class LogEmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendInvitation(String to, String contactName) {
+    public void sendInvitation(String to, String contactName, String activateToken) {
+        String activateLink = resetBaseUrl + "?token=" + activateToken + "&invite=true";
         log.info("========== MEMBER INVITATION ==========");
         log.info("To: {}", to);
         log.info("Contact: {}", contactName);
-        log.info("Message: You have been invited to join OSLPay Merchant Portal");
+        log.info("Activate Link: {}", activateLink);
         log.info("========================================");
     }
 

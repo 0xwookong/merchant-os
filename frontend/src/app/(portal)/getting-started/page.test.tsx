@@ -1,11 +1,35 @@
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import GettingStartedPage from "./page";
 
-// Mock providers
-vi.mock("@/providers/language-provider", () => ({ useI18n: () => ({ t: (k: string) => k, locale: "zh", setLocale: vi.fn() }) }));
+vi.mock("@/providers/language-provider", () => ({
+  useI18n: () => ({ t: (k: string) => k, locale: "en", setLocale: vi.fn() }),
+}));
+
+vi.mock("@/providers/auth-provider", () => ({
+  useAuth: () => ({
+    user: { email: "admin@test.com", role: "ADMIN", companyName: "Test Corp" },
+    login: vi.fn(),
+    logout: vi.fn(),
+    loading: false,
+  }),
+}));
+
 vi.mock("@/providers/environment-provider", () => ({
   useEnvironment: () => ({ environment: "sandbox", isSandbox: true, toggleEnvironment: vi.fn() }),
+}));
+
+vi.mock("@/services/merchantService", () => ({
+  merchantService: {
+    getProgress: vi.fn().mockResolvedValue({
+      accountCreated: true,
+      kybStatus: "NOT_STARTED",
+      onboardingStatus: null,
+      hasCredentials: false,
+      hasWebhooks: false,
+      hasDomains: false,
+    }),
+  },
 }));
 
 vi.mock("next/navigation", () => ({
@@ -13,44 +37,61 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/getting-started",
 }));
 
-describe("快速开始页面", () => {
+describe("快速开始页面 — Onboarding Journey", () => {
   afterEach(() => cleanup());
 
-  it("渲染页面标题", () => {
+  it("渲染页面标题", async () => {
     render(<GettingStartedPage />);
-    const headings = screen.getAllByRole("heading", { name: "gettingStarted.title" });
-    expect(headings.length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => {
+      expect(screen.getByText("journey.title")).toBeInTheDocument();
+    });
   });
 
-  it("默认展示 WebSDK 模式（Tab 选中 + 步骤 1-4 可见）", () => {
+  it("ADMIN 角色 → 渲染全部 5 个步骤", async () => {
     render(<GettingStartedPage />);
-    expect(screen.getAllByText("gettingStarted.mode.websdk").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("gettingStarted.websdk.step1").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("gettingStarted.websdk.step2").length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => {
+      expect(screen.getByText("journey.step1.title")).toBeInTheDocument();
+      expect(screen.getByText("journey.step2.title")).toBeInTheDocument();
+      expect(screen.getByText("journey.step3.title")).toBeInTheDocument();
+      expect(screen.getByText("journey.step4.title")).toBeInTheDocument();
+      expect(screen.getByText("journey.step5.title")).toBeInTheDocument();
+    });
   });
 
-  it("展示测试卡号表格（3 种卡）", () => {
+  it("KYB 未开始 → Step 3 显示锁定提示", async () => {
     render(<GettingStartedPage />);
-    expect(screen.getAllByText("4242 4242 4242 4242").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("4539 3732 9896 7400").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("4532 2274 1657 1592").length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => {
+      expect(screen.getByText("journey.step3.lockedNote")).toBeInTheDocument();
+    });
   });
 
-  it("展示货币网络限额表格", () => {
+  it("KYB 未通过 → 显示沙箱提示横幅", async () => {
     render(<GettingStartedPage />);
-    expect(screen.getAllByText("USDT / USDC").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/43,000 EUR/).length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => {
+      expect(screen.getByText("journey.sandboxHint")).toBeInTheDocument();
+    });
   });
 
-  it("展示快速链接卡片", () => {
+  it("渲染开发者快速指南折叠区", async () => {
     render(<GettingStartedPage />);
-    expect(screen.getAllByText("gettingStarted.quickLink.docs").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("gettingStarted.quickLink.signature").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("gettingStarted.quickLink.webhooks").length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => {
+      expect(screen.getByText("journey.devGuide.title")).toBeInTheDocument();
+    });
   });
 
-  it("展示技术支持联系邮箱", () => {
+  it("渲染技术集成子任务", async () => {
     render(<GettingStartedPage />);
-    expect(screen.getAllByText("support@osl-pay.com").length).toBeGreaterThanOrEqual(1);
+    await waitFor(() => {
+      expect(screen.getByText("journey.step4.sub.credentials")).toBeInTheDocument();
+      expect(screen.getByText("journey.step4.sub.webhooks")).toBeInTheDocument();
+      expect(screen.getByText("journey.step4.sub.domains")).toBeInTheDocument();
+    });
+  });
+
+  it("渲染技术支持联系邮箱", async () => {
+    render(<GettingStartedPage />);
+    await waitFor(() => {
+      expect(screen.getByText("support@osl-pay.com")).toBeInTheDocument();
+    });
   });
 });

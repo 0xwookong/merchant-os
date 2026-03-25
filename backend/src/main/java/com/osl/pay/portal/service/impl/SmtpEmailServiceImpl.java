@@ -59,11 +59,11 @@ public class SmtpEmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void sendInvitation(String to, String contactName) {
-        String loginLink = verifyBaseUrl.replace("/verify-email", "/login");
+    public void sendInvitation(String to, String contactName, String activateToken) {
+        String activateLink = resetBaseUrl + "?token=" + activateToken + "&invite=true";
         Map<String, String> vars = Map.of(
                 "contactName", escapeHtml(contactName),
-                "loginLink", loginLink);
+                "activateLink", activateLink);
         sendTemplated("INVITATION", DEFAULT_LOCALE, to, vars);
     }
 

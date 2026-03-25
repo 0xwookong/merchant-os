@@ -109,6 +109,13 @@ const zh = {
   "auth.resetPassword.invalidLink": "链接无效",
   "auth.resetPassword.missingToken": "缺少重置令牌参数",
   "auth.resetPassword.retry": "重新申请 →",
+
+  // auth - 激活账号（邀请成员）
+  "auth.activate.title": "激活您的账户",
+  "auth.activate.subtitle": "设置密码以激活您的 OSL Pay 账户",
+  "auth.activate.submit": "设置密码并激活",
+  "auth.activate.success.title": "账户已激活！",
+  "auth.activate.success.message": "您的账户已激活，请使用新密码登录。",
   "auth.resetPassword.minLength": "密码至少 8 个字符",
   "auth.resetPassword.mismatch": "两次密码不一致",
   "auth.resetPassword.networkError": "网络错误，请稍后重试",
@@ -525,6 +532,10 @@ const zh = {
   "members.invite.name.placeholder": "成员姓名",
   "members.invite.submit": "发送邀请",
   "members.invite.submitting": "发送中...",
+  "members.resend": "重发邀请",
+  "members.resend.sending": "发送中...",
+  "members.resend.success": "邀请邮件已重新发送",
+  "members.resend.error": "重新发送失败",
   "members.remove": "移除",
   "members.remove.confirm": "确定要移除此成员？移除后该成员立即无法访问平台，且操作不可撤销。",
   "members.role.ADMIN": "管理员",
@@ -536,6 +547,11 @@ const zh = {
   "members.status.ACTIVE": "已激活",
   "members.status.PENDING": "待接受",
   "members.cancel": "取消",
+  "members.col.name": "姓名",
+  "members.col.email": "邮箱",
+  "members.col.role": "角色",
+  "members.col.status": "状态",
+  "members.col.joined": "加入时间",
 
   // mcp
   "mcp.title": "MCP 配置中心",
@@ -647,6 +663,55 @@ const zh = {
   "changePassword.submit": "确认修改",
   "changePassword.submitting": "提交中...",
   "changePassword.close": "关闭",
+
+  // Onboarding Journey (快速开始页面)
+  "journey.title": "欢迎来到 OSL Pay！",
+  "journey.subtitle": "完成以下步骤，开始接受加密货币支付",
+  "journey.sandboxHint": "等待审核期间，您可以在沙箱环境中体验完整业务流程",
+  "journey.enterSandbox": "进入沙箱体验",
+  "journey.step.completed": "已完成",
+  "journey.step.inProgress": "进行中",
+  "journey.step.pending": "待开始",
+  "journey.step.locked": "待解锁",
+  "journey.step.rejected": "需修改",
+  "journey.step.needMoreInfo": "需补充信息",
+
+  "journey.step1.title": "创建账户",
+  "journey.step1.desc": "注册商户账户并验证邮箱地址",
+
+  "journey.step2.title": "KYB 认证",
+  "journey.step2.desc": "提交公司资质文件进行 Know Your Business 认证，这是合规监管要求",
+  "journey.step2.cta.start": "开始认证",
+  "journey.step2.cta.continue": "继续认证",
+  "journey.step2.cta.view": "查看状态",
+  "journey.step2.pendingNote": "审核通常需要 1-3 个工作日",
+  "journey.step2.rejectedNote": "请查看审核反馈并重新提交",
+
+  "journey.step3.title": "提交入驻申请",
+  "journey.step3.desc": "填写业务信息、结算账户和支持的币种",
+  "journey.step3.cta.start": "开始申请",
+  "journey.step3.cta.continue": "继续申请",
+  "journey.step3.cta.view": "查看状态",
+  "journey.step3.lockedNote": "请先完成 KYB 认证以解锁此步骤",
+  "journey.step3.pendingNote": "您的申请正在审核中",
+
+  "journey.step4.title": "技术集成",
+  "journey.step4.desc": "配置 API 凭证、Webhook 回调，完成首笔沙箱交易",
+  "journey.step4.sandboxNote": "沙箱模式随时可用，无需等待审批",
+  "journey.step4.sub.credentials": "获取 API 凭证",
+  "journey.step4.sub.webhooks": "配置 Webhook",
+  "journey.step4.sub.domains": "添加域名白名单",
+  "journey.step4.sub.progress": "已完成 {done}/{total} 项",
+  "journey.step4.cta.invite": "邀请技术团队",
+
+  "journey.step5.title": "上线运营",
+  "journey.step5.desc": "切换到生产环境，开始接受真实支付",
+  "journey.step5.cta": "切换到生产环境",
+  "journey.step5.lockedNote": "请先完成 KYB 认证和商户入驻",
+  "journey.step5.readyNote": "一切就绪！准备好后即可切换到生产环境",
+
+  "journey.devGuide.title": "开发者快速开始",
+  "journey.devGuide.subtitle": "选择集成方式，按步骤完成技术对接",
 };
 
 export default zh;

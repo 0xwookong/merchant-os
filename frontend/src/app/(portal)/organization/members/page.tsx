@@ -6,8 +6,6 @@ import { useAuth } from "@/providers/auth-provider";
 import { memberService, type MemberInfo } from "@/services/memberService";
 import {
   PlusIcon,
-  TrashIcon,
-  UsersIcon,
   ShieldCheckIcon,
   BriefcaseIcon,
   CodeBracketIcon,
@@ -30,6 +28,7 @@ export default function MembersPage() {
   const [contactName, setContactName] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resendingId, setResendingId] = useState<number | null>(null);
 
   const fetchMembers = useCallback(() => {
     setLoading(true);
@@ -52,6 +51,18 @@ export default function MembersPage() {
       setError(err instanceof Error ? err.message : "邀请失败");
     } finally {
       setInviteLoading(false);
+    }
+  };
+
+  const handleResend = async (id: number) => {
+    setResendingId(id);
+    try {
+      await memberService.resendInvite(id);
+      alert(t("members.resend.success"));
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : t("members.resend.error"));
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -146,11 +157,11 @@ export default function MembersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--gray-100)]">
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Name</th>
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Email</th>
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Role</th>
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Status</th>
-                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">Joined</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.name")}</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.email")}</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.role")}</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.status")}</th>
+                <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.joined")}</th>
                 <th className="text-right py-3 px-5 font-semibold text-[var(--gray-900)]"></th>
               </tr>
             </thead>
@@ -175,12 +186,23 @@ export default function MembersPage() {
                   </td>
                   <td className="py-3 px-5 text-[var(--gray-400)] text-xs">{new Date(m.createdAt).toLocaleDateString("zh-CN")}</td>
                   <td className="py-3 px-5 text-right">
-                    {m.id !== user?.userId && (
-                      <button onClick={() => handleRemove(m.id)} title={t("members.remove")}
-                        className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-[var(--gray-400)] hover:text-red-600">
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      {m.status === "PENDING" && (
+                        <button
+                          onClick={() => handleResend(m.id)}
+                          disabled={resendingId === m.id}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {resendingId === m.id ? t("members.resend.sending") : t("members.resend")}
+                        </button>
+                      )}
+                      {m.id !== user?.userId && (
+                        <button onClick={() => handleRemove(m.id)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
+                          {t("members.remove")}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

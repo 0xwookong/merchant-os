@@ -11,5 +11,5 @@ public interface EmailService {
      */
     void sendPasswordResetEmail(String to, Map<String, String> resetTokens);
 
-    void sendInvitation(String to, String contactName);
+    void sendInvitation(String to, String contactName, String activateToken);
 }

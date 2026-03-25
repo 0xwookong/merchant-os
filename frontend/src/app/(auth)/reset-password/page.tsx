@@ -19,6 +19,7 @@ function ResetPasswordContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const isInvite = searchParams.get("invite") === "true";
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -70,8 +71,12 @@ function ResetPasswordContent() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-[var(--gray-900)]">{t("auth.resetPassword.success.title")}</h2>
-        <p className="text-sm text-[var(--gray-500)]">{t("auth.resetPassword.success.message")}</p>
+        <h2 className="text-xl font-semibold text-[var(--gray-900)]">
+          {isInvite ? t("auth.activate.success.title") : t("auth.resetPassword.success.title")}
+        </h2>
+        <p className="text-sm text-[var(--gray-500)]">
+          {isInvite ? t("auth.activate.success.message") : t("auth.resetPassword.success.message")}
+        </p>
         <Link
           href="/login"
           className="inline-block mt-4 bg-[var(--primary-black)] text-white font-medium py-2.5 px-5 rounded-lg hover:bg-[#1a1a1a] transition-colors"
@@ -85,8 +90,12 @@ function ResetPasswordContent() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--gray-900)]">{t("auth.resetPassword.title")}</h1>
-        <p className="text-sm text-[var(--gray-500)] mt-1">{t("auth.resetPassword.subtitle")}</p>
+        <h1 className="text-2xl font-semibold text-[var(--gray-900)]">
+          {isInvite ? t("auth.activate.title") : t("auth.resetPassword.title")}
+        </h1>
+        <p className="text-sm text-[var(--gray-500)] mt-1">
+          {isInvite ? t("auth.activate.subtitle") : t("auth.resetPassword.subtitle")}
+        </p>
       </div>
 
       {error && (
@@ -128,7 +137,9 @@ function ResetPasswordContent() {
           disabled={loading}
           className="w-full bg-[var(--primary-black)] text-white font-medium py-2.5 px-5 rounded-lg hover:bg-[#1a1a1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? t("auth.resetPassword.submitting") : t("auth.resetPassword.submit")}
+          {loading
+            ? t("auth.resetPassword.submitting")
+            : isInvite ? t("auth.activate.submit") : t("auth.resetPassword.submit")}
         </button>
       </form>
     </div>

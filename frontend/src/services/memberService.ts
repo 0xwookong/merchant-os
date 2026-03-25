@@ -22,6 +22,9 @@ export const memberService = {
   invite(data: InviteRequest): Promise<MemberInfo> {
     return api.post<MemberInfo>("/api/v1/members/invite", data);
   },
+  resendInvite(id: number): Promise<string> {
+    return api.post<string>(`/api/v1/members/${id}/resend-invite`);
+  },
   remove(id: number): Promise<string> {
     return api.delete<string>(`/api/v1/members/${id}`);
   },

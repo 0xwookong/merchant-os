@@ -130,7 +130,7 @@ class SmtpEmailServiceTest {
                     .thenReturn(mockTemplate("INVITATION", "Invited — OSL Pay", "Hi {contactName}"));
             when(templateService.render(anyString(), anyMap())).thenCallRealMethod();
 
-            emailService.sendInvitation("new@example.com", "John Doe");
+            emailService.sendInvitation("new@example.com", "John Doe", "test-token-123");
             verify(mailSender, times(1)).send(any(MimeMessage.class));
         }
 
@@ -141,7 +141,7 @@ class SmtpEmailServiceTest {
                     .thenReturn(mockTemplate("INVITATION", "Invited", "Hi {contactName}"));
             when(templateService.render(anyString(), anyMap())).thenCallRealMethod();
 
-            assertDoesNotThrow(() -> emailService.sendInvitation("test@example.com", "<script>alert('xss')</script>"));
+            assertDoesNotThrow(() -> emailService.sendInvitation("test@example.com", "<script>alert('xss')</script>", "test-token-456"));
             verify(mailSender, times(1)).send(any(MimeMessage.class));
         }
     }

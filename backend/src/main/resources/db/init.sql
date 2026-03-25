@@ -226,17 +226,17 @@ INSERT INTO t_email_template (code, locale, subject, body_html, description) VAL
 <p style="color:#9ca3af;font-size:13px;margin:16px 0 0">如果这不是您本人操作，请忽略此邮件。链接 30 分钟内有效。</p>',
 '密码重置邮件'),
 
--- Invitation email
+-- Invitation email (with account activation link)
 ('INVITATION', 'en', 'You''ve been invited to OSL Pay',
-'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">Hi {contactName},<br/><br/>You''ve been invited to join the OSL Pay Merchant Portal. Sign in with the credentials provided by your administrator to get started.</p>
-<div style="text-align:center;margin:32px 0"><a href="{loginLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">Sign In</a></div>
-<p style="color:#9ca3af;font-size:13px;margin:0">If you weren''t expecting this invitation, please ignore this email.</p>',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">Hi {contactName},<br/><br/>You''ve been invited to join the OSL Pay Merchant Portal. Click the button below to set your password and activate your account.</p>
+<div style="text-align:center;margin:32px 0"><a href="{activateLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">Set Password &amp; Activate</a></div>
+<p style="color:#9ca3af;font-size:13px;margin:0">This link expires in 30 minutes. If you weren''t expecting this invitation, please ignore this email.</p>',
 'Team member invitation'),
 
 ('INVITATION', 'zh', '您已被邀请加入 OSL Pay',
-'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">您好 {contactName}，<br/><br/>您已被邀请加入 OSL Pay 商户平台。请使用管理员提供的凭据登录。</p>
-<div style="text-align:center;margin:32px 0"><a href="{loginLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">登录平台</a></div>
-<p style="color:#9ca3af;font-size:13px;margin:0">如果您不知道为何收到此邮件，请忽略。</p>',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">您好 {contactName}，<br/><br/>您已被邀请加入 OSL Pay 商户平台。请点击下方按钮设置密码并激活您的账户。</p>
+<div style="text-align:center;margin:32px 0"><a href="{activateLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">设置密码并激活</a></div>
+<p style="color:#9ca3af;font-size:13px;margin:0">链接 30 分钟内有效。如果您不知道为何收到此邮件，请忽略。</p>',
 '团队成员邀请');
 
 -- Audit log table (security events)
