@@ -102,7 +102,7 @@ class MerchantProgressApiTest {
     class GetProgress {
 
         @Test
-        @DisplayName("新注册商户 → 账户已创建、KYB 未开始、无入驻申请、无技术集成")
+        @DisplayName("新注册商户 → 账户已创建、无入驻申请、无技术集成")
         void should_returnInitialProgress_when_newMerchant() throws Exception {
             String token = registerVerifyAndLogin();
 
@@ -111,29 +111,27 @@ class MerchantProgressApiTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(0))
                     .andExpect(jsonPath("$.data.accountCreated").value(true))
-                    .andExpect(jsonPath("$.data.kybStatus").value("NOT_STARTED"))
-                    .andExpect(jsonPath("$.data.onboardingStatus").isEmpty())
+                    .andExpect(jsonPath("$.data.applicationStatus").isEmpty())
                     .andExpect(jsonPath("$.data.hasCredentials").value(false))
                     .andExpect(jsonPath("$.data.hasWebhooks").value(false))
                     .andExpect(jsonPath("$.data.hasDomains").value(false));
         }
 
         @Test
-        @DisplayName("提交 KYB 后 → kybStatus 变为 APPROVED（沙箱自动审批）")
-        void should_reflectKybStatus_when_kybSubmitted() throws Exception {
+        @DisplayName("保存申请草稿后 → applicationStatus 变为 DRAFT")
+        void should_reflectApplicationStatus_when_draftSaved() throws Exception {
             String token = registerVerifyAndLogin();
 
-            // Submit KYB (sandbox auto-approves)
-            mockMvc.perform(post("/api/v1/kyb/submit")
+            // Save a draft
+            mockMvc.perform(post("/api/v1/application/save-draft")
                     .header("Authorization", "Bearer " + token)
-                    .header("X-Environment", "sandbox")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"companyRegCountry\":\"HK\",\"companyRegNumber\":\"12345678\",\"businessLicenseNo\":\"BL-001\",\"companyType\":\"LLC\",\"legalRepName\":\"Test\",\"legalRepNationality\":\"CN\",\"legalRepIdType\":\"PASSPORT\",\"legalRepIdNumber\":\"E12345678\",\"legalRepSharePct\":80}"));
+                    .content("{\"currentStep\":1,\"companyName\":\"Test\"}"));
 
             mockMvc.perform(get("/api/v1/merchant/progress")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.kybStatus").value("APPROVED"));
+                    .andExpect(jsonPath("$.data.applicationStatus").value("DRAFT"));
         }
 
         @Test

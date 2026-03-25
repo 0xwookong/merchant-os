@@ -3,28 +3,29 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { kybService } from "@/services/kybService";
+import { applicationService } from "@/services/applicationService";
 import { useI18n } from "@/providers/language-provider";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 export default function KybBanner() {
   const { t } = useI18n();
-  const [kybStatus, setKybStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
-    kybService.getStatus()
-      .then((res) => setKybStatus(res.kybStatus))
+    applicationService.getCurrent()
+      .then((res) => setStatus(res?.status ?? "NOT_STARTED"))
       .catch(() => {});
   }, []);
 
-  // Don't show on KYB page itself, or if status is approved/pending/loading
-  if (!kybStatus || kybStatus === "APPROVED" || kybStatus === "PENDING" || pathname === "/organization/application") {
+  // Don't show on the application page itself, or if approved/submitted/reviewing/loading
+  if (!status || status === "APPROVED" || status === "SUBMITTED" || status === "UNDER_REVIEW" || pathname === "/organization/application") {
     return null;
   }
 
   const MESSAGE_MAP: Record<string, string> = {
     NOT_STARTED: t("nav.kybBanner.notStarted"),
+    DRAFT: t("nav.kybBanner.notStarted"),
     REJECTED: t("nav.kybBanner.rejected"),
     NEED_MORE_INFO: t("nav.kybBanner.needMoreInfo"),
   };
@@ -33,13 +34,13 @@ export default function KybBanner() {
     <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 flex items-center gap-3">
       <ExclamationTriangleIcon className="w-5 h-5 text-amber-600 flex-shrink-0" />
       <p className="text-sm text-amber-800 flex-1">
-        {MESSAGE_MAP[kybStatus] || ""}
+        {MESSAGE_MAP[status] || ""}
       </p>
       <Link
         href="/organization/application"
         className="text-sm font-medium text-amber-800 hover:text-amber-900 underline flex-shrink-0"
       >
-        {kybStatus === "NOT_STARTED" ? t("nav.kybBanner.goVerify") : t("nav.kybBanner.goHandle")}
+        {status === "NOT_STARTED" || status === "DRAFT" ? t("nav.kybBanner.goVerify") : t("nav.kybBanner.goHandle")}
       </Link>
     </div>
   );

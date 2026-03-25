@@ -23,8 +23,7 @@ vi.mock("@/services/merchantService", () => ({
   merchantService: {
     getProgress: vi.fn().mockResolvedValue({
       accountCreated: true,
-      kybStatus: "NOT_STARTED",
-      onboardingStatus: null,
+      applicationStatus: null,
       hasCredentials: false,
       hasWebhooks: false,
       hasDomains: false,
@@ -47,25 +46,17 @@ describe("快速开始页面 — Onboarding Journey", () => {
     });
   });
 
-  it("ADMIN 角色 → 渲染全部 5 个步骤", async () => {
+  it("ADMIN 角色 → 渲染全部 4 个步骤（账号、入驻申请、技术集成、上线）", async () => {
     render(<GettingStartedPage />);
     await waitFor(() => {
       expect(screen.getByText("journey.step1.title")).toBeInTheDocument();
       expect(screen.getByText("journey.step2.title")).toBeInTheDocument();
-      expect(screen.getByText("journey.step3.title")).toBeInTheDocument();
       expect(screen.getByText("journey.step4.title")).toBeInTheDocument();
       expect(screen.getByText("journey.step5.title")).toBeInTheDocument();
     });
   });
 
-  it("KYB 未开始 → Step 3 显示锁定提示", async () => {
-    render(<GettingStartedPage />);
-    await waitFor(() => {
-      expect(screen.getByText("journey.step3.lockedNote")).toBeInTheDocument();
-    });
-  });
-
-  it("KYB 未通过 → 显示沙箱提示横幅", async () => {
+  it("入驻申请未开始 → 显示沙箱提示横幅", async () => {
     render(<GettingStartedPage />);
     await waitFor(() => {
       expect(screen.getByText("journey.sandboxHint")).toBeInTheDocument();

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/language-provider";
 import { filterMenuByRole, MENU_CONFIG, type MenuItem } from "@/lib/menu-config";
-import { kybService } from "@/services/kybService";
+import { applicationService } from "@/services/applicationService";
 import {
   RocketLaunchIcon,
   ChartBarIcon,
@@ -81,8 +81,8 @@ export default function Sidebar() {
   const menuItems = user ? filterMenuByRole(MENU_CONFIG, user.role) : [];
 
   useEffect(() => {
-    kybService.getStatus()
-      .then((res) => setKybApproved(res.kybStatus === "APPROVED"))
+    applicationService.getCurrent()
+      .then((res) => setKybApproved(res?.status === "APPROVED"))
       .catch(() => {});
   }, []);
 

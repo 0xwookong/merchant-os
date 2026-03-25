@@ -2,8 +2,7 @@ import { api } from "@/lib/api";
 
 export interface MerchantProgressResponse {
   accountCreated: boolean;
-  kybStatus: string | null;
-  onboardingStatus: string | null;
+  applicationStatus: string | null; // null/DRAFT/SUBMITTED/UNDER_REVIEW/APPROVED/REJECTED/NEED_MORE_INFO
   hasCredentials: boolean;
   hasWebhooks: boolean;
   hasDomains: boolean;

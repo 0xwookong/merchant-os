@@ -87,7 +87,7 @@ export default function GettingStartedPage() {
 
       <div className="max-w-[960px] space-y-8">
         {/* Sandbox hint banner */}
-        {showBusinessSteps && stepStatuses.kyb !== "completed" && (
+        {showBusinessSteps && stepStatuses.application !== "completed" && (
           <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-blue-50 border border-blue-200">
             <InformationCircleIcon className="w-5 h-5 text-blue-600 shrink-0" />
             <p className="text-sm text-blue-800 flex-1">{t("journey.sandboxHint")}</p>
@@ -112,32 +112,32 @@ export default function GettingStartedPage() {
             />
           )}
 
-          {/* Step 2: KYB */}
+          {/* Step 2: Merchant Application (unified KYB + Onboarding) */}
           {showBusinessSteps && (
             <JourneyStep
               step={2}
-              status={stepStatuses.kyb}
+              status={stepStatuses.application}
               title={t("journey.step2.title")}
               description={t("journey.step2.desc")}
               t={t}
             >
-              {stepStatuses.kyb === "completed" ? null : (
+              {stepStatuses.application === "completed" ? null : (
                 <div className="mt-3 flex items-center gap-3">
                   <Link
                     href="/organization/application"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary-black)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
                   >
-                    {stepStatuses.kyb === "pending" || stepStatuses.kyb === "locked"
+                    {stepStatuses.application === "pending"
                       ? t("journey.step2.cta.start")
-                      : stepStatuses.kyb === "rejected" || stepStatuses.kyb === "needMoreInfo"
+                      : stepStatuses.application === "rejected" || stepStatuses.application === "needMoreInfo"
                         ? t("journey.step2.cta.continue")
                         : t("journey.step2.cta.view")}
                     <ArrowRightIcon className="w-4 h-4" />
                   </Link>
-                  {stepStatuses.kyb === "inProgress" && (
+                  {stepStatuses.application === "inProgress" && (
                     <span className="text-xs text-[var(--gray-500)]">{t("journey.step2.pendingNote")}</span>
                   )}
-                  {(stepStatuses.kyb === "rejected" || stepStatuses.kyb === "needMoreInfo") && (
+                  {(stepStatuses.application === "rejected" || stepStatuses.application === "needMoreInfo") && (
                     <span className="text-xs text-[var(--error)]">{t("journey.step2.rejectedNote")}</span>
                   )}
                 </div>
@@ -145,45 +145,10 @@ export default function GettingStartedPage() {
             </JourneyStep>
           )}
 
-          {/* Step 3: Onboarding */}
-          {showBusinessSteps && (
-            <JourneyStep
-              step={3}
-              status={stepStatuses.onboarding}
-              title={t("journey.step3.title")}
-              description={t("journey.step3.desc")}
-              t={t}
-            >
-              {stepStatuses.onboarding === "locked" ? (
-                <p className="mt-2 text-xs text-[var(--gray-400)] flex items-center gap-1.5">
-                  <LockClosedIcon className="w-3.5 h-3.5" />
-                  {t("journey.step3.lockedNote")}
-                </p>
-              ) : stepStatuses.onboarding === "completed" ? null : (
-                <div className="mt-3 flex items-center gap-3">
-                  <Link
-                    href="/organization/application"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary-black)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                  >
-                    {stepStatuses.onboarding === "pending"
-                      ? t("journey.step3.cta.start")
-                      : stepStatuses.onboarding === "rejected"
-                        ? t("journey.step3.cta.continue")
-                        : t("journey.step3.cta.view")}
-                    <ArrowRightIcon className="w-4 h-4" />
-                  </Link>
-                  {stepStatuses.onboarding === "inProgress" && (
-                    <span className="text-xs text-[var(--gray-500)]">{t("journey.step3.pendingNote")}</span>
-                  )}
-                </div>
-              )}
-            </JourneyStep>
-          )}
-
-          {/* Step 4: Technical Integration */}
+          {/* Step 3: Technical Integration */}
           {showTechStep && (
             <JourneyStep
-              step={showBusinessSteps ? 4 : 1}
+              step={showBusinessSteps ? 3 : 1}
               status={stepStatuses.tech}
               title={t("journey.step4.title")}
               description={t("journey.step4.desc")}
@@ -208,10 +173,10 @@ export default function GettingStartedPage() {
             </JourneyStep>
           )}
 
-          {/* Step 5: Go Live */}
+          {/* Step 4: Go Live */}
           {showGoLive && (
             <JourneyStep
-              step={5}
+              step={4}
               status={stepStatuses.goLive}
               title={t("journey.step5.title")}
               description={t("journey.step5.desc")}
@@ -273,44 +238,33 @@ export default function GettingStartedPage() {
 
 function deriveStepStatuses(progress: MerchantProgressResponse | null): {
   account: StepStatus;
-  kyb: StepStatus;
-  onboarding: StepStatus;
+  application: StepStatus;
   tech: StepStatus;
   goLive: StepStatus;
 } {
   if (!progress) {
-    return { account: "completed", kyb: "pending", onboarding: "locked", tech: "pending", goLive: "locked" };
+    return { account: "completed", application: "pending", tech: "pending", goLive: "locked" };
   }
 
   const account: StepStatus = "completed";
 
-  let kyb: StepStatus = "pending";
-  switch (progress.kybStatus) {
-    case "APPROVED": kyb = "completed"; break;
-    case "PENDING": kyb = "inProgress"; break;
-    case "REJECTED": kyb = "rejected"; break;
-    case "NEED_MORE_INFO": kyb = "needMoreInfo"; break;
-    default: kyb = "pending";
-  }
-
-  let onboarding: StepStatus = "locked";
-  if (kyb === "completed") {
-    switch (progress.onboardingStatus) {
-      case "APPROVED": onboarding = "completed"; break;
-      case "SUBMITTED":
-      case "UNDER_REVIEW": onboarding = "inProgress"; break;
-      case "REJECTED": onboarding = "rejected"; break;
-      case "DRAFT": onboarding = "pending"; break;
-      default: onboarding = "pending";
-    }
+  let application: StepStatus = "pending";
+  switch (progress.applicationStatus) {
+    case "APPROVED": application = "completed"; break;
+    case "SUBMITTED":
+    case "UNDER_REVIEW": application = "inProgress"; break;
+    case "REJECTED": application = "rejected"; break;
+    case "NEED_MORE_INFO": application = "needMoreInfo"; break;
+    case "DRAFT": application = "pending"; break;
+    default: application = "pending";
   }
 
   const techDone = [progress.hasCredentials, progress.hasWebhooks, progress.hasDomains].filter(Boolean).length;
   const tech: StepStatus = techDone === 3 ? "completed" : techDone > 0 ? "inProgress" : "pending";
 
-  const goLive: StepStatus = kyb === "completed" && onboarding === "completed" ? "pending" : "locked";
+  const goLive: StepStatus = application === "completed" ? "pending" : "locked";
 
-  return { account, kyb, onboarding, tech, goLive };
+  return { account, application, tech, goLive };
 }
 
 // ===== Sub-components =====

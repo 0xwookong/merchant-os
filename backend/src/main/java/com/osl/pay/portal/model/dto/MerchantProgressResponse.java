@@ -6,8 +6,7 @@ import lombok.Data;
 public class MerchantProgressResponse {
 
     private boolean accountCreated;
-    private String kybStatus;
-    private String onboardingStatus;
+    private String applicationStatus; // from t_merchant_application: null/DRAFT/SUBMITTED/APPROVED/etc.
     private boolean hasCredentials;
     private boolean hasWebhooks;
     private boolean hasDomains;

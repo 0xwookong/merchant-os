@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MerchantProgressServiceImpl implements MerchantProgressService {
 
-    private final MerchantMapper merchantMapper;
-    private final OnboardingApplicationMapper onboardingMapper;
+    private final MerchantApplicationMapper applicationMapper;
     private final ApiCredentialMapper credentialMapper;
     private final WebhookConfigMapper webhookMapper;
     private final DomainWhitelistMapper domainMapper;
@@ -22,26 +21,18 @@ public class MerchantProgressServiceImpl implements MerchantProgressService {
     public MerchantProgressResponse getProgress(Long merchantId) {
         MerchantProgressResponse response = new MerchantProgressResponse();
 
-        // Step 1: Account always created (user is authenticated)
+        // Account always created (user is authenticated)
         response.setAccountCreated(true);
 
-        // Step 2: KYB status from merchant table
-        Merchant merchant = merchantMapper.selectById(merchantId);
-        if (merchant != null && merchant.getKybStatus() != null) {
-            response.setKybStatus(merchant.getKybStatus().name());
-        } else {
-            response.setKybStatus("NOT_STARTED");
-        }
-
-        // Step 3: Onboarding status from latest application
-        OnboardingApplication onboarding = onboardingMapper.selectOne(
-                new LambdaQueryWrapper<OnboardingApplication>()
-                        .eq(OnboardingApplication::getMerchantId, merchantId)
-                        .orderByDesc(OnboardingApplication::getCreatedAt)
+        // Application status from unified t_merchant_application
+        MerchantApplication app = applicationMapper.selectOne(
+                new LambdaQueryWrapper<MerchantApplication>()
+                        .eq(MerchantApplication::getMerchantId, merchantId)
+                        .orderByDesc(MerchantApplication::getId)
                         .last("LIMIT 1"));
-        response.setOnboardingStatus(onboarding != null ? onboarding.getStatus() : null);
+        response.setApplicationStatus(app != null ? app.getStatus() : null);
 
-        // Step 4: Tech integration checks
+        // Tech integration checks
         response.setHasCredentials(credentialMapper.selectCount(
                 new LambdaQueryWrapper<ApiCredential>()
                         .eq(ApiCredential::getMerchantId, merchantId)) > 0);
