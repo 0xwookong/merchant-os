@@ -10,18 +10,11 @@ export interface MenuItem {
 }
 
 /**
- * Full menu definition. Roles array defines who can see this item.
+ * Full menu definition — ordered by usage frequency: high → low.
+ * Roles array defines who can see this item.
  * Parent items with children: if all children are filtered out, parent is hidden too.
- * labelKey is an i18n key — call t(labelKey) in the component to get localized text.
  */
 export const MENU_CONFIG: MenuItem[] = [
-  {
-    key: "getting-started",
-    labelKey: "nav.gettingStarted",
-    icon: "RocketLaunchIcon",
-    path: "/getting-started",
-    roles: ["ADMIN", "BUSINESS", "TECH"],
-  },
   {
     key: "dashboard",
     labelKey: "nav.dashboard",
@@ -30,31 +23,17 @@ export const MENU_CONFIG: MenuItem[] = [
     roles: ["ADMIN", "BUSINESS"],
   },
   {
-    key: "business",
-    labelKey: "nav.business",
-    icon: "BriefcaseIcon",
+    key: "transactions",
+    labelKey: "nav.transactions",
+    icon: "BanknotesIcon",
     roles: ["ADMIN", "BUSINESS"],
     children: [
       {
-        key: "kyb",
-        labelKey: "nav.business.kyb",
-        icon: "ShieldCheckIcon",
-        path: "/kyb",
-        roles: ["ADMIN"],
-      },
-      {
-        key: "onboarding",
-        labelKey: "nav.business.onboarding",
-        icon: "DocumentTextIcon",
-        path: "/business/onboarding",
+        key: "orders",
+        labelKey: "nav.transactions.orders",
+        icon: "ShoppingCartIcon",
+        path: "/transactions/orders",
         roles: ["ADMIN", "BUSINESS"],
-      },
-      {
-        key: "members",
-        labelKey: "nav.business.members",
-        icon: "UsersIcon",
-        path: "/business/members",
-        roles: ["ADMIN"],
       },
     ],
   },
@@ -114,6 +93,42 @@ export const MENU_CONFIG: MenuItem[] = [
         roles: ["ADMIN", "TECH"],
       },
     ],
+  },
+  {
+    key: "organization",
+    labelKey: "nav.organization",
+    icon: "BuildingOffice2Icon",
+    roles: ["ADMIN"],
+    children: [
+      {
+        key: "kyb",
+        labelKey: "nav.organization.kyb",
+        icon: "ShieldCheckIcon",
+        path: "/organization/kyb",
+        roles: ["ADMIN"],
+      },
+      {
+        key: "onboarding",
+        labelKey: "nav.organization.onboarding",
+        icon: "DocumentTextIcon",
+        path: "/organization/onboarding",
+        roles: ["ADMIN"],
+      },
+      {
+        key: "members",
+        labelKey: "nav.organization.members",
+        icon: "UsersIcon",
+        path: "/organization/members",
+        roles: ["ADMIN"],
+      },
+    ],
+  },
+  {
+    key: "getting-started",
+    labelKey: "nav.gettingStarted",
+    icon: "RocketLaunchIcon",
+    path: "/getting-started",
+    roles: ["ADMIN", "BUSINESS", "TECH"],
   },
 ];
 

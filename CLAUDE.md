@@ -131,22 +131,24 @@ frontend/src/app/
 │   ├── register/page.tsx         # 注册
 │   ├── forgot-password/page.tsx  # 忘记密码
 │   └── verify-email/page.tsx     # 邮箱验证
-├── (portal)/                     # 主平台（含侧边栏布局）
-│   ├── layout.tsx                # 侧边栏 + 顶部栏 + 内容区
-│   ├── getting-started/page.tsx  # 快速开始
-│   ├── dashboard/page.tsx        # 仪表盘
-│   ├── kyb/page.tsx              # KYB 引导认证
-│   ├── business/                 # 业务管理
+├── (portal)/                     # 主平台（顶部栏 + 侧边栏 + 内容区）
+│   ├── layout.tsx                # 布局框架
+│   ├── dashboard/page.tsx        # 仪表盘（指标卡片）
+│   ├── transactions/             # 交易中心
+│   │   └── orders/page.tsx       # 订单管理
+│   ├── developer/                # 开发者工具
+│   │   ├── docs/page.tsx         # API 文档
+│   │   ├── credentials/page.tsx  # API 凭证
+│   │   ├── domains/page.tsx      # 域名白名单
+│   │   ├── webhooks/page.tsx     # Webhook 管理
+│   │   ├── signature/page.tsx    # 签名工具
+│   │   ├── logs/page.tsx         # API 请求日志
+│   │   └── mcp/page.tsx          # MCP 配置中心
+│   ├── organization/             # 组织管理
+│   │   ├── kyb/page.tsx          # KYB 认证
 │   │   ├── onboarding/page.tsx   # 入驻申请
 │   │   └── members/page.tsx      # 成员与权限
-│   └── developer/                # 开发者套件
-│       ├── docs/page.tsx         # API 文档
-│       ├── credentials/page.tsx  # API 凭证
-│       ├── domains/page.tsx      # 域名白名单
-│       ├── webhooks/page.tsx     # Webhook 管理
-│       ├── signature/page.tsx    # 签名工具
-│       ├── logs/page.tsx         # API 请求日志
-│       └── mcp/page.tsx          # MCP 配置中心
+│   └── getting-started/page.tsx  # 快速开始
 └── api/                          # Next.js API Routes（BFF 层，可选）
     └── guides/                   # 结构化快速开始指南 API
 ```

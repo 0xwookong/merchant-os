@@ -2,6 +2,14 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import DashboardPage from "./page";
 
+vi.mock("@/providers/language-provider", () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+    locale: "en",
+    setLocale: vi.fn(),
+  }),
+}));
+
 vi.mock("@/services/dashboardService", () => ({
   dashboardService: {
     getMetrics: vi.fn().mockResolvedValue({
@@ -19,16 +27,15 @@ vi.mock("@/services/dashboardService", () => ({
 describe("仪表盘页面", () => {
   afterEach(() => cleanup());
 
-  it("渲染页面标题'仪表盘'", async () => {
+  it("渲染页面标题", async () => {
     render(<DashboardPage />);
-    const headings = screen.getAllByRole("heading", { name: "仪表盘" });
-    expect(headings.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("dashboard.title")).toBeInTheDocument();
   });
 
-  it("渲染时间范围选择器（今日、近 7 天、近 30 天）", () => {
+  it("渲染时间范围选择器", () => {
     render(<DashboardPage />);
-    expect(screen.getAllByText("今日").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("近 7 天").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("近 30 天").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("dashboard.range.today")).toBeInTheDocument();
+    expect(screen.getByText("dashboard.range.7d")).toBeInTheDocument();
+    expect(screen.getByText("dashboard.range.30d")).toBeInTheDocument();
   });
 });

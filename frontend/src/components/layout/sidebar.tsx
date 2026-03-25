@@ -10,7 +10,6 @@ import { kybService } from "@/services/kybService";
 import {
   RocketLaunchIcon,
   ChartBarIcon,
-  BriefcaseIcon,
   DocumentTextIcon,
   UsersIcon,
   CodeBracketIcon,
@@ -22,6 +21,9 @@ import {
   ClipboardDocumentListIcon,
   CpuChipIcon,
   ShieldCheckIcon,
+  BanknotesIcon,
+  ShoppingCartIcon,
+  BuildingOffice2Icon,
   ChevronDownIcon,
   ChevronRightIcon,
   ChevronDoubleLeftIcon,
@@ -31,7 +33,6 @@ import {
 const ICON_MAP: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   RocketLaunchIcon,
   ChartBarIcon,
-  BriefcaseIcon,
   DocumentTextIcon,
   UsersIcon,
   CodeBracketIcon,
@@ -43,6 +44,9 @@ const ICON_MAP: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>
   ClipboardDocumentListIcon,
   CpuChipIcon,
   ShieldCheckIcon,
+  BanknotesIcon,
+  ShoppingCartIcon,
+  BuildingOffice2Icon,
 };
 
 const EXPANDED_WIDTH = 265;
@@ -126,7 +130,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Collapse/Expand toggle at bottom */}
+      {/* Collapse/Expand toggle */}
       <div className={`border-t border-[var(--gray-200)] py-3 ${collapsed ? "px-2 flex justify-center" : "px-4"}`}>
         <button
           onClick={toggleCollapse}

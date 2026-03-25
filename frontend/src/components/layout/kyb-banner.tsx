@@ -19,7 +19,7 @@ export default function KybBanner() {
   }, []);
 
   // Don't show on KYB page itself, or if status is approved/pending/loading
-  if (!kybStatus || kybStatus === "APPROVED" || kybStatus === "PENDING" || pathname === "/kyb") {
+  if (!kybStatus || kybStatus === "APPROVED" || kybStatus === "PENDING" || pathname === "/organization/kyb") {
     return null;
   }
 
@@ -36,7 +36,7 @@ export default function KybBanner() {
         {MESSAGE_MAP[kybStatus] || ""}
       </p>
       <Link
-        href="/kyb"
+        href="/organization/kyb"
         className="text-sm font-medium text-amber-800 hover:text-amber-900 underline flex-shrink-0"
       >
         {kybStatus === "NOT_STARTED" ? t("nav.kybBanner.goVerify") : t("nav.kybBanner.goHandle")}
