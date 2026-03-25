@@ -111,6 +111,8 @@ export default function ApplicationPage() {
       if (blank(form.addressLine1)) return t("app.field.addressLine1") + t("app.validate.required");
       if (blank(form.city)) return t("app.field.city") + t("app.validate.required");
       if (blank(form.country)) return t("app.field.country") + t("app.validate.required");
+      if (blank(form.contactName)) return t("app.field.contactName") + t("app.validate.required");
+      if (blank(form.contactEmail)) return t("app.field.contactEmail") + t("app.validate.required");
     }
     if (step === 2) {
       if (!noUboDecl && ubos.length === 0) return t("app.validate.uboRequired");

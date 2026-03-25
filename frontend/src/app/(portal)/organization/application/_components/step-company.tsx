@@ -93,9 +93,9 @@ export default function StepCompany({ form, update }: Props) {
       <section className="space-y-4">
         <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.section.contact")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={t("app.field.contactName")} value={form.contactName || ""} onChange={(v) => update("contactName", v)} placeholder={t("app.ph.contactName")} />
+          <Field label={t("app.field.contactName")} value={form.contactName || ""} onChange={(v) => update("contactName", v)} required placeholder={t("app.ph.contactName")} />
           <Field label={t("app.field.contactTitle")} value={form.contactTitle || ""} onChange={(v) => update("contactTitle", v)} placeholder={t("app.ph.contactTitle")} />
-          <Field label={t("app.field.contactEmail")} value={form.contactEmail || ""} onChange={(v) => update("contactEmail", v)} type="email" placeholder={t("app.ph.contactEmail")} />
+          <Field label={t("app.field.contactEmail")} value={form.contactEmail || ""} onChange={(v) => update("contactEmail", v)} required type="email" placeholder={t("app.ph.contactEmail")} />
           <PhoneField label={t("app.field.contactPhone")} value={form.contactPhone || ""} onChange={(v) => update("contactPhone", v)} />
         </div>
       </section>

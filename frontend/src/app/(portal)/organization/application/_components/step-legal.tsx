@@ -31,8 +31,6 @@ export default function StepLegal({
   onDirectorsChange, onAuthorizedPersonsChange,
 }: Props) {
   const { t } = useI18n();
-  const rep = legalRep || EMPTY_PERSON;
-
   const COUNTRIES = [
     { value: "CN", label: t("app.country.CN") },
     { value: "HK", label: t("app.country.HK") },
@@ -76,12 +74,7 @@ export default function StepLegal({
           <>
             {ubos.map((ubo, idx) => (
               <PersonCard key={idx} title={`${t("app.ubo.title")} #${idx + 1}`}
-                onRemove={ubos.length > 1 ? () => onUbosChange(ubos.filter((_, i) => i !== idx)) : undefined}
-                extra={!ubo.isLegalRep && (
-                  <button type="button" onClick={() => {
-                    const next = [...ubos]; next[idx] = { ...next[idx], ...rep, isLegalRep: true }; onUbosChange(next);
-                  }} className="text-xs text-blue-600 hover:underline">{t("app.ubo.fillFromRep")}</button>
-                )}>
+                onRemove={ubos.length > 1 ? () => onUbosChange(ubos.filter((_, i) => i !== idx)) : undefined}>
                 <PersonFields person={ubo} onChange={(f, v) => { const n = [...ubos]; n[idx] = { ...n[idx], [f]: v }; onUbosChange(n); }} countries={COUNTRIES} t={t} />
                 <Field label={t("app.field.residentialAddress")} value={ubo.residentialAddress} onChange={(v) => { const n = [...ubos]; n[idx] = { ...n[idx], residentialAddress: v }; onUbosChange(n); }} required
                   hint={t("app.hint.residentialAddress")} />
