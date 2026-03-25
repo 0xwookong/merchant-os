@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/providers/language-provider";
 import { getEnvironment } from "@/lib/environment";
 import { applicationService } from "@/services/applicationService";
-import type { ApplicationSaveDraftRequest, ApplicationResponse, LegalRepInfo, UboInfo } from "@/services/applicationService";
+import type { ApplicationSaveDraftRequest, ApplicationResponse, PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo, LicenceInfo } from "@/services/applicationService";
 import StepCompany from "./_components/step-company";
 import StepLegal from "./_components/step-legal";
 import StepBusiness from "./_components/step-business";
@@ -13,14 +13,16 @@ import StepConfirm from "./_components/step-confirm";
 import { InfoRow } from "./_components/form-fields";
 import { CheckIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
+const EMPTY_PERSON: PersonInfo = { name: "", nationality: "", idTypeNumber: "", placeOfBirth: "", dateOfBirth: "" };
+const EMPTY_UBO: UboInfo = { ...EMPTY_PERSON, residentialAddress: "", sharePercentage: 25 };
+const EMPTY_AUTH: AuthorizedPersonInfo = { ...EMPTY_PERSON, phone: "", email: "" };
+
 export default function ApplicationPage() {
   const { t } = useI18n();
   const isSandbox = getEnvironment() === "sandbox";
-  // Production: 5 steps (1-company, 2-legal, 3-business, 4-docs, 5-confirm)
-  // Sandbox: 4 steps (1-company, 2-legal, 3-business, 4-confirm, skip docs)
   const totalSteps = isSandbox ? 4 : 5;
   const confirmStep = totalSteps;
-  const docsStep = isSandbox ? -1 : 4; // -1 = skip
+  const docsStep = isSandbox ? -1 : 4;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,10 +34,13 @@ export default function ApplicationPage() {
 
   // Form state
   const [form, setForm] = useState<ApplicationSaveDraftRequest>({ currentStep: 1 });
-  const [legalRep, setLegalRep] = useState<LegalRepInfo | undefined>();
-  const [ubos, setUbos] = useState<UboInfo[]>([{ name: "", nationality: "", idType: "", idNumber: "", dateOfBirth: "", sharePercentage: 25 }]);
+  const [legalRep, setLegalRep] = useState<PersonInfo | undefined>();
+  const [ubos, setUbos] = useState<UboInfo[]>([{ ...EMPTY_UBO }]);
   const [noUboDecl, setNoUboDecl] = useState(false);
   const [controlDesc, setControlDesc] = useState("");
+  const [directors, setDirectors] = useState<DirectorInfo[]>([{ ...EMPTY_PERSON }]);
+  const [authorizedPersons, setAuthorizedPersons] = useState<AuthorizedPersonInfo[]>([{ ...EMPTY_AUTH }]);
+  const [licenceInfo, setLicenceInfo] = useState<LicenceInfo | undefined>();
   const [declarations, setDeclarations] = useState({ info: false, sanctions: false, terms: false });
 
   useEffect(() => { loadCurrent(); }, []);
@@ -46,35 +51,40 @@ export default function ApplicationPage() {
       if (data) {
         setAppData(data);
         setAppStatus(data.status);
-        const savedStep = data.currentStep || 1;
-        setStep(Math.min(savedStep, totalSteps));
+        setStep(Math.min(data.currentStep || 1, totalSteps));
         populateForm(data);
       }
-    } catch { /* fresh start */ }
+    } catch { /* fresh */ }
     finally { setLoading(false); }
   }
 
-  function populateForm(data: ApplicationResponse) {
+  function populateForm(d: ApplicationResponse) {
     setForm({
-      currentStep: data.currentStep,
-      companyName: data.companyName || undefined, companyNameEn: data.companyNameEn || undefined,
-      regCountry: data.regCountry || undefined, regNumber: data.regNumber || undefined,
-      businessLicenseNo: data.businessLicenseNo || undefined, companyType: data.companyType || undefined,
-      incorporationDate: data.incorporationDate || undefined,
-      addressLine1: data.addressLine1 || undefined, addressLine2: data.addressLine2 || undefined,
-      city: data.city || undefined, stateProvince: data.stateProvince || undefined,
-      postalCode: data.postalCode || undefined, country: data.country || undefined,
-      contactName: data.contactName || undefined, contactTitle: data.contactTitle || undefined,
-      contactEmail: data.contactEmail || undefined, contactPhone: data.contactPhone || undefined,
-      businessType: data.businessType || undefined, website: data.website || undefined,
-      monthlyVolume: data.monthlyVolume || undefined, monthlyTxCount: data.monthlyTxCount || undefined,
-      supportedFiat: data.supportedFiat || undefined, supportedCrypto: data.supportedCrypto || undefined,
-      useCases: data.useCases || undefined, businessDesc: data.businessDesc || undefined,
+      currentStep: d.currentStep, counterpartyType: d.counterpartyType || undefined,
+      companyName: d.companyName || undefined, companyNameEn: d.companyNameEn || undefined,
+      regCountry: d.regCountry || undefined, regNumber: d.regNumber || undefined,
+      taxIdNumber: d.taxIdNumber || undefined, businessLicenseNo: d.businessLicenseNo || undefined,
+      companyType: d.companyType || undefined, incorporationDate: d.incorporationDate || undefined,
+      addressLine1: d.addressLine1 || undefined, addressLine2: d.addressLine2 || undefined,
+      city: d.city || undefined, stateProvince: d.stateProvince || undefined,
+      postalCode: d.postalCode || undefined, country: d.country || undefined,
+      contactName: d.contactName || undefined, contactTitle: d.contactTitle || undefined,
+      contactEmail: d.contactEmail || undefined, contactPhone: d.contactPhone || undefined,
+      businessType: d.businessType || undefined, website: d.website || undefined,
+      purposeOfAccount: d.purposeOfAccount || undefined, sourceOfIncome: d.sourceOfIncome || undefined,
+      estAmountPerTxFrom: d.estAmountPerTxFrom || undefined, estAmountPerTxTo: d.estAmountPerTxTo || undefined,
+      estTxPerYear: d.estTxPerYear || undefined, monthlyVolume: d.monthlyVolume || undefined,
+      monthlyTxCount: d.monthlyTxCount || undefined, supportedFiat: d.supportedFiat || undefined,
+      supportedCrypto: d.supportedCrypto || undefined, useCases: d.useCases || undefined,
+      businessDesc: d.businessDesc || undefined,
     });
-    if (data.legalRep) setLegalRep(data.legalRep);
-    if (data.ubos && data.ubos.length > 0) setUbos(data.ubos);
-    setNoUboDecl(data.noUboDeclaration || false);
-    setControlDesc(data.controlStructureDesc || "");
+    if (d.legalRep) setLegalRep(d.legalRep);
+    if (d.ubos && d.ubos.length > 0) setUbos(d.ubos);
+    if (d.directors && d.directors.length > 0) setDirectors(d.directors);
+    if (d.authorizedPersons && d.authorizedPersons.length > 0) setAuthorizedPersons(d.authorizedPersons);
+    if (d.licenceInfo) setLicenceInfo(d.licenceInfo);
+    setNoUboDecl(d.noUboDeclaration || false);
+    setControlDesc(d.controlStructureDesc || "");
   }
 
   function updateField(field: string, value: string) {
@@ -84,68 +94,46 @@ export default function ApplicationPage() {
 
   function validateCurrentStep(): string | null {
     const blank = (v: string | undefined) => !v || v.trim() === "";
-
     if (step === 1) {
+      if (blank(form.counterpartyType)) return t("app.field.counterpartyType") + t("app.validate.required");
       if (blank(form.companyName)) return t("app.field.companyName") + t("app.validate.required");
       if (blank(form.regCountry)) return t("app.field.regCountry") + t("app.validate.required");
       if (blank(form.regNumber)) return t("app.field.regNumber") + t("app.validate.required");
+      if (blank(form.taxIdNumber)) return t("app.field.taxIdNumber") + t("app.validate.required");
       if (blank(form.companyType)) return t("app.field.companyType") + t("app.validate.required");
       if (blank(form.incorporationDate)) return t("app.field.incorporationDate") + t("app.validate.required");
       if (blank(form.addressLine1)) return t("app.field.addressLine1") + t("app.validate.required");
       if (blank(form.city)) return t("app.field.city") + t("app.validate.required");
-      if (blank(form.postalCode)) return t("app.field.postalCode") + t("app.validate.required");
       if (blank(form.country)) return t("app.field.country") + t("app.validate.required");
-      if (blank(form.contactName)) return t("app.field.contactName") + t("app.validate.required");
-      if (blank(form.contactTitle)) return t("app.field.contactTitle") + t("app.validate.required");
-      if (blank(form.contactEmail)) return t("app.field.contactEmail") + t("app.validate.required");
-      if (blank(form.contactPhone)) return t("app.field.contactPhone") + t("app.validate.required");
     }
-
     if (step === 2) {
-      if (!legalRep || blank(legalRep.name)) return t("app.field.legalRepName") + t("app.validate.required");
-      if (blank(legalRep?.nationality)) return t("app.field.nationality") + t("app.validate.required");
-      if (blank(legalRep?.idType)) return t("app.field.idType") + t("app.validate.required");
-      if (blank(legalRep?.idNumber)) return t("app.field.idNumber") + t("app.validate.required");
-      if (blank(legalRep?.dateOfBirth)) return t("app.field.dateOfBirth") + t("app.validate.required");
-      if (!noUboDecl) {
-        if (ubos.length === 0) return t("app.validate.uboRequired");
-        for (let i = 0; i < ubos.length; i++) {
-          if (blank(ubos[i].name)) return `UBO #${i + 1} — ${t("app.field.legalRepName")}${t("app.validate.required")}`;
-          if (!ubos[i].sharePercentage || ubos[i].sharePercentage <= 0) return `UBO #${i + 1} — ${t("app.field.sharePercentage")}${t("app.validate.required")}`;
-        }
-      } else if (blank(controlDesc)) {
-        return t("app.field.controlStructure") + t("app.validate.required");
-      }
+      if (!noUboDecl && ubos.length === 0) return t("app.validate.uboRequired");
+      if (noUboDecl && blank(controlDesc)) return t("app.field.controlStructure") + t("app.validate.required");
+      if (directors.length === 0 || blank(directors[0]?.name)) return t("app.section.directors") + t("app.validate.required");
+      if (authorizedPersons.length === 0 || blank(authorizedPersons[0]?.name)) return t("app.section.authorizedPersons") + t("app.validate.required");
     }
-
     if (step === 3) {
       if (blank(form.businessType)) return t("app.field.businessType") + t("app.validate.required");
-      if (blank(form.monthlyVolume)) return t("app.field.monthlyVolume") + t("app.validate.required");
-      if (blank(form.monthlyTxCount)) return t("app.field.monthlyTxCount") + t("app.validate.required");
+      if (blank(form.businessDesc)) return t("app.field.businessDesc") + t("app.validate.required");
+      if (blank(form.purposeOfAccount)) return t("app.field.purposeOfAccount") + t("app.validate.required");
+      if (blank(form.sourceOfIncome)) return t("app.field.sourceOfIncome") + t("app.validate.required");
       if (blank(form.supportedFiat)) return t("app.field.supportedFiat") + t("app.validate.required");
       if (blank(form.supportedCrypto)) return t("app.field.supportedCrypto") + t("app.validate.required");
-      if (blank(form.useCases)) return t("app.field.useCases") + t("app.validate.required");
-      if (blank(form.businessDesc)) return t("app.field.businessDesc") + t("app.validate.required");
     }
-
     return null;
   }
 
   async function saveDraft(nextStep: number) {
-    // Validate current step before saving
     const validationError = validateCurrentStep();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+    if (validationError) { setError(validationError); return; }
 
-    setSaving(true);
-    setError("");
+    setSaving(true); setError("");
     try {
       const payload: ApplicationSaveDraftRequest = {
         ...form, currentStep: nextStep,
         legalRep, ubos: noUboDecl ? undefined : ubos,
         noUboDeclaration: noUboDecl, controlStructureDesc: noUboDecl ? controlDesc : undefined,
+        directors, authorizedPersons, licenceInfo,
       };
       const result = await applicationService.saveDraft(payload);
       setAppData(result);
@@ -156,14 +144,11 @@ export default function ApplicationPage() {
   }
 
   async function handleSubmit() {
-    setSubmitting(true);
-    setError("");
+    setSubmitting(true); setError("");
     try {
       const isResubmit = appStatus === "REJECTED" || appStatus === "NEED_MORE_INFO";
       const req = { infoAccuracyConfirmed: declarations.info, sanctionsDeclared: declarations.sanctions, termsAccepted: declarations.terms };
-      const result = isResubmit
-        ? await applicationService.resubmit(req)
-        : await applicationService.submit(req);
+      const result = isResubmit ? await applicationService.resubmit(req) : await applicationService.submit(req);
       setAppData(result);
       setAppStatus(result.status);
     } catch (e: unknown) {
@@ -173,20 +158,16 @@ export default function ApplicationPage() {
 
   const isEditable = !appStatus || appStatus === "DRAFT" || appStatus === "REJECTED" || appStatus === "NEED_MORE_INFO";
   const allDeclared = declarations.info && declarations.sanctions && declarations.terms;
+  const isVaspCasp = form.counterpartyType === "CASP" || form.counterpartyType === "VASP";
 
   const STEP_LABELS = isSandbox
     ? [t("app.step.company"), t("app.step.legal"), t("app.step.business"), t("app.step.confirm")]
     : [t("app.step.company"), t("app.step.legal"), t("app.step.business"), t("app.step.documents"), t("app.step.confirm")];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin h-8 w-8 border-2 border-[var(--gray-300)] border-t-[var(--primary-black)] rounded-full" />
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin h-8 w-8 border-2 border-[var(--gray-300)] border-t-[var(--primary-black)] rounded-full" /></div>;
   }
 
-  // Non-editable submitted view
   if (appStatus && !isEditable) {
     return (
       <div className="max-w-3xl space-y-8">
@@ -200,7 +181,6 @@ export default function ApplicationPage() {
     <div className="max-w-3xl space-y-8">
       <PageHeader t={t} status={appStatus} />
 
-      {/* Reject banner */}
       {appStatus === "REJECTED" && appData?.rejectReason && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
           <ExclamationTriangleIcon className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
@@ -241,26 +221,24 @@ export default function ApplicationPage() {
         ))}
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{error}</div>
-      )}
+      {error && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{error}</div>}
 
-      {/* Form card */}
       <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-8">
         {step === 1 && <StepCompany form={form} update={updateField} />}
         {step === 2 && (
           <StepLegal legalRep={legalRep} ubos={ubos} noUboDeclaration={noUboDecl} controlStructureDesc={controlDesc}
-            onLegalRepChange={setLegalRep} onUbosChange={setUbos} onNoUboDeclChange={setNoUboDecl} onControlDescChange={setControlDesc} />
+            directors={directors} authorizedPersons={authorizedPersons}
+            onLegalRepChange={setLegalRep} onUbosChange={setUbos} onNoUboDeclChange={setNoUboDecl} onControlDescChange={setControlDesc}
+            onDirectorsChange={setDirectors} onAuthorizedPersonsChange={setAuthorizedPersons} />
         )}
-        {step === 3 && <StepBusiness form={form} update={updateField} />}
-        {step === docsStep && <StepDocuments ubos={noUboDecl ? [] : ubos} />}
+        {step === 3 && <StepBusiness form={form} update={updateField} licenceInfo={licenceInfo} onLicenceInfoChange={setLicenceInfo} />}
+        {step === docsStep && <StepDocuments ubos={noUboDecl ? [] : ubos} isVaspCasp={isVaspCasp} />}
         {step === confirmStep && (
           <StepConfirm form={form} legalRep={legalRep} ubos={ubos} noUboDeclaration={noUboDecl}
             controlStructureDesc={controlDesc} declarations={declarations} onDeclarationsChange={setDeclarations}
             onEditStep={(s) => setStep(s)} />
         )}
 
-        {/* Navigation */}
         <div className="flex justify-between items-center mt-8 pt-6 border-t border-[var(--gray-100)]">
           {step > 1 ? (
             <button type="button" onClick={() => setStep(step - 1)} className="text-sm font-medium text-[var(--gray-700)] hover:text-[var(--gray-900)] transition-colors">
@@ -285,80 +263,60 @@ export default function ApplicationPage() {
   );
 }
 
-// --- Sub-components ---
-
 function PageHeader({ t, status }: { t: (k: string) => string; status: string | null }) {
+  const styles: Record<string, string> = {
+    DRAFT: "bg-[var(--gray-100)] text-[var(--gray-700)]", SUBMITTED: "bg-blue-50 text-blue-700 border-blue-200",
+    UNDER_REVIEW: "bg-amber-50 text-amber-700 border-amber-200", APPROVED: "bg-green-50 text-green-700 border-green-200",
+    REJECTED: "bg-red-50 text-red-700 border-red-200", NEED_MORE_INFO: "bg-orange-50 text-orange-700 border-orange-200",
+  };
   return (
     <div className="flex items-center justify-between">
       <div>
         <h1 className="text-2xl font-semibold text-[var(--gray-900)]">{t("app.title")}</h1>
         <p className="text-sm text-[var(--gray-500)] mt-1">{t("app.subtitle")}</p>
       </div>
-      {status && <StatusBadge status={status} t={t} />}
+      {status && <span className={`px-3 py-1 rounded-full text-xs font-medium border ${styles[status] || styles.DRAFT}`}>{t(`app.status.${status}`)}</span>}
     </div>
-  );
-}
-
-function StatusBadge({ status, t }: { status: string; t: (k: string) => string }) {
-  const styles: Record<string, string> = {
-    DRAFT: "bg-[var(--gray-100)] text-[var(--gray-700)]",
-    SUBMITTED: "bg-blue-50 text-blue-700 border-blue-200",
-    UNDER_REVIEW: "bg-amber-50 text-amber-700 border-amber-200",
-    APPROVED: "bg-green-50 text-green-700 border-green-200",
-    REJECTED: "bg-red-50 text-red-700 border-red-200",
-    NEED_MORE_INFO: "bg-orange-50 text-orange-700 border-orange-200",
-  };
-  return (
-    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${styles[status] || styles.DRAFT}`}>
-      {t(`app.status.${status}`)}
-    </span>
   );
 }
 
 function SubmittedView({ data, t }: { data: ApplicationResponse; t: (k: string) => string }) {
   return (
     <div className="space-y-6">
-      {/* Timeline */}
       <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-6 space-y-4">
         <h2 className="text-lg font-semibold text-[var(--gray-900)]">{t("app.timeline.title")}</h2>
         <div className="space-y-3">
-          <TimelineItem done label={t("app.timeline.submitted")} date={data.submittedAt} />
-          <TimelineItem active={data.status === "SUBMITTED" || data.status === "UNDER_REVIEW"} done={data.status === "APPROVED"} label={t("app.timeline.reviewing")} />
-          <TimelineItem done={data.status === "APPROVED"} label={data.status === "APPROVED" ? t("app.timeline.approved") : t("app.timeline.result")} />
+          <TL done label={t("app.timeline.submitted")} date={data.submittedAt} />
+          <TL active={data.status === "SUBMITTED" || data.status === "UNDER_REVIEW"} done={data.status === "APPROVED"} label={t("app.timeline.reviewing")} />
+          <TL done={data.status === "APPROVED"} label={data.status === "APPROVED" ? t("app.timeline.approved") : t("app.timeline.result")} />
         </div>
-
-        {/* Sandbox hint */}
-        {data.status === "SUBMITTED" || data.status === "UNDER_REVIEW" ? (
+        {(data.status === "SUBMITTED" || data.status === "UNDER_REVIEW") && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
             <p className="text-sm text-blue-700">{t("app.timeline.hint")}</p>
           </div>
-        ) : null}
+        )}
       </div>
-
-      {/* Info preview */}
       <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-6 space-y-6">
         <h2 className="text-lg font-semibold text-[var(--gray-900)]">{t("app.submittedInfo")}</h2>
         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
           <InfoRow label={t("app.field.companyName")} value={data.companyName} />
           <InfoRow label={t("app.field.regCountry")} value={data.regCountry} />
           <InfoRow label={t("app.field.regNumber")} value={data.regNumber} />
+          <InfoRow label={t("app.field.taxIdNumber")} value={data.taxIdNumber} />
           <InfoRow label={t("app.field.companyType")} value={data.companyType} />
+          <InfoRow label={t("app.field.businessType")} value={data.businessType} />
           <InfoRow label={t("app.field.contactName")} value={data.contactName} />
           <InfoRow label={t("app.field.contactEmail")} value={data.contactEmail} />
-          <InfoRow label={t("app.field.businessType")} value={data.businessType} />
-          <InfoRow label={t("app.field.monthlyVolume")} value={data.monthlyVolume} />
         </div>
       </div>
     </div>
   );
 }
 
-function TimelineItem({ done, active, label, date }: { done?: boolean; active?: boolean; label: string; date?: string | null }) {
+function TL({ done, active, label, date }: { done?: boolean; active?: boolean; label: string; date?: string | null }) {
   return (
     <div className="flex items-center gap-3">
-      <div className={`w-3 h-3 rounded-full shrink-0 ${
-        done ? "bg-green-500" : active ? "bg-amber-400 animate-pulse" : "bg-[var(--gray-200)]"
-      }`} />
+      <div className={`w-3 h-3 rounded-full shrink-0 ${done ? "bg-green-500" : active ? "bg-amber-400 animate-pulse" : "bg-[var(--gray-200)]"}`} />
       <span className={`text-sm ${done || active ? "text-[var(--gray-900)]" : "text-[var(--gray-400)]"}`}>{label}</span>
       {date && <span className="text-xs text-[var(--gray-400)] ml-auto">{date.slice(0, 10)}</span>}
     </div>

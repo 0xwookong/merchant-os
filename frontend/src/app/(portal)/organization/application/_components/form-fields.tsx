@@ -1,5 +1,26 @@
 "use client";
 
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
+
+// Shared label component with optional help hint
+function Label({ label, required, hint }: { label: string; required?: boolean; hint?: string }) {
+  return (
+    <div className="flex items-start gap-1.5">
+      <span className="text-sm font-medium text-[var(--gray-700)]">
+        {label} {required && <span className="text-[var(--error)]">*</span>}
+      </span>
+      {hint && (
+        <span className="group relative">
+          <InformationCircleIcon className="h-4 w-4 text-[var(--gray-400)] hover:text-[var(--gray-600)] cursor-help shrink-0 mt-0.5" />
+          <span className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 top-6 z-10 w-64 p-2.5 text-xs text-[var(--gray-700)] bg-white border border-[var(--gray-200)] rounded-lg shadow-lg leading-relaxed">
+            {hint}
+          </span>
+        </span>
+      )}
+    </div>
+  );
+}
+
 interface FieldProps {
   label: string;
   value: string;
@@ -7,14 +28,13 @@ interface FieldProps {
   placeholder?: string;
   required?: boolean;
   type?: string;
+  hint?: string;
 }
 
-export function Field({ label, value, onChange, placeholder, required, type = "text" }: FieldProps) {
+export function Field({ label, value, onChange, placeholder, required, type = "text", hint }: FieldProps) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-[var(--gray-700)]">
-        {label} {required && <span className="text-[var(--error)]">*</span>}
-      </span>
+      <Label label={label} required={required} hint={hint} />
       <input
         type={type}
         value={value || ""}
@@ -33,14 +53,13 @@ interface SelectProps {
   options: { value: string; label: string }[];
   placeholder?: string;
   required?: boolean;
+  hint?: string;
 }
 
-export function Select({ label, value, onChange, options, placeholder, required }: SelectProps) {
+export function Select({ label, value, onChange, options, placeholder, required, hint }: SelectProps) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-[var(--gray-700)]">
-        {label} {required && <span className="text-[var(--error)]">*</span>}
-      </span>
+      <Label label={label} required={required} hint={hint} />
       <div className="relative mt-1">
         <select
           value={value || ""}
@@ -66,9 +85,10 @@ interface CheckboxGroupProps {
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
   required?: boolean;
+  hint?: string;
 }
 
-export function CheckboxGroup({ label, value, onChange, options, required }: CheckboxGroupProps) {
+export function CheckboxGroup({ label, value, onChange, options, required, hint }: CheckboxGroupProps) {
   const selected = new Set((value || "").split(",").filter(Boolean));
   const toggle = (v: string) => {
     const next = new Set(selected);
@@ -77,9 +97,7 @@ export function CheckboxGroup({ label, value, onChange, options, required }: Che
   };
   return (
     <div>
-      <span className="text-sm font-medium text-[var(--gray-700)]">
-        {label} {required && <span className="text-[var(--error)]">*</span>}
-      </span>
+      <Label label={label} required={required} hint={hint} />
       <div className="mt-2 flex flex-wrap gap-2">
         {options.map((o) => (
           <button
@@ -107,14 +125,13 @@ interface TextAreaProps {
   placeholder?: string;
   required?: boolean;
   rows?: number;
+  hint?: string;
 }
 
-export function TextArea({ label, value, onChange, placeholder, required, rows = 4 }: TextAreaProps) {
+export function TextArea({ label, value, onChange, placeholder, required, rows = 4, hint }: TextAreaProps) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-[var(--gray-700)]">
-        {label} {required && <span className="text-[var(--error)]">*</span>}
-      </span>
+      <Label label={label} required={required} hint={hint} />
       <textarea
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
@@ -140,6 +157,7 @@ interface PhoneFieldProps {
   value: string;
   onChange: (v: string) => void;
   required?: boolean;
+  hint?: string;
 }
 
 const COUNTRY_CODES = [
@@ -151,15 +169,13 @@ const COUNTRY_CODES = [
   { code: "+81", label: "+81 (JP)" },
 ];
 
-export function PhoneField({ label, value, onChange, required }: PhoneFieldProps) {
+export function PhoneField({ label, value, onChange, required, hint }: PhoneFieldProps) {
   const parts = (value || "").split("-");
   const code = parts.length > 1 ? parts[0] : "+852";
   const number = parts.length > 1 ? parts.slice(1).join("-") : parts[0] || "";
   return (
     <label className="block">
-      <span className="text-sm font-medium text-[var(--gray-700)]">
-        {label} {required && <span className="text-[var(--error)]">*</span>}
-      </span>
+      <Label label={label} required={required} hint={hint} />
       <div className="mt-1 flex gap-2">
         <div className="relative">
           <select

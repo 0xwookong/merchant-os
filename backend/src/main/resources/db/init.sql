@@ -262,13 +262,15 @@ CREATE TABLE IF NOT EXISTS t_merchant_application (
 
     -- Status management
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT 'DRAFT/SUBMITTED/UNDER_REVIEW/APPROVED/REJECTED/NEED_MORE_INFO',
+    counterparty_type VARCHAR(50) COMMENT 'MICAR_LICENSED/CASP/VASP/REFERRAL',
     current_step INT NOT NULL DEFAULT 1,
 
-    -- Step 1: Company info
+    -- Section A: Company info
     company_name VARCHAR(200),
     company_name_en VARCHAR(200),
     reg_country VARCHAR(100),
     reg_number VARCHAR(100),
+    tax_id_number VARCHAR(100) COMMENT 'Tax ID / VAT number',
     business_license_no VARCHAR(100),
     company_type VARCHAR(50),
     incorporation_date DATE,
@@ -283,16 +285,25 @@ CREATE TABLE IF NOT EXISTS t_merchant_application (
     contact_email VARCHAR(200),
     contact_phone VARCHAR(50),
 
-    -- Step 2: Legal representative (JSON object)
-    legal_rep JSON COMMENT '{ name, nationality, idType, idNumber, dateOfBirth }',
-    -- Step 2: UBOs (JSON array)
-    ubos JSON COMMENT '[{ name, nationality, idType, idNumber, dateOfBirth, sharePercentage, isLegalRep }]',
+    -- Section A: Legal representative (JSON object)
+    legal_rep JSON COMMENT '{ name, nationality, idTypeNumber, placeOfBirth, dateOfBirth }',
+    -- Section A: UBOs (JSON array)
+    ubos JSON COMMENT '[{ name, nationality, idTypeNumber, placeOfBirth, dateOfBirth, residentialAddress, sharePercentage, isLegalRep }]',
     no_ubo_declaration TINYINT(1) NOT NULL DEFAULT 0,
     control_structure_desc TEXT,
+    -- Section A: Directors (JSON array)
+    directors JSON COMMENT '[{ name, idTypeNumber, placeOfBirth, dateOfBirth, nationality }]',
+    -- Section A: Authorized Persons (JSON array)
+    authorized_persons JSON COMMENT '[{ name, idTypeNumber, placeOfBirth, dateOfBirth, nationality, phone, email }]',
 
-    -- Step 3: Business info
+    -- Section B: Business info
     business_type VARCHAR(50),
     website VARCHAR(300),
+    purpose_of_account VARCHAR(500) COMMENT 'Purpose of account opening',
+    source_of_income VARCHAR(500) COMMENT 'Source of income/revenue',
+    est_amount_per_tx_from VARCHAR(50) COMMENT 'Estimated amount per tx - lower bound (EUR)',
+    est_amount_per_tx_to VARCHAR(50) COMMENT 'Estimated amount per tx - upper bound (EUR)',
+    est_tx_per_year VARCHAR(50) COMMENT 'Estimated number of transactions per year',
     monthly_volume VARCHAR(50),
     monthly_tx_count VARCHAR(50),
     supported_fiat VARCHAR(500),
@@ -300,7 +311,10 @@ CREATE TABLE IF NOT EXISTS t_merchant_application (
     use_cases VARCHAR(500),
     business_desc TEXT,
 
-    -- Step 5: Compliance declarations
+    -- Section C: Licence info (JSON)
+    licence_info JSON COMMENT '{regulated, jurisdiction, regulatorName, licenceType, licenceNumber, licenceDate, lastAuditDate}',
+
+    -- Compliance declarations
     info_accuracy_confirmed TINYINT(1) NOT NULL DEFAULT 0,
     sanctions_declared TINYINT(1) NOT NULL DEFAULT 0,
     terms_accepted TINYINT(1) NOT NULL DEFAULT 0,

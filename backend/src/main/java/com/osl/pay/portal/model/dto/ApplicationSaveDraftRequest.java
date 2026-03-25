@@ -11,11 +11,15 @@ public class ApplicationSaveDraftRequest {
 
     private Integer currentStep;
 
-    // Step 1: Company info
+    // Counterparty type
+    @Size(max = 50) private String counterpartyType;
+
+    // Section A: Company info
     @Size(max = 200) private String companyName;
     @Size(max = 200) private String companyNameEn;
     @Size(max = 100) private String regCountry;
     @Size(max = 100) private String regNumber;
+    @Size(max = 100) private String taxIdNumber;
     @Size(max = 100) private String businessLicenseNo;
     @Size(max = 50) private String companyType;
     private String incorporationDate; // YYYY-MM-DD
@@ -30,19 +34,29 @@ public class ApplicationSaveDraftRequest {
     @Size(max = 200) private String contactEmail;
     @Size(max = 50) private String contactPhone;
 
-    // Step 2: Legal rep + UBOs
+    // Section A: Legal rep + UBOs + Directors + Authorized Persons
     private Map<String, Object> legalRep;
     private List<Map<String, Object>> ubos;
     private Boolean noUboDeclaration;
     @Size(max = 2000) private String controlStructureDesc;
+    private List<Map<String, Object>> directors;
+    private List<Map<String, Object>> authorizedPersons;
 
-    // Step 3: Business info
+    // Section B: Business info
     @Size(max = 50) private String businessType;
     @Size(max = 300) private String website;
+    @Size(max = 500) private String purposeOfAccount;
+    @Size(max = 500) private String sourceOfIncome;
+    @Size(max = 50) private String estAmountPerTxFrom;
+    @Size(max = 50) private String estAmountPerTxTo;
+    @Size(max = 50) private String estTxPerYear;
     @Size(max = 50) private String monthlyVolume;
     @Size(max = 50) private String monthlyTxCount;
     @Size(max = 500) private String supportedFiat;
     @Size(max = 500) private String supportedCrypto;
     @Size(max = 500) private String useCases;
     @Size(max = 2000) private String businessDesc;
+
+    // Section C: Licence info
+    private Map<String, Object> licenceInfo;
 }

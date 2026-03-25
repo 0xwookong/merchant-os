@@ -12,13 +12,15 @@ public class ApplicationResponse {
 
     private Long id;
     private String status;
+    private String counterpartyType;
     private Integer currentStep;
 
-    // Step 1: Company info
+    // Section A: Company info
     private String companyName;
     private String companyNameEn;
     private String regCountry;
     private String regNumber;
+    private String taxIdNumber;
     private String businessLicenseNo;
     private String companyType;
     private LocalDate incorporationDate;
@@ -33,15 +35,22 @@ public class ApplicationResponse {
     private String contactEmail;
     private String contactPhone;
 
-    // Step 2: Legal rep + UBOs
+    // Section A: Legal rep + UBOs + Directors + Authorized Persons
     private Map<String, Object> legalRep;
     private List<Map<String, Object>> ubos;
     private Boolean noUboDeclaration;
     private String controlStructureDesc;
+    private List<Map<String, Object>> directors;
+    private List<Map<String, Object>> authorizedPersons;
 
-    // Step 3: Business info
+    // Section B: Business info
     private String businessType;
     private String website;
+    private String purposeOfAccount;
+    private String sourceOfIncome;
+    private String estAmountPerTxFrom;
+    private String estAmountPerTxTo;
+    private String estTxPerYear;
     private String monthlyVolume;
     private String monthlyTxCount;
     private String supportedFiat;
@@ -49,7 +58,10 @@ public class ApplicationResponse {
     private String useCases;
     private String businessDesc;
 
-    // Step 5: Compliance declarations
+    // Section C: Licence info
+    private Map<String, Object> licenceInfo;
+
+    // Compliance declarations
     private Boolean infoAccuracyConfirmed;
     private Boolean sanctionsDeclared;
     private Boolean termsAccepted;

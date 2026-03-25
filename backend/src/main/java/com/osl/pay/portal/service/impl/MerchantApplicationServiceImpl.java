@@ -46,7 +46,10 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
             "application/pdf", "image/jpeg", "image/png");
     private static final Set<String> VALID_DOC_TYPES = Set.of(
             "BUSINESS_LICENSE", "ARTICLES", "LEGAL_REP_ID_FRONT", "LEGAL_REP_ID_BACK",
-            "UBO_ID_FRONT", "UBO_ID_BACK", "BANK_STATEMENT", "SHARE_STRUCTURE", "OTHER");
+            "UBO_ID_FRONT", "UBO_ID_BACK", "BANK_STATEMENT", "SHARE_STRUCTURE",
+            "BUSINESS_PROFILE", "SHAREHOLDER_LIST", "DIRECTOR_LIST", "ADDRESS_PROOF",
+            "REGULATORY_PERMIT", "AML_POLICY", "CDD_POLICY", "SANCTIONS_POLICY",
+            "DIRECTOR_ID", "AUTH_PERSON_ID", "OTHER");
 
     @Value("${oslpay.upload.path:uploads}")
     private String uploadBasePath;
@@ -262,35 +265,20 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
     // ─── Validation ───
 
     private void validateForSubmit(MerchantApplication app) {
-        // Step 1: Company info
+        // Section A: Company info
         requireField(app.getCompanyName(), "公司名称");
         requireField(app.getRegCountry(), "注册国家/地区");
         requireField(app.getRegNumber(), "公司注册号");
+        requireField(app.getTaxIdNumber(), "纳税识别号");
         requireField(app.getCompanyType(), "公司类型");
         if (app.getIncorporationDate() == null) {
             throw new BizException(40000, "成立日期不能为空");
         }
         requireField(app.getAddressLine1(), "地址");
         requireField(app.getCity(), "城市");
-        requireField(app.getPostalCode(), "邮政编码");
-        requireField(app.getCountry(), "国家");
-        requireField(app.getContactName(), "联系人姓名");
-        requireField(app.getContactTitle(), "联系人职位");
-        requireField(app.getContactEmail(), "联系邮箱");
-        requireField(app.getContactPhone(), "联系电话");
+        requireField(app.getCountry(), "国家/地区");
 
-        // Step 2: Legal rep
-        if (app.getLegalRep() == null || app.getLegalRep().isEmpty()) {
-            throw new BizException(40000, "法定代表人信息不能为空");
-        }
-        Map<String, Object> legalRep = app.getLegalRep();
-        requireMapField(legalRep, "name", "法定代表人姓名");
-        requireMapField(legalRep, "nationality", "法定代表人国籍");
-        requireMapField(legalRep, "idType", "法定代表人证件类型");
-        requireMapField(legalRep, "idNumber", "法定代表人证件号码");
-        requireMapField(legalRep, "dateOfBirth", "法定代表人出生日期");
-
-        // Step 2: UBOs (required unless noUboDeclaration)
+        // Section A: UBOs
         if (!Boolean.TRUE.equals(app.getNoUboDeclaration())) {
             if (app.getUbos() == null || app.getUbos().isEmpty()) {
                 throw new BizException(40000, "请添加最终受益所有人信息，或声明无 UBO");
@@ -301,14 +289,21 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
             }
         }
 
-        // Step 3: Business info
+        // Section A: Directors (at least 1)
+        if (app.getDirectors() == null || app.getDirectors().isEmpty()) {
+            throw new BizException(40000, "请至少添加一位董事");
+        }
+
+        // Section A: Authorized Persons (at least 1)
+        if (app.getAuthorizedPersons() == null || app.getAuthorizedPersons().isEmpty()) {
+            throw new BizException(40000, "请至少添加一位授权联系人");
+        }
+
+        // Section B: Business info
         requireField(app.getBusinessType(), "业务类型");
-        requireField(app.getMonthlyVolume(), "月预估交易金额");
-        requireField(app.getMonthlyTxCount(), "月预估交易笔数");
-        requireField(app.getSupportedFiat(), "支持的法币");
-        requireField(app.getSupportedCrypto(), "支持的加密货币");
-        requireField(app.getUseCases(), "使用场景");
         requireField(app.getBusinessDesc(), "业务描述");
+        requireField(app.getPurposeOfAccount(), "开户目的");
+        requireField(app.getSourceOfIncome(), "收入来源");
     }
 
     private void validateDeclarations(ApplicationSubmitRequest request) {
@@ -402,12 +397,14 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         if (req.getCurrentStep() != null) {
             app.setCurrentStep(req.getCurrentStep());
         }
+        app.setCounterpartyType(req.getCounterpartyType());
 
-        // Step 1
+        // Section A: Company info
         app.setCompanyName(req.getCompanyName());
         app.setCompanyNameEn(req.getCompanyNameEn());
         app.setRegCountry(req.getRegCountry());
         app.setRegNumber(req.getRegNumber());
+        app.setTaxIdNumber(req.getTaxIdNumber());
         app.setBusinessLicenseNo(req.getBusinessLicenseNo());
         app.setCompanyType(req.getCompanyType());
         if (req.getIncorporationDate() != null && !req.getIncorporationDate().isBlank()) {
@@ -424,21 +421,31 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         app.setContactEmail(req.getContactEmail());
         app.setContactPhone(req.getContactPhone());
 
-        // Step 2
+        // Section A: People
         app.setLegalRep(req.getLegalRep());
         app.setUbos(req.getUbos());
         app.setNoUboDeclaration(req.getNoUboDeclaration());
         app.setControlStructureDesc(req.getControlStructureDesc());
+        app.setDirectors(req.getDirectors());
+        app.setAuthorizedPersons(req.getAuthorizedPersons());
 
-        // Step 3
+        // Section B: Business info
         app.setBusinessType(req.getBusinessType());
         app.setWebsite(req.getWebsite());
+        app.setPurposeOfAccount(req.getPurposeOfAccount());
+        app.setSourceOfIncome(req.getSourceOfIncome());
+        app.setEstAmountPerTxFrom(req.getEstAmountPerTxFrom());
+        app.setEstAmountPerTxTo(req.getEstAmountPerTxTo());
+        app.setEstTxPerYear(req.getEstTxPerYear());
         app.setMonthlyVolume(req.getMonthlyVolume());
         app.setMonthlyTxCount(req.getMonthlyTxCount());
         app.setSupportedFiat(req.getSupportedFiat());
         app.setSupportedCrypto(req.getSupportedCrypto());
         app.setUseCases(req.getUseCases());
         app.setBusinessDesc(req.getBusinessDesc());
+
+        // Section C: Licence info
+        app.setLicenceInfo(req.getLicenceInfo());
     }
 
     private MerchantApplication findLatest(Long merchantId) {
@@ -453,12 +460,15 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         ApplicationResponse resp = new ApplicationResponse();
         resp.setId(app.getId());
         resp.setStatus(app.getStatus());
+        resp.setCounterpartyType(app.getCounterpartyType());
         resp.setCurrentStep(app.getCurrentStep());
 
+        // Section A
         resp.setCompanyName(app.getCompanyName());
         resp.setCompanyNameEn(app.getCompanyNameEn());
         resp.setRegCountry(app.getRegCountry());
         resp.setRegNumber(app.getRegNumber());
+        resp.setTaxIdNumber(app.getTaxIdNumber());
         resp.setBusinessLicenseNo(app.getBusinessLicenseNo());
         resp.setCompanyType(app.getCompanyType());
         resp.setIncorporationDate(app.getIncorporationDate());
@@ -472,20 +482,30 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         resp.setContactTitle(app.getContactTitle());
         resp.setContactEmail(app.getContactEmail());
         resp.setContactPhone(app.getContactPhone());
-
         resp.setLegalRep(app.getLegalRep());
         resp.setUbos(app.getUbos());
         resp.setNoUboDeclaration(app.getNoUboDeclaration());
         resp.setControlStructureDesc(app.getControlStructureDesc());
+        resp.setDirectors(app.getDirectors());
+        resp.setAuthorizedPersons(app.getAuthorizedPersons());
 
+        // Section B
         resp.setBusinessType(app.getBusinessType());
         resp.setWebsite(app.getWebsite());
+        resp.setPurposeOfAccount(app.getPurposeOfAccount());
+        resp.setSourceOfIncome(app.getSourceOfIncome());
+        resp.setEstAmountPerTxFrom(app.getEstAmountPerTxFrom());
+        resp.setEstAmountPerTxTo(app.getEstAmountPerTxTo());
+        resp.setEstTxPerYear(app.getEstTxPerYear());
         resp.setMonthlyVolume(app.getMonthlyVolume());
         resp.setMonthlyTxCount(app.getMonthlyTxCount());
         resp.setSupportedFiat(app.getSupportedFiat());
         resp.setSupportedCrypto(app.getSupportedCrypto());
         resp.setUseCases(app.getUseCases());
         resp.setBusinessDesc(app.getBusinessDesc());
+
+        // Section C
+        resp.setLicenceInfo(app.getLicenceInfo());
 
         resp.setInfoAccuracyConfirmed(app.getInfoAccuracyConfirmed());
         resp.setSanctionsDeclared(app.getSanctionsDeclared());

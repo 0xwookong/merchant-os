@@ -25,6 +25,8 @@ export default function StepCompany({ form, update }: Props) {
     { value: "AU", label: t("app.country.AU") },
     { value: "CA", label: t("app.country.CA") },
     { value: "DE", label: t("app.country.DE") },
+    { value: "IT", label: t("app.country.IT") },
+    { value: "FR", label: t("app.country.FR") },
   ];
 
   const COMPANY_TYPES = [
@@ -34,18 +36,38 @@ export default function StepCompany({ form, update }: Props) {
     { value: "OTHER", label: t("app.companyType.OTHER") },
   ];
 
+  const COUNTERPARTY_TYPES = [
+    { value: "MICAR_LICENSED", label: t("app.counterpartyType.MICAR") },
+    { value: "CASP", label: t("app.counterpartyType.CASP") },
+    { value: "VASP", label: t("app.counterpartyType.VASP") },
+    { value: "REFERRAL", label: t("app.counterpartyType.REFERRAL") },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Counterparty Type */}
+      <section className="space-y-4">
+        <Select label={t("app.field.counterpartyType")} value={form.counterpartyType || ""} onChange={(v) => update("counterpartyType", v)}
+          options={COUNTERPARTY_TYPES} required placeholder={t("app.ph.select")}
+          hint={t("app.hint.counterpartyType")} />
+      </section>
+
       {/* Company Registration */}
       <section className="space-y-4">
         <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.section.registration")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={t("app.field.companyName")} value={form.companyName || ""} onChange={(v) => update("companyName", v)} required placeholder={t("app.ph.companyName")} />
-          <Field label={t("app.field.companyNameEn")} value={form.companyNameEn || ""} onChange={(v) => update("companyNameEn", v)} placeholder={t("app.ph.companyNameEn")} />
-          <Select label={t("app.field.regCountry")} value={form.regCountry || ""} onChange={(v) => { update("regCountry", v); update("country", v); }} options={COUNTRIES} required placeholder={t("app.ph.select")} />
-          <Field label={t("app.field.regNumber")} value={form.regNumber || ""} onChange={(v) => update("regNumber", v)} required placeholder={t("app.ph.regNumber")} />
-          <Field label={t("app.field.businessLicenseNo")} value={form.businessLicenseNo || ""} onChange={(v) => update("businessLicenseNo", v)} placeholder={t("app.ph.businessLicenseNo")} />
-          <Select label={t("app.field.companyType")} value={form.companyType || ""} onChange={(v) => update("companyType", v)} options={COMPANY_TYPES} required placeholder={t("app.ph.select")} />
+          <Field label={t("app.field.companyName")} value={form.companyName || ""} onChange={(v) => update("companyName", v)} required
+            placeholder={t("app.ph.companyName")} hint={t("app.hint.companyName")} />
+          <Field label={t("app.field.companyNameEn")} value={form.companyNameEn || ""} onChange={(v) => update("companyNameEn", v)}
+            placeholder={t("app.ph.companyNameEn")} />
+          <Select label={t("app.field.regCountry")} value={form.regCountry || ""} onChange={(v) => { update("regCountry", v); update("country", v); }}
+            options={COUNTRIES} required placeholder={t("app.ph.select")} />
+          <Field label={t("app.field.regNumber")} value={form.regNumber || ""} onChange={(v) => update("regNumber", v)} required
+            placeholder={t("app.ph.regNumber")} hint={t("app.hint.regNumber")} />
+          <Field label={t("app.field.taxIdNumber")} value={form.taxIdNumber || ""} onChange={(v) => update("taxIdNumber", v)} required
+            placeholder={t("app.ph.taxIdNumber")} hint={t("app.hint.taxIdNumber")} />
+          <Select label={t("app.field.companyType")} value={form.companyType || ""} onChange={(v) => update("companyType", v)}
+            options={COMPANY_TYPES} required placeholder={t("app.ph.select")} />
           <Field label={t("app.field.incorporationDate")} value={form.incorporationDate || ""} onChange={(v) => update("incorporationDate", v)} required type="date" />
         </div>
       </section>
@@ -62,7 +84,7 @@ export default function StepCompany({ form, update }: Props) {
           </div>
           <Field label={t("app.field.city")} value={form.city || ""} onChange={(v) => update("city", v)} required />
           <Field label={t("app.field.stateProvince")} value={form.stateProvince || ""} onChange={(v) => update("stateProvince", v)} />
-          <Field label={t("app.field.postalCode")} value={form.postalCode || ""} onChange={(v) => update("postalCode", v)} required />
+          <Field label={t("app.field.postalCode")} value={form.postalCode || ""} onChange={(v) => update("postalCode", v)} />
           <Select label={t("app.field.country")} value={form.country || ""} onChange={(v) => update("country", v)} options={COUNTRIES} required placeholder={t("app.ph.select")} />
         </div>
       </section>
@@ -71,10 +93,10 @@ export default function StepCompany({ form, update }: Props) {
       <section className="space-y-4">
         <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.section.contact")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={t("app.field.contactName")} value={form.contactName || ""} onChange={(v) => update("contactName", v)} required placeholder={t("app.ph.contactName")} />
-          <Field label={t("app.field.contactTitle")} value={form.contactTitle || ""} onChange={(v) => update("contactTitle", v)} required placeholder={t("app.ph.contactTitle")} />
-          <Field label={t("app.field.contactEmail")} value={form.contactEmail || ""} onChange={(v) => update("contactEmail", v)} required type="email" placeholder={t("app.ph.contactEmail")} />
-          <PhoneField label={t("app.field.contactPhone")} value={form.contactPhone || ""} onChange={(v) => update("contactPhone", v)} required />
+          <Field label={t("app.field.contactName")} value={form.contactName || ""} onChange={(v) => update("contactName", v)} placeholder={t("app.ph.contactName")} />
+          <Field label={t("app.field.contactTitle")} value={form.contactTitle || ""} onChange={(v) => update("contactTitle", v)} placeholder={t("app.ph.contactTitle")} />
+          <Field label={t("app.field.contactEmail")} value={form.contactEmail || ""} onChange={(v) => update("contactEmail", v)} type="email" placeholder={t("app.ph.contactEmail")} />
+          <PhoneField label={t("app.field.contactPhone")} value={form.contactPhone || ""} onChange={(v) => update("contactPhone", v)} />
         </div>
       </section>
     </div>

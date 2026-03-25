@@ -2,11 +2,11 @@
 
 import { useI18n } from "@/providers/language-provider";
 import { InfoRow } from "./form-fields";
-import type { ApplicationSaveDraftRequest, LegalRepInfo, UboInfo } from "@/services/applicationService";
+import type { ApplicationSaveDraftRequest, PersonInfo, UboInfo } from "@/services/applicationService";
 
 interface Props {
   form: ApplicationSaveDraftRequest;
-  legalRep?: LegalRepInfo;
+  legalRep?: PersonInfo;
   ubos: UboInfo[];
   noUboDeclaration: boolean;
   controlStructureDesc: string;
@@ -59,7 +59,8 @@ export default function StepConfirm({
           <div className="grid grid-cols-2 gap-x-8 gap-y-3">
             <InfoRow label={t("app.field.legalRepName")} value={legalRep.name} />
             <InfoRow label={t("app.field.nationality")} value={legalRep.nationality} />
-            <InfoRow label={t("app.field.idType")} value={legalRep.idType} />
+            <InfoRow label={t("app.field.idTypeNumber")} value={legalRep.idTypeNumber} />
+            <InfoRow label={t("app.field.placeOfBirth")} value={legalRep.placeOfBirth} />
             <InfoRow label={t("app.field.dateOfBirth")} value={legalRep.dateOfBirth} />
           </div>
         ) : (

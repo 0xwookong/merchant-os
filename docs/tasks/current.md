@@ -1,39 +1,45 @@
-# Task-026d: 统一入驻申请 — 文件上传 + 确认提交 + 合规声明
+# Task-027a: DD Form 对齐 — Schema 扩展 + 后端字段补全
 
-## Status: Verifying
+## Status: In Progress
 
 ## PRD Reference
-docs/prd/15-unified-merchant-application.md — §3.4 文件上传, §3.5 确认提交, §5 状态流转
+docs/onboarding/OSL Pay Due Diligence Form v2.1.pdf
+docs/onboarding/Checklist of Documents Required for OSL Pay DD Form v2.1.pdf
 
 ## Scope
-- 前端: Step 4 文件上传 UI（拖拽上传、文件列表、删除）
-- 前端: Step 5 确认提交（信息预览 + 合规声明 + 提交按钮）
-- 前端: 主页面重写支持 5 步（生产）/ 4 步（沙箱）
-- 前端: submit/resubmit 功能
-- 前端: i18n 新增 30+ keys
-- 前端: CLAUDE.md 路由文档更新
+- DB: ALTER TABLE 新增列（TIN、counterpartyType）+ JSON 列（directors、authorizedPersons、licenceInfo）+ 业务新字段
+- 后端: Entity/DTO/Service 补全新字段，文件类型扩展
+- 后端: 提交校验更新
+
+## New Fields Summary
+
+### Section A — Company Info additions
+- `tax_id_number` VARCHAR(100) — 纳税识别号/VAT
+- `counterparty_type` VARCHAR(50) — MiCAR/CASP/VASP/Referral
+- UBO JSON: 新增 placeOfBirth, residentialAddress
+- `directors` JSON — [{name, idTypeNumber, placeOfBirth, dateOfBirth, nationality}]
+- `authorized_persons` JSON — [{name, idTypeNumber, placeOfBirth, dateOfBirth, nationality, phone, email}]
+
+### Section B — Business additions
+- `purpose_of_account` VARCHAR(500) — 开户目的
+- `source_of_income` VARCHAR(500) — 收入来源
+- `est_amount_per_tx_from` VARCHAR(50) — 单笔交易金额下限
+- `est_amount_per_tx_to` VARCHAR(50) — 单笔交易金额上限
+- `est_tx_per_year` VARCHAR(50) — 年交易笔数
+
+### Section C — Licence Info (new JSON)
+- `licence_info` JSON — {regulated, jurisdiction, regulatorName, licenceType, licenceNumber, licenceDate, lastAuditDate}
+
+### Document Types additions
+- BUSINESS_PROFILE, SHAREHOLDER_LIST, DIRECTOR_LIST, ADDRESS_PROOF, REGULATORY_PERMIT, AML_POLICY, CDD_POLICY, SANCTIONS_POLICY
 
 ## Development Plan
-- [x] 1. 创建 step-documents.tsx（文件上传 UI：拖拽/点击上传、已上传文件展示、删除）
-- [x] 2. 创建 step-confirm.tsx（信息预览 + 编辑按钮 + 合规声明 3 项复选框）
-- [x] 3. 重写 page.tsx（5 步/4 步环境感知、submit/resubmit、NEED_MORE_INFO 展示）
-- [x] 4. 添加 i18n keys（文件上传 + 确认提交 + 合规声明，en + zh）
-- [x] 5. 更新 CLAUDE.md 路由结构
-- [x] 6. pnpm build 通过, 16 test files / 70 tests passing
-
-## Execution Log
-
-### 2026-03-25 19:40
-- 新建 2 个组件:
-  - `step-documents.tsx`: 按类型分区的文件上传（公司文件/法人证件/UBO证件/银行证明/可选），支持拖拽上传、进度状态、删除
-  - `step-confirm.tsx`: 全信息预览（6 区块各带编辑按钮）+ 合规声明 3 项勾选
-- 重写 page.tsx:
-  - 生产环境 5 步（公司→法人→业务→文件→确认），沙箱 4 步（跳过文件上传）
-  - submit/resubmit 功能，合规声明全勾选才能提交
-  - NEED_MORE_INFO 状态展示补充项列表
-  - 审核等待页增加沙箱提示
-- i18n: 30+ 新 key 覆盖文件上传/合规声明/步骤标签
-- CLAUDE.md: 路由结构从 kyb + onboarding 改为 application
+- [ ] 1. ALTER TABLE + init.sql 更新
+- [ ] 2. Entity 补全新字段
+- [ ] 3. DTO (Request + Response) 补全
+- [ ] 4. Service copyFields + validateForSubmit 更新
+- [ ] 5. 文件类型白名单扩展
+- [ ] 6. 运行全量测试
 
 ## Next Step
-清理旧 KYB/Onboarding 页面代码（可选，低优先级）
+Task-027b: 前端表单重构 + 字段填写指南

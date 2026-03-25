@@ -1,30 +1,37 @@
 "use client";
 
 import { useI18n } from "@/providers/language-provider";
-import { Field, Select } from "./form-fields";
-import type { LegalRepInfo, UboInfo } from "@/services/applicationService";
+import { Field, Select, PhoneField } from "./form-fields";
+import type { PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo } from "@/services/applicationService";
 import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 interface Props {
-  legalRep: LegalRepInfo | undefined;
+  legalRep: PersonInfo | undefined;
   ubos: UboInfo[];
   noUboDeclaration: boolean;
   controlStructureDesc: string;
-  onLegalRepChange: (rep: LegalRepInfo) => void;
+  directors: DirectorInfo[];
+  authorizedPersons: AuthorizedPersonInfo[];
+  onLegalRepChange: (rep: PersonInfo) => void;
   onUbosChange: (ubos: UboInfo[]) => void;
   onNoUboDeclChange: (v: boolean) => void;
   onControlDescChange: (v: string) => void;
+  onDirectorsChange: (d: DirectorInfo[]) => void;
+  onAuthorizedPersonsChange: (a: AuthorizedPersonInfo[]) => void;
 }
 
-const EMPTY_LEGAL_REP: LegalRepInfo = { name: "", nationality: "", idType: "", idNumber: "", dateOfBirth: "" };
-const EMPTY_UBO: UboInfo = { name: "", nationality: "", idType: "", idNumber: "", dateOfBirth: "", sharePercentage: 25, isLegalRep: false };
+const EMPTY_PERSON: PersonInfo = { name: "", nationality: "", idTypeNumber: "", placeOfBirth: "", dateOfBirth: "" };
+const EMPTY_UBO: UboInfo = { ...EMPTY_PERSON, residentialAddress: "", sharePercentage: 25 };
+const EMPTY_AUTH: AuthorizedPersonInfo = { ...EMPTY_PERSON, phone: "", email: "" };
 
 export default function StepLegal({
   legalRep, ubos, noUboDeclaration, controlStructureDesc,
+  directors, authorizedPersons,
   onLegalRepChange, onUbosChange, onNoUboDeclChange, onControlDescChange,
+  onDirectorsChange, onAuthorizedPersonsChange,
 }: Props) {
   const { t } = useI18n();
-  const rep = legalRep || EMPTY_LEGAL_REP;
+  const rep = legalRep || EMPTY_PERSON;
 
   const COUNTRIES = [
     { value: "CN", label: t("app.country.CN") },
@@ -39,144 +46,145 @@ export default function StepLegal({
     { value: "AU", label: t("app.country.AU") },
     { value: "CA", label: t("app.country.CA") },
     { value: "DE", label: t("app.country.DE") },
+    { value: "IT", label: t("app.country.IT") },
+    { value: "FR", label: t("app.country.FR") },
   ];
-
-  const ID_TYPES = [
-    { value: "PASSPORT", label: t("app.idType.PASSPORT") },
-    { value: "ID_CARD", label: t("app.idType.ID_CARD") },
-    { value: "DRIVERS_LICENSE", label: t("app.idType.DRIVERS_LICENSE") },
-  ];
-
-  const updateRep = (field: keyof LegalRepInfo, value: string) => {
-    onLegalRepChange({ ...rep, [field]: value });
-  };
-
-  const updateUbo = (index: number, field: keyof UboInfo, value: string | number | boolean) => {
-    const next = [...ubos];
-    next[index] = { ...next[index], [field]: value };
-    onUbosChange(next);
-  };
-
-  const addUbo = () => {
-    if (ubos.length >= 10) return;
-    onUbosChange([...ubos, { ...EMPTY_UBO }]);
-  };
-
-  const removeUbo = (index: number) => {
-    onUbosChange(ubos.filter((_, i) => i !== index));
-  };
-
-  const fillFromLegalRep = (index: number) => {
-    const next = [...ubos];
-    next[index] = { ...next[index], name: rep.name, nationality: rep.nationality, idType: rep.idType, idNumber: rep.idNumber, dateOfBirth: rep.dateOfBirth, isLegalRep: true };
-    onUbosChange(next);
-  };
 
   return (
-    <div className="space-y-6">
-      {/* Legal Representative */}
+    <div className="space-y-8">
+      {/* ─── UBOs ─── */}
       <section className="space-y-4">
-        <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.section.legalRep")}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={t("app.field.legalRepName")} value={rep.name} onChange={(v) => updateRep("name", v)} required />
-          <Select label={t("app.field.nationality")} value={rep.nationality} onChange={(v) => updateRep("nationality", v)} options={COUNTRIES} required placeholder={t("app.ph.select")} />
-          <Select label={t("app.field.idType")} value={rep.idType} onChange={(v) => updateRep("idType", v)} options={ID_TYPES} required placeholder={t("app.ph.select")} />
-          <Field label={t("app.field.idNumber")} value={rep.idNumber} onChange={(v) => updateRep("idNumber", v)} required />
-          <Field label={t("app.field.dateOfBirth")} value={rep.dateOfBirth} onChange={(v) => updateRep("dateOfBirth", v)} required type="date" />
-        </div>
-      </section>
-
-      {/* UBOs */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.section.ubo")}</h3>
-            <p className="text-xs text-[var(--gray-500)] mt-0.5">{t("app.ubo.hint")}</p>
-          </div>
+        <div>
+          <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.section.ubo")}</h3>
+          <p className="text-xs text-[var(--gray-500)] mt-0.5">{t("app.ubo.hint")}</p>
         </div>
 
-        {/* No UBO declaration checkbox */}
         <label className="flex items-start gap-3 p-3 rounded-lg border border-[var(--gray-200)] cursor-pointer hover:bg-[var(--gray-50)] transition-colors">
-          <input
-            type="checkbox"
-            checked={noUboDeclaration}
-            onChange={(e) => onNoUboDeclChange(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-[var(--gray-300)] text-[var(--primary-black)] focus:ring-blue-500"
-          />
+          <input type="checkbox" checked={noUboDeclaration} onChange={(e) => onNoUboDeclChange(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-[var(--gray-300)] text-[var(--primary-black)] focus:ring-blue-500" />
           <span className="text-sm text-[var(--gray-700)]">{t("app.ubo.noUboDecl")}</span>
         </label>
 
         {noUboDeclaration ? (
-          <div>
-            <label className="block">
-              <span className="text-sm font-medium text-[var(--gray-700)]">
-                {t("app.field.controlStructure")} <span className="text-[var(--error)]">*</span>
-              </span>
-              <textarea
-                value={controlStructureDesc || ""}
-                onChange={(e) => onControlDescChange(e.target.value)}
-                rows={3}
-                placeholder={t("app.ph.controlStructure")}
-                className="mt-1 w-full border border-[var(--gray-300)] rounded-lg px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </label>
-          </div>
+          <label className="block">
+            <span className="text-sm font-medium text-[var(--gray-700)]">{t("app.field.controlStructure")} <span className="text-[var(--error)]">*</span></span>
+            <textarea value={controlStructureDesc || ""} onChange={(e) => onControlDescChange(e.target.value)} rows={3}
+              placeholder={t("app.ph.controlStructure")}
+              className="mt-1 w-full border border-[var(--gray-300)] rounded-lg px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          </label>
         ) : (
           <>
             {ubos.map((ubo, idx) => (
-              <div key={idx} className="border border-[var(--gray-200)] rounded-lg p-5 space-y-4 relative">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-[var(--gray-900)]">
-                    {t("app.ubo.title")} #{idx + 1}
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    {!ubo.isLegalRep && (
-                      <button type="button" onClick={() => fillFromLegalRep(idx)} className="text-xs text-blue-600 hover:underline">
-                        {t("app.ubo.fillFromRep")}
-                      </button>
-                    )}
-                    {ubos.length > 1 && (
-                      <button type="button" onClick={() => removeUbo(idx)} className="p-1 text-[var(--gray-400)] hover:text-[var(--error)] transition-colors" aria-label={t("common.delete")}>
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    )}
+              <PersonCard key={idx} title={`${t("app.ubo.title")} #${idx + 1}`}
+                onRemove={ubos.length > 1 ? () => onUbosChange(ubos.filter((_, i) => i !== idx)) : undefined}
+                extra={!ubo.isLegalRep && (
+                  <button type="button" onClick={() => {
+                    const next = [...ubos]; next[idx] = { ...next[idx], ...rep, isLegalRep: true }; onUbosChange(next);
+                  }} className="text-xs text-blue-600 hover:underline">{t("app.ubo.fillFromRep")}</button>
+                )}>
+                <PersonFields person={ubo} onChange={(f, v) => { const n = [...ubos]; n[idx] = { ...n[idx], [f]: v }; onUbosChange(n); }} countries={COUNTRIES} t={t} />
+                <Field label={t("app.field.residentialAddress")} value={ubo.residentialAddress} onChange={(v) => { const n = [...ubos]; n[idx] = { ...n[idx], residentialAddress: v }; onUbosChange(n); }} required
+                  hint={t("app.hint.residentialAddress")} />
+                <div>
+                  <span className="text-sm font-medium text-[var(--gray-700)]">{t("app.field.sharePercentage")} <span className="text-[var(--error)]">*</span></span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <input type="number" min={1} max={100} value={ubo.sharePercentage || ""} onChange={(e) => { const n = [...ubos]; n[idx] = { ...n[idx], sharePercentage: Number(e.target.value) }; onUbosChange(n); }}
+                      className="w-24 border border-[var(--gray-300)] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                    <span className="text-sm text-[var(--gray-500)]">%</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label={t("app.field.legalRepName")} value={ubo.name} onChange={(v) => updateUbo(idx, "name", v)} required />
-                  <Select label={t("app.field.nationality")} value={ubo.nationality} onChange={(v) => updateUbo(idx, "nationality", v)} options={COUNTRIES} required placeholder={t("app.ph.select")} />
-                  <Select label={t("app.field.idType")} value={ubo.idType} onChange={(v) => updateUbo(idx, "idType", v)} options={ID_TYPES} required placeholder={t("app.ph.select")} />
-                  <Field label={t("app.field.idNumber")} value={ubo.idNumber} onChange={(v) => updateUbo(idx, "idNumber", v)} required />
-                  <Field label={t("app.field.dateOfBirth")} value={ubo.dateOfBirth} onChange={(v) => updateUbo(idx, "dateOfBirth", v)} required type="date" />
-                  <label className="block">
-                    <span className="text-sm font-medium text-[var(--gray-700)]">
-                      {t("app.field.sharePercentage")} <span className="text-[var(--error)]">*</span>
-                    </span>
-                    <div className="mt-1 flex items-center gap-2">
-                      <input
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={ubo.sharePercentage || ""}
-                        onChange={(e) => updateUbo(idx, "sharePercentage", Number(e.target.value))}
-                        className="w-24 border border-[var(--gray-300)] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <span className="text-sm text-[var(--gray-500)]">%</span>
-                    </div>
-                  </label>
-                </div>
-              </div>
+              </PersonCard>
             ))}
-
-            {ubos.length < 10 && (
-              <button type="button" onClick={addUbo} className="flex items-center gap-1.5 text-sm font-medium text-[var(--gray-700)] hover:text-[var(--gray-900)] transition-colors">
-                <PlusIcon className="h-4 w-4" />
-                {t("app.ubo.add")}
-              </button>
+            {ubos.length < 4 && (
+              <AddButton label={t("app.ubo.add")} onClick={() => onUbosChange([...ubos, { ...EMPTY_UBO }])} />
             )}
           </>
         )}
       </section>
+
+      {/* ─── Directors ─── */}
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.section.directors")}</h3>
+          <p className="text-xs text-[var(--gray-500)] mt-0.5">{t("app.hint.directors")}</p>
+        </div>
+        {directors.map((dir, idx) => (
+          <PersonCard key={idx} title={`${t("app.director.title")} #${idx + 1}`}
+            onRemove={directors.length > 1 ? () => onDirectorsChange(directors.filter((_, i) => i !== idx)) : undefined}>
+            <PersonFields person={dir} onChange={(f, v) => { const n = [...directors]; n[idx] = { ...n[idx], [f]: v }; onDirectorsChange(n); }} countries={COUNTRIES} t={t} />
+          </PersonCard>
+        ))}
+        {directors.length < 3 && (
+          <AddButton label={t("app.director.add")} onClick={() => onDirectorsChange([...directors, { ...EMPTY_PERSON }])} />
+        )}
+      </section>
+
+      {/* ─── Authorized Persons ─── */}
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.section.authorizedPersons")}</h3>
+          <p className="text-xs text-[var(--gray-500)] mt-0.5">{t("app.hint.authorizedPersons")}</p>
+        </div>
+        {authorizedPersons.map((ap, idx) => (
+          <PersonCard key={idx} title={`${t("app.authPerson.title")} #${idx + 1}`}
+            onRemove={authorizedPersons.length > 1 ? () => onAuthorizedPersonsChange(authorizedPersons.filter((_, i) => i !== idx)) : undefined}>
+            <PersonFields person={ap} onChange={(f, v) => { const n = [...authorizedPersons]; n[idx] = { ...n[idx], [f]: v }; onAuthorizedPersonsChange(n); }} countries={COUNTRIES} t={t} />
+            <PhoneField label={t("app.field.contactPhone")} value={ap.phone} onChange={(v) => { const n = [...authorizedPersons]; n[idx] = { ...n[idx], phone: v }; onAuthorizedPersonsChange(n); }} required />
+            <Field label={t("app.field.contactEmail")} value={ap.email} onChange={(v) => { const n = [...authorizedPersons]; n[idx] = { ...n[idx], email: v }; onAuthorizedPersonsChange(n); }} required type="email" />
+          </PersonCard>
+        ))}
+        {authorizedPersons.length < 3 && (
+          <AddButton label={t("app.authPerson.add")} onClick={() => onAuthorizedPersonsChange([...authorizedPersons, { ...EMPTY_AUTH }])} />
+        )}
+      </section>
     </div>
+  );
+}
+
+// ─── Shared sub-components ───
+
+function PersonFields({ person, onChange, countries, t }: {
+  person: PersonInfo; onChange: (field: string, value: string) => void;
+  countries: { value: string; label: string }[]; t: (k: string) => string;
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Field label={t("app.field.legalRepName")} value={person.name} onChange={(v) => onChange("name", v)} required />
+      <Select label={t("app.field.nationality")} value={person.nationality} onChange={(v) => onChange("nationality", v)} options={countries} required placeholder={t("app.ph.select")} />
+      <Field label={t("app.field.idTypeNumber")} value={person.idTypeNumber} onChange={(v) => onChange("idTypeNumber", v)} required
+        placeholder={t("app.ph.idTypeNumber")} hint={t("app.hint.idTypeNumber")} />
+      <Field label={t("app.field.placeOfBirth")} value={person.placeOfBirth} onChange={(v) => onChange("placeOfBirth", v)} required
+        placeholder={t("app.ph.placeOfBirth")} />
+      <Field label={t("app.field.dateOfBirth")} value={person.dateOfBirth} onChange={(v) => onChange("dateOfBirth", v)} required type="date" />
+    </div>
+  );
+}
+
+function PersonCard({ title, onRemove, extra, children }: {
+  title: string; onRemove?: () => void; extra?: React.ReactNode; children: React.ReactNode;
+}) {
+  return (
+    <div className="border border-[var(--gray-200)] rounded-lg p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-semibold text-[var(--gray-900)]">{title}</h4>
+        <div className="flex items-center gap-2">
+          {extra}
+          {onRemove && (
+            <button type="button" onClick={onRemove} className="p-1 text-[var(--gray-400)] hover:text-[var(--error)] transition-colors">
+              <TrashIcon className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="flex items-center gap-1.5 text-sm font-medium text-[var(--gray-700)] hover:text-[var(--gray-900)] transition-colors">
+      <PlusIcon className="h-4 w-4" /> {label}
+    </button>
   );
 }

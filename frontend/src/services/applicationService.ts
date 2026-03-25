@@ -1,36 +1,54 @@
 import { api } from "@/lib/api";
 
-// Legal representative info
-export interface LegalRepInfo {
+// Person info shared by UBO, Director, Authorized Person
+export interface PersonInfo {
   name: string;
-  nationality: string;
-  idType: string;
-  idNumber: string;
+  idTypeNumber: string; // e.g. "Passport: E12345678"
+  placeOfBirth: string;
   dateOfBirth: string;
+  nationality: string;
 }
 
-// Ultimate Beneficial Owner info
-export interface UboInfo {
-  name: string;
-  nationality: string;
-  idType: string;
-  idNumber: string;
-  dateOfBirth: string;
+// UBO extends PersonInfo with ownership + address
+export interface UboInfo extends PersonInfo {
+  residentialAddress: string;
   sharePercentage: number;
   isLegalRep?: boolean;
+}
+
+// Director = PersonInfo
+export type DirectorInfo = PersonInfo;
+
+// Authorized Person extends PersonInfo with contact
+export interface AuthorizedPersonInfo extends PersonInfo {
+  phone: string;
+  email: string;
+}
+
+// Licence information (Section C)
+export interface LicenceInfo {
+  regulated: boolean;
+  jurisdiction?: string;
+  regulatorName?: string;
+  licenceType?: string;
+  licenceNumber?: string;
+  licenceDate?: string;
+  lastAuditDate?: string;
 }
 
 // Full application response
 export interface ApplicationResponse {
   id: number;
   status: string;
+  counterpartyType: string | null;
   currentStep: number;
 
-  // Step 1: Company info
+  // Section A: Company info
   companyName: string | null;
   companyNameEn: string | null;
   regCountry: string | null;
   regNumber: string | null;
+  taxIdNumber: string | null;
   businessLicenseNo: string | null;
   companyType: string | null;
   incorporationDate: string | null;
@@ -45,15 +63,22 @@ export interface ApplicationResponse {
   contactEmail: string | null;
   contactPhone: string | null;
 
-  // Step 2: Legal rep + UBOs
-  legalRep: LegalRepInfo | null;
+  // Section A: People
+  legalRep: PersonInfo | null;
   ubos: UboInfo[] | null;
   noUboDeclaration: boolean;
   controlStructureDesc: string | null;
+  directors: DirectorInfo[] | null;
+  authorizedPersons: AuthorizedPersonInfo[] | null;
 
-  // Step 3: Business info
+  // Section B: Business info
   businessType: string | null;
   website: string | null;
+  purposeOfAccount: string | null;
+  sourceOfIncome: string | null;
+  estAmountPerTxFrom: string | null;
+  estAmountPerTxTo: string | null;
+  estTxPerYear: string | null;
   monthlyVolume: string | null;
   monthlyTxCount: string | null;
   supportedFiat: string | null;
@@ -61,7 +86,10 @@ export interface ApplicationResponse {
   useCases: string | null;
   businessDesc: string | null;
 
-  // Step 5: Compliance declarations
+  // Section C: Licence info
+  licenceInfo: LicenceInfo | null;
+
+  // Compliance declarations
   infoAccuracyConfirmed: boolean;
   sanctionsDeclared: boolean;
   termsAccepted: boolean;
@@ -78,12 +106,14 @@ export interface ApplicationResponse {
 // Save draft request (all fields optional for partial save)
 export interface ApplicationSaveDraftRequest {
   currentStep?: number;
+  counterpartyType?: string;
 
-  // Step 1
+  // Section A: Company
   companyName?: string;
   companyNameEn?: string;
   regCountry?: string;
   regNumber?: string;
+  taxIdNumber?: string;
   businessLicenseNo?: string;
   companyType?: string;
   incorporationDate?: string;
@@ -98,21 +128,31 @@ export interface ApplicationSaveDraftRequest {
   contactEmail?: string;
   contactPhone?: string;
 
-  // Step 2
-  legalRep?: LegalRepInfo;
+  // Section A: People
+  legalRep?: PersonInfo;
   ubos?: UboInfo[];
   noUboDeclaration?: boolean;
   controlStructureDesc?: string;
+  directors?: DirectorInfo[];
+  authorizedPersons?: AuthorizedPersonInfo[];
 
-  // Step 3
+  // Section B: Business
   businessType?: string;
   website?: string;
+  purposeOfAccount?: string;
+  sourceOfIncome?: string;
+  estAmountPerTxFrom?: string;
+  estAmountPerTxTo?: string;
+  estTxPerYear?: string;
   monthlyVolume?: string;
   monthlyTxCount?: string;
   supportedFiat?: string;
   supportedCrypto?: string;
   useCases?: string;
   businessDesc?: string;
+
+  // Section C: Licence
+  licenceInfo?: LicenceInfo;
 }
 
 export interface ApplicationSubmitRequest {

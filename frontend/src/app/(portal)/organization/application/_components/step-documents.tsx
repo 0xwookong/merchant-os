@@ -8,27 +8,10 @@ import { ArrowUpTrayIcon, TrashIcon, DocumentIcon } from "@heroicons/react/24/ou
 
 interface Props {
   ubos: UboInfo[];
+  isVaspCasp: boolean;
 }
 
-const DOC_SECTIONS = [
-  { type: "BUSINESS_LICENSE", labelKey: "app.doc.businessLicense", required: true },
-  { type: "ARTICLES", labelKey: "app.doc.articles", required: true },
-] as const;
-
-const LEGAL_REP_DOCS = [
-  { type: "LEGAL_REP_ID_FRONT", labelKey: "app.doc.legalRepFront", required: true },
-  { type: "LEGAL_REP_ID_BACK", labelKey: "app.doc.legalRepBack", required: true },
-] as const;
-
-const BANK_DOCS = [
-  { type: "BANK_STATEMENT", labelKey: "app.doc.bankStatement", required: true },
-] as const;
-
-const OPTIONAL_DOCS = [
-  { type: "SHARE_STRUCTURE", labelKey: "app.doc.shareStructure", required: false },
-] as const;
-
-export default function StepDocuments({ ubos }: Props) {
+export default function StepDocuments({ ubos, isVaspCasp }: Props) {
   const { t } = useI18n();
   const [docs, setDocs] = useState<DocumentResponse[]>([]);
   const [uploading, setUploading] = useState<string | null>(null);
@@ -46,9 +29,7 @@ export default function StepDocuments({ ubos }: Props) {
       setDocs((prev) => [...prev, doc]);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setUploading(null);
-    }
+    } finally { setUploading(null); }
   }
 
   async function handleDelete(docId: number) {
@@ -66,76 +47,79 @@ export default function StepDocuments({ ubos }: Props) {
 
   return (
     <div className="space-y-6">
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{error}</div>
+      <p className="text-xs text-[var(--gray-500)]">{t("app.doc.ctcNote")}</p>
+      {error && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{error}</div>}
+
+      {/* Required for all counterparts */}
+      <DocSection title={t("app.doc.section.companyDocs")}>
+        <UploadSlot label={t("app.doc.formation")} hint={t("app.doc.hint.formation")} required doc={getDoc("BUSINESS_LICENSE")}
+          uploading={uploading === "BUSINESS_LICENSE"} onUpload={(f) => handleUpload(f, "BUSINESS_LICENSE")} onDelete={handleDelete} t={t} />
+        <UploadSlot label={t("app.doc.businessProfile")} hint={t("app.doc.hint.businessProfile")} required doc={getDoc("BUSINESS_PROFILE")}
+          uploading={uploading === "BUSINESS_PROFILE"} onUpload={(f) => handleUpload(f, "BUSINESS_PROFILE")} onDelete={handleDelete} t={t} />
+        <UploadSlot label={t("app.doc.articles")} hint={t("app.doc.hint.articles")} required doc={getDoc("ARTICLES")}
+          uploading={uploading === "ARTICLES"} onUpload={(f) => handleUpload(f, "ARTICLES")} onDelete={handleDelete} t={t} />
+        <UploadSlot label={t("app.doc.orgChart")} hint={t("app.doc.hint.orgChart")} required doc={getDoc("SHARE_STRUCTURE")}
+          uploading={uploading === "SHARE_STRUCTURE"} onUpload={(f) => handleUpload(f, "SHARE_STRUCTURE")} onDelete={handleDelete} t={t} />
+        <UploadSlot label={t("app.doc.shareholderList")} required doc={getDoc("SHAREHOLDER_LIST")}
+          uploading={uploading === "SHAREHOLDER_LIST"} onUpload={(f) => handleUpload(f, "SHAREHOLDER_LIST")} onDelete={handleDelete} t={t} />
+        <UploadSlot label={t("app.doc.directorList")} required doc={getDoc("DIRECTOR_LIST")}
+          uploading={uploading === "DIRECTOR_LIST"} onUpload={(f) => handleUpload(f, "DIRECTOR_LIST")} onDelete={handleDelete} t={t} />
+      </DocSection>
+
+      {/* Identity documents */}
+      <DocSection title={t("app.doc.section.identity")}>
+        <p className="text-xs text-[var(--gray-500)]">{t("app.doc.hint.identity")}</p>
+        {ubos.map((ubo, idx) => (
+          <div key={idx} className="space-y-2">
+            <p className="text-sm font-medium text-[var(--gray-700)]">{ubo.name || `UBO #${idx + 1}`}</p>
+            <UploadSlot label={t("app.doc.uboFront")} required doc={getDoc("UBO_ID_FRONT", idx)}
+              uploading={uploading === `UBO_ID_FRONT-${idx}`} onUpload={(f) => handleUpload(f, "UBO_ID_FRONT", idx)} onDelete={handleDelete} t={t} />
+            <UploadSlot label={t("app.doc.uboBack")} doc={getDoc("UBO_ID_BACK", idx)}
+              uploading={uploading === `UBO_ID_BACK-${idx}`} onUpload={(f) => handleUpload(f, "UBO_ID_BACK", idx)} onDelete={handleDelete} t={t} />
+          </div>
+        ))}
+        <UploadSlot label={t("app.doc.directorId")} required doc={getDoc("DIRECTOR_ID")}
+          uploading={uploading === "DIRECTOR_ID"} onUpload={(f) => handleUpload(f, "DIRECTOR_ID")} onDelete={handleDelete} t={t} />
+      </DocSection>
+
+      {/* Address proof */}
+      <DocSection title={t("app.doc.section.address")}>
+        <UploadSlot label={t("app.doc.addressProof")} hint={t("app.doc.hint.addressProof")} required doc={getDoc("ADDRESS_PROOF")}
+          uploading={uploading === "ADDRESS_PROOF"} onUpload={(f) => handleUpload(f, "ADDRESS_PROOF")} onDelete={handleDelete} t={t} />
+      </DocSection>
+
+      {/* Additional for VASP/CASP */}
+      {isVaspCasp && (
+        <DocSection title={t("app.doc.section.vaspCasp")}>
+          <UploadSlot label={t("app.doc.regulatoryPermit")} required doc={getDoc("REGULATORY_PERMIT")}
+            uploading={uploading === "REGULATORY_PERMIT"} onUpload={(f) => handleUpload(f, "REGULATORY_PERMIT")} onDelete={handleDelete} t={t} />
+          <UploadSlot label={t("app.doc.amlPolicy")} required doc={getDoc("AML_POLICY")}
+            uploading={uploading === "AML_POLICY"} onUpload={(f) => handleUpload(f, "AML_POLICY")} onDelete={handleDelete} t={t} />
+          <UploadSlot label={t("app.doc.cddPolicy")} doc={getDoc("CDD_POLICY")}
+            uploading={uploading === "CDD_POLICY"} onUpload={(f) => handleUpload(f, "CDD_POLICY")} onDelete={handleDelete} t={t} />
+          <UploadSlot label={t("app.doc.sanctionsPolicy")} doc={getDoc("SANCTIONS_POLICY")}
+            uploading={uploading === "SANCTIONS_POLICY"} onUpload={(f) => handleUpload(f, "SANCTIONS_POLICY")} onDelete={handleDelete} t={t} />
+        </DocSection>
       )}
-
-      {/* Company documents */}
-      <section className="space-y-4">
-        <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.doc.section.company")}</h3>
-        {DOC_SECTIONS.map((d) => (
-          <UploadSlot key={d.type} label={t(d.labelKey)} required={d.required} doc={getDoc(d.type)}
-            uploading={uploading === d.type} onUpload={(f) => handleUpload(f, d.type)} onDelete={(id) => handleDelete(id)} t={t} />
-        ))}
-      </section>
-
-      {/* Legal rep ID */}
-      <section className="space-y-4">
-        <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.doc.section.legalRep")}</h3>
-        {LEGAL_REP_DOCS.map((d) => (
-          <UploadSlot key={d.type} label={t(d.labelKey)} required={d.required} doc={getDoc(d.type)}
-            uploading={uploading === d.type} onUpload={(f) => handleUpload(f, d.type)} onDelete={(id) => handleDelete(id)} t={t} />
-        ))}
-      </section>
-
-      {/* UBO IDs */}
-      {ubos.length > 0 && (
-        <section className="space-y-4">
-          <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.doc.section.ubo")}</h3>
-          {ubos.map((ubo, idx) => (
-            <div key={idx} className="space-y-3">
-              <p className="text-sm font-medium text-[var(--gray-700)]">
-                {ubo.name || `UBO #${idx + 1}`}
-              </p>
-              <UploadSlot label={t("app.doc.uboFront")} required doc={getDoc("UBO_ID_FRONT", idx)}
-                uploading={uploading === `UBO_ID_FRONT-${idx}`} onUpload={(f) => handleUpload(f, "UBO_ID_FRONT", idx)} onDelete={(id) => handleDelete(id)} t={t} />
-              <UploadSlot label={t("app.doc.uboBack")} required doc={getDoc("UBO_ID_BACK", idx)}
-                uploading={uploading === `UBO_ID_BACK-${idx}`} onUpload={(f) => handleUpload(f, "UBO_ID_BACK", idx)} onDelete={(id) => handleDelete(id)} t={t} />
-            </div>
-          ))}
-        </section>
-      )}
-
-      {/* Bank statement */}
-      <section className="space-y-4">
-        <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.doc.section.bank")}</h3>
-        {BANK_DOCS.map((d) => (
-          <UploadSlot key={d.type} label={t(d.labelKey)} required={d.required} doc={getDoc(d.type)}
-            uploading={uploading === d.type} onUpload={(f) => handleUpload(f, d.type)} onDelete={(id) => handleDelete(id)} t={t} />
-        ))}
-      </section>
-
-      {/* Optional */}
-      <section className="space-y-4">
-        <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.doc.section.optional")}</h3>
-        {OPTIONAL_DOCS.map((d) => (
-          <UploadSlot key={d.type} label={t(d.labelKey)} required={false} doc={getDoc(d.type)}
-            uploading={uploading === d.type} onUpload={(f) => handleUpload(f, d.type)} onDelete={(id) => handleDelete(id)} t={t} />
-        ))}
-      </section>
     </div>
   );
 }
 
-function UploadSlot({ label, required, doc, uploading, onUpload, onDelete, t }: {
-  label: string; required?: boolean; doc?: DocumentResponse; uploading: boolean;
+function DocSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h3 className="text-base font-semibold text-[var(--gray-900)]">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function UploadSlot({ label, hint, required, doc, uploading, onUpload, onDelete, t }: {
+  label: string; hint?: string; required?: boolean; doc?: DocumentResponse; uploading: boolean;
   onUpload: (f: File) => void; onDelete: (id: number) => void; t: (k: string) => string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  function handleFile(files: FileList | null) {
-    if (files && files[0]) onUpload(files[0]);
-  }
+  function handleFile(files: FileList | null) { if (files && files[0]) onUpload(files[0]); }
 
   if (doc) {
     return (
@@ -153,12 +137,10 @@ function UploadSlot({ label, required, doc, uploading, onUpload, onDelete, t }: 
   }
 
   return (
-    <div
-      className="border-2 border-dashed border-[var(--gray-200)] rounded-lg p-4 text-center hover:border-[var(--gray-400)] transition-colors cursor-pointer"
+    <div className="border-2 border-dashed border-[var(--gray-200)] rounded-lg p-4 text-center hover:border-[var(--gray-400)] transition-colors cursor-pointer"
       onClick={() => inputRef.current?.click()}
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-      onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleFile(e.dataTransfer.files); }}
-    >
+      onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleFile(e.dataTransfer.files); }}>
       <input ref={inputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"
         onChange={(e) => { handleFile(e.target.files); e.target.value = ""; }} />
       {uploading ? (
@@ -169,9 +151,8 @@ function UploadSlot({ label, required, doc, uploading, onUpload, onDelete, t }: 
       ) : (
         <>
           <ArrowUpTrayIcon className="h-5 w-5 text-[var(--gray-400)] mx-auto" />
-          <p className="text-sm text-[var(--gray-700)] mt-1">
-            {label} {required && <span className="text-[var(--error)]">*</span>}
-          </p>
+          <p className="text-sm text-[var(--gray-700)] mt-1">{label} {required && <span className="text-[var(--error)]">*</span>}</p>
+          {hint && <p className="text-xs text-[var(--gray-400)] mt-0.5">{hint}</p>}
           <p className="text-xs text-[var(--gray-400)] mt-0.5">{t("app.doc.hint")}</p>
         </>
       )}

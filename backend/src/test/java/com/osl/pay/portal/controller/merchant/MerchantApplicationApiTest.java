@@ -103,10 +103,12 @@ class MerchantApplicationApiTest {
     private ApplicationSaveDraftRequest step1Draft() {
         ApplicationSaveDraftRequest req = new ApplicationSaveDraftRequest();
         req.setCurrentStep(1);
+        req.setCounterpartyType("CASP");
         req.setCompanyName("Test Corp Ltd");
         req.setCompanyNameEn("Test Corp Limited");
         req.setRegCountry("HK");
         req.setRegNumber("12345678");
+        req.setTaxIdNumber("HK-TAX-001");
         req.setCompanyType("LIMITED");
         req.setIncorporationDate("2020-01-15");
         req.setAddressLine1("123 Test Street");
@@ -126,26 +128,44 @@ class MerchantApplicationApiTest {
         req.setLegalRep(Map.of(
                 "name", "张三",
                 "nationality", "CN",
-                "idType", "ID_CARD",
-                "idNumber", "110101199001011234",
+                "idTypeNumber", "ID Card: 110101199001011234",
+                "placeOfBirth", "Beijing, China",
                 "dateOfBirth", "1990-01-01"
         ));
         req.setUbos(List.of(Map.of(
                 "name", "张三",
                 "nationality", "CN",
-                "idType", "ID_CARD",
-                "idNumber", "110101199001011234",
+                "idTypeNumber", "ID Card: 110101199001011234",
+                "placeOfBirth", "Beijing, China",
                 "dateOfBirth", "1990-01-01",
+                "residentialAddress", "123 Beijing Road, Beijing",
                 "sharePercentage", 60,
                 "isLegalRep", true
         ), Map.of(
                 "name", "李四",
                 "nationality", "CN",
-                "idType", "PASSPORT",
-                "idNumber", "E12345678",
+                "idTypeNumber", "Passport: E12345678",
+                "placeOfBirth", "Shanghai, China",
                 "dateOfBirth", "1985-06-15",
+                "residentialAddress", "456 Shanghai Road, Shanghai",
                 "sharePercentage", 40,
                 "isLegalRep", false
+        )));
+        req.setDirectors(List.of(Map.of(
+                "name", "张三",
+                "idTypeNumber", "ID Card: 110101199001011234",
+                "placeOfBirth", "Beijing, China",
+                "dateOfBirth", "1990-01-01",
+                "nationality", "CN"
+        )));
+        req.setAuthorizedPersons(List.of(Map.of(
+                "name", "王五",
+                "idTypeNumber", "Passport: G87654321",
+                "placeOfBirth", "Hong Kong",
+                "dateOfBirth", "1988-03-20",
+                "nationality", "HK",
+                "phone", "+852-98765432",
+                "email", "wang@test.com"
         )));
         return req;
     }
@@ -155,6 +175,11 @@ class MerchantApplicationApiTest {
         req.setCurrentStep(3);
         req.setBusinessType("E_COMMERCE");
         req.setWebsite("https://test.com");
+        req.setPurposeOfAccount("Crypto payment processing for e-commerce");
+        req.setSourceOfIncome("E-commerce sales revenue");
+        req.setEstAmountPerTxFrom("100");
+        req.setEstAmountPerTxTo("10000");
+        req.setEstTxPerYear("5000");
         req.setMonthlyVolume("100K_1M");
         req.setMonthlyTxCount("1K_10K");
         req.setSupportedFiat("USD,EUR,HKD");
@@ -504,20 +529,17 @@ class MerchantApplicationApiTest {
         }
 
         @Test
-        @DisplayName("缺少法人信息 → HTTP 400 '法定代表人信息不能为空'")
-        void should_return400_when_missingLegalRep() throws Exception {
-            // Save step 1 + step 3 but no step 2 (legal rep)
+        @DisplayName("缺少 Directors → HTTP 400 '请至少添加一位董事'")
+        void should_return400_when_missingDirectors() throws Exception {
+            // Save full data but without directors/authorized persons
             ApplicationSaveDraftRequest req = step1Draft();
             req.setCurrentStep(3);
             req.setBusinessType("E_COMMERCE");
-            req.setMonthlyVolume("100K_1M");
-            req.setMonthlyTxCount("1K_10K");
-            req.setSupportedFiat("USD");
-            req.setSupportedCrypto("USDT");
-            req.setUseCases("ONLINE_PAYMENT");
+            req.setPurposeOfAccount("Payment processing");
+            req.setSourceOfIncome("Sales");
             req.setBusinessDesc("Test business");
-            req.setIncorporationDate("2020-01-01");
-            req.setContactTitle("CEO");
+            req.setUbos(List.of(Map.of("name", "A", "sharePercentage", 100)));
+            // No directors, no authorized persons
             mockMvc.perform(post("/api/v1/application/save-draft")
                     .header("Authorization", "Bearer " + token)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -528,7 +550,7 @@ class MerchantApplicationApiTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(submitDeclarations())))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("法定代表人信息不能为空"));
+                    .andExpect(jsonPath("$.message").value("请至少添加一位董事"));
         }
 
         @Test
