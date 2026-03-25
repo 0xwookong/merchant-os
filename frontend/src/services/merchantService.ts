@@ -9,7 +9,7 @@ export interface MerchantProgressResponse {
 }
 
 export const merchantService = {
-  getProgress(): Promise<MerchantProgressResponse> {
-    return api.get<MerchantProgressResponse>("/api/v1/merchant/progress");
+  getProgress(signal?: AbortSignal): Promise<MerchantProgressResponse> {
+    return api.get<MerchantProgressResponse>("/api/v1/merchant/progress", undefined, signal);
   },
 };

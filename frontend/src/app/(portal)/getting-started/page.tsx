@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { useEnvironment } from "@/providers/environment-provider";
 import { useI18n } from "@/providers/language-provider";
@@ -38,15 +39,41 @@ export default function GettingStartedPage() {
   const [progress, setProgress] = useState<MerchantProgressResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [devGuideExpanded, setDevGuideExpanded] = useState(false);
+  const pathname = usePathname();
 
   const role = user?.role || "ADMIN";
 
-  useEffect(() => {
-    merchantService.getProgress()
-      .then(setProgress)
+  const abortRef = useRef<AbortController | null>(null);
+
+  const fetchProgress = useCallback(() => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    merchantService.getProgress(controller.signal)
+      .then((res) => { if (!controller.signal.aborted) setProgress(res); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
   }, []);
+
+  // Re-fetch whenever this page becomes visible (initial mount + SPA navigation back)
+  useEffect(() => {
+    fetchProgress();
+    return () => abortRef.current?.abort();
+  }, [pathname, fetchProgress]);
+
+  // Re-fetch on window focus and visibility change (tab switch, back navigation)
+  useEffect(() => {
+    const handleFocus = () => fetchProgress();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") fetchProgress();
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [fetchProgress]);
 
   // Derive step statuses from progress data
   const stepStatuses = deriveStepStatuses(progress);

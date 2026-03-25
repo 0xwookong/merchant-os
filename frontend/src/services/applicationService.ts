@@ -190,8 +190,8 @@ export interface DocumentResponse {
 }
 
 export const applicationService = {
-  getCurrent(): Promise<ApplicationResponse | null> {
-    return api.get<ApplicationResponse | null>("/api/v1/application/current");
+  getCurrent(signal?: AbortSignal): Promise<ApplicationResponse | null> {
+    return api.get<ApplicationResponse | null>("/api/v1/application/current", undefined, signal);
   },
 
   saveDraft(data: ApplicationSaveDraftRequest): Promise<ApplicationResponse> {
@@ -220,7 +220,7 @@ export const applicationService = {
     return api.delete<string>(`/api/v1/application/documents/${id}`);
   },
 
-  listDocuments(): Promise<DocumentResponse[]> {
-    return api.get<DocumentResponse[]>("/api/v1/application/documents");
+  listDocuments(signal?: AbortSignal): Promise<DocumentResponse[]> {
+    return api.get<DocumentResponse[]>("/api/v1/application/documents", undefined, signal);
   },
 };

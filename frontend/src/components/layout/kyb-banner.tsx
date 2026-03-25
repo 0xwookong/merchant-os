@@ -1,22 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { applicationService } from "@/services/applicationService";
+import { useApplicationStatus } from "@/hooks/useApplicationStatus";
 import { useI18n } from "@/providers/language-provider";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 export default function KybBanner() {
   const { t } = useI18n();
-  const [status, setStatus] = useState<string | null>(null);
   const pathname = usePathname();
-
-  useEffect(() => {
-    applicationService.getCurrent()
-      .then((res) => setStatus(res?.status ?? "NOT_STARTED"))
-      .catch(() => {});
-  }, []);
+  const { applicationStatus: status } = useApplicationStatus();
 
   // Don't show on the application page itself, or if approved/submitted/reviewing/loading
   if (!status || status === "APPROVED" || status === "SUBMITTED" || status === "UNDER_REVIEW" || pathname === "/organization/application") {

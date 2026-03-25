@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/language-provider";
 import { filterMenuByRole, MENU_CONFIG, type MenuItem } from "@/lib/menu-config";
-import { applicationService } from "@/services/applicationService";
+import { useApplicationStatus } from "@/hooks/useApplicationStatus";
 import {
   RocketLaunchIcon,
   ChartBarIcon,
@@ -58,7 +58,7 @@ export default function Sidebar() {
   const { t } = useI18n();
   const pathname = usePathname();
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
-  const [kybApproved, setKybApproved] = useState(false);
+  const { applicationStatus, onboardingComplete } = useApplicationStatus();
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -80,11 +80,7 @@ export default function Sidebar() {
 
   const menuItems = user ? filterMenuByRole(MENU_CONFIG, user.role) : [];
 
-  useEffect(() => {
-    applicationService.getCurrent()
-      .then((res) => setKybApproved(res?.status === "APPROVED"))
-      .catch(() => {});
-  }, []);
+  const applicationApproved = applicationStatus === "APPROVED";
 
   useEffect(() => {
     for (const item of menuItems) {
@@ -114,20 +110,44 @@ export default function Sidebar() {
       style={{ width: effectiveWidth }}
     >
       {/* Nav */}
-      <nav className={`flex-1 py-6 space-y-1 overflow-y-auto ${collapsed ? "px-2" : "px-4"}`}>
-        {menuItems.map((item) => (
-          <MenuItemComponent
-            key={item.key}
-            item={item}
-            t={t}
-            collapsed={collapsed}
-            isExpanded={expandedKeys.has(item.key)}
-            onToggle={() => toggleExpand(item.key)}
-            isActive={isActive}
-            isDisabled={item.key === "onboarding" && !kybApproved}
-            disabledTooltip={t("nav.kybRequired")}
-          />
-        ))}
+      <nav className={`flex-1 py-6 overflow-y-auto ${collapsed ? "px-2" : "px-4"}`}>
+        {(() => {
+          // Hide guide section once all onboarding steps are done (application approved + tech integration)
+          const visibleItems = onboardingComplete
+            ? menuItems.filter((item) => item.section !== "guide")
+            : menuItems;
+
+          const sections: { section: string; items: typeof visibleItems }[] = [];
+          for (const item of visibleItems) {
+            const sec = item.section || "main";
+            const last = sections[sections.length - 1];
+            if (last && last.section === sec) {
+              last.items.push(item);
+            } else {
+              sections.push({ section: sec, items: [item] });
+            }
+          }
+          return sections.map((group, gi) => (
+            <div key={group.section}>
+              {gi > 0 && <div className="my-3 border-t border-[var(--gray-200)]" />}
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <MenuItemComponent
+                    key={item.key}
+                    item={item}
+                    t={t}
+                    collapsed={collapsed}
+                    isExpanded={expandedKeys.has(item.key)}
+                    onToggle={() => toggleExpand(item.key)}
+                    isActive={isActive}
+                    isDisabled={item.key === "transactions" && !applicationApproved}
+                    disabledTooltip={t("nav.kybRequired")}
+                  />
+                ))}
+              </div>
+            </div>
+          ));
+        })()}
       </nav>
 
       {/* Collapse/Expand toggle */}

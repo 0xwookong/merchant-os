@@ -44,15 +44,24 @@ export default function ApplicationPage() {
   const EMPTY_SIG: SignatureInfo = { name: "", title: "", email: "", confirmed: false };
   const [signatures, setSignatures] = useState({ director: { ...EMPTY_SIG }, cco: { ...EMPTY_SIG } });
   const errorRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => { loadCurrent(); }, []);
+  useEffect(() => {
+    // Abort previous load if component remounts (e.g., rapid navigation)
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    loadCurrent(controller.signal);
+    return () => controller.abort();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function loadCurrent() {
+  async function loadCurrent(signal: AbortSignal) {
     try {
       const [data, docs] = await Promise.all([
-        applicationService.getCurrent(),
-        applicationService.listDocuments().catch(() => [] as import("@/services/applicationService").DocumentResponse[]),
+        applicationService.getCurrent(signal),
+        applicationService.listDocuments(signal).catch(() => [] as import("@/services/applicationService").DocumentResponse[]),
       ]);
+      if (signal.aborted) return; // Don't update state if navigated away
       if (docs.length > 0) setUploadedDocs(docs);
       if (data) {
         setAppData(data);
@@ -60,8 +69,10 @@ export default function ApplicationPage() {
         setStep(Math.min(data.currentStep || 1, totalSteps));
         populateForm(data);
       }
-    } catch { /* fresh */ }
-    finally { setLoading(false); }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+    }
+    finally { if (!signal.aborted) setLoading(false); }
   }
 
   function populateForm(d: ApplicationResponse) {

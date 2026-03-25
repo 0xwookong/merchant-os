@@ -51,8 +51,13 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
 
     @Override
     public ApplicationResponse getCurrent(Long merchantId) {
+        log.info("getCurrent merchantId={}", merchantId);
         MerchantApplication app = findLatest(merchantId);
-        if (app == null) return null;
+        if (app == null) {
+            log.info("getCurrent merchantId={} — no application found", merchantId);
+            return null;
+        }
+        log.info("getCurrent merchantId={} status={}", merchantId, app.getStatus());
         return toResponse(app);
     }
 

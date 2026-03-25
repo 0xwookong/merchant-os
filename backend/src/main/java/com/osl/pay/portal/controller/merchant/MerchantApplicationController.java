@@ -7,12 +7,14 @@ import com.osl.pay.portal.service.MerchantApplicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/application")
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class MerchantApplicationController {
 
     @GetMapping("/current")
     public Result<ApplicationResponse> getCurrent(@AuthenticationPrincipal AuthUserDetails user) {
+        log.info("GET /application/current merchantId={}", user.getMerchantId());
         return Result.ok(applicationService.getCurrent(user.getMerchantId()));
     }
 

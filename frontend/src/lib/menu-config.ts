@@ -7,26 +7,43 @@ export interface MenuItem {
   path?: string;    // Link path (leaf menu)
   roles: UserRole[];
   children?: MenuItem[];
+  section?: string; // Items with the same section are grouped; a divider is rendered between groups
 }
 
 /**
- * Full menu definition — ordered by usage frequency: high → low.
+ * Full menu definition — grouped by section, ordered within each group.
  * Roles array defines who can see this item.
  * Parent items with children: if all children are filtered out, parent is hidden too.
+ *
+ * Sections:
+ *   "guide"   — Onboarding guide (top, visually distinct)
+ *   "main"    — Core business menus
  */
 export const MENU_CONFIG: MenuItem[] = [
+  // ─── Guide section ───
+  {
+    key: "getting-started",
+    labelKey: "nav.gettingStarted",
+    icon: "RocketLaunchIcon",
+    path: "/getting-started",
+    roles: ["ADMIN", "BUSINESS", "TECH"],
+    section: "guide",
+  },
+  // ─── Main section ───
   {
     key: "dashboard",
     labelKey: "nav.dashboard",
     icon: "ChartBarIcon",
     path: "/dashboard",
     roles: ["ADMIN", "BUSINESS"],
+    section: "main",
   },
   {
     key: "transactions",
     labelKey: "nav.transactions",
     icon: "BanknotesIcon",
     roles: ["ADMIN", "BUSINESS"],
+    section: "main",
     children: [
       {
         key: "orders",
@@ -42,6 +59,7 @@ export const MENU_CONFIG: MenuItem[] = [
     labelKey: "nav.developer",
     icon: "CodeBracketIcon",
     roles: ["ADMIN", "TECH"],
+    section: "main",
     children: [
       {
         key: "docs",
@@ -99,6 +117,7 @@ export const MENU_CONFIG: MenuItem[] = [
     labelKey: "nav.organization",
     icon: "BuildingOffice2Icon",
     roles: ["ADMIN", "BUSINESS"],
+    section: "main",
     children: [
       {
         key: "application",
@@ -115,13 +134,6 @@ export const MENU_CONFIG: MenuItem[] = [
         roles: ["ADMIN"],
       },
     ],
-  },
-  {
-    key: "getting-started",
-    labelKey: "nav.gettingStarted",
-    icon: "RocketLaunchIcon",
-    path: "/getting-started",
-    roles: ["ADMIN", "BUSINESS", "TECH"],
   },
 ];
 

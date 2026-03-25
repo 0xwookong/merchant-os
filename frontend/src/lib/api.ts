@@ -46,7 +46,11 @@ async function request<T>(
       headers,
       credentials: "include",
     });
-  } catch {
+  } catch (e) {
+    // AbortError = request was cancelled (e.g., user navigated away) — don't show error
+    if (e instanceof DOMException && e.name === "AbortError") {
+      throw e; // Re-throw so callers can detect cancellation
+    }
     // Network error (no response at all — server down, CORS blocked, etc)
     throw new ApiError(0, "网络连接失败，请检查网络后重试");
   }
@@ -74,9 +78,9 @@ async function request<T>(
 }
 
 export const api = {
-  get<T>(path: string, params?: Record<string, string>): Promise<T> {
+  get<T>(path: string, params?: Record<string, string>, signal?: AbortSignal): Promise<T> {
     const query = params ? "?" + new URLSearchParams(params).toString() : "";
-    return request<T>(path + query, { method: "GET" });
+    return request<T>(path + query, { method: "GET", signal });
   },
 
   post<T>(path: string, data?: unknown): Promise<T> {

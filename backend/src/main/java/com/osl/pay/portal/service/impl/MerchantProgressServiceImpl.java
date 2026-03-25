@@ -6,8 +6,10 @@ import com.osl.pay.portal.model.entity.*;
 import com.osl.pay.portal.repository.*;
 import com.osl.pay.portal.service.MerchantProgressService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MerchantProgressServiceImpl implements MerchantProgressService {
@@ -19,20 +21,14 @@ public class MerchantProgressServiceImpl implements MerchantProgressService {
 
     @Override
     public MerchantProgressResponse getProgress(Long merchantId) {
-        MerchantProgressResponse response = new MerchantProgressResponse();
+        log.debug("getProgress merchantId={}", merchantId);
 
-        // Account always created (user is authenticated)
+        MerchantProgressResponse response = new MerchantProgressResponse();
         response.setAccountCreated(true);
 
-        // Application status from unified t_merchant_application
-        MerchantApplication app = applicationMapper.selectOne(
-                new LambdaQueryWrapper<MerchantApplication>()
-                        .eq(MerchantApplication::getMerchantId, merchantId)
-                        .orderByDesc(MerchantApplication::getId)
-                        .last("LIMIT 1"));
-        response.setApplicationStatus(app != null ? app.getStatus() : null);
+        String status = applicationMapper.selectStatusByMerchantId(merchantId);
+        response.setApplicationStatus(status);
 
-        // Tech integration checks
         response.setHasCredentials(credentialMapper.selectCount(
                 new LambdaQueryWrapper<ApiCredential>()
                         .eq(ApiCredential::getMerchantId, merchantId)) > 0);
@@ -44,6 +40,9 @@ public class MerchantProgressServiceImpl implements MerchantProgressService {
         response.setHasDomains(domainMapper.selectCount(
                 new LambdaQueryWrapper<DomainWhitelist>()
                         .eq(DomainWhitelist::getMerchantId, merchantId)) > 0);
+
+        log.debug("getProgress merchantId={} result: status={} cred={} webhook={} domain={}",
+                merchantId, status, response.isHasCredentials(), response.isHasWebhooks(), response.isHasDomains());
 
         return response;
     }
