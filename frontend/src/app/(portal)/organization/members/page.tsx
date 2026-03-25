@@ -5,6 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useI18n } from "@/providers/language-provider";
 import { useAuth } from "@/providers/auth-provider";
 import { memberService, type MemberInfo } from "@/services/memberService";
+import { securityService } from "@/services/securityService";
 import {
   PlusIcon,
   EnvelopeIcon,
@@ -19,6 +20,7 @@ import {
   XMarkIcon,
   ChevronDownIcon,
   ClockIcon,
+  ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
 
 const ROLES = [
@@ -64,6 +66,7 @@ export default function MembersPage() {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [roleChangeTarget, setRoleChangeTarget] = useState<MemberInfo | null>(null);
 
   const fetchMembers = useCallback(() => {
     setLoading(true);
@@ -276,11 +279,23 @@ export default function MembersPage() {
                     </td>
                     <td className="py-3 px-5 text-[var(--gray-600)]">{m.email}</td>
                     <td className="py-3 px-5">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        ROLES.find(r => r.key === m.role)?.color || "bg-gray-100 text-gray-600"
-                      }`}>
-                        {t(`members.role.${m.role}`)}
-                      </span>
+                      {!isSelf && effectiveStatus === "ACTIVE" ? (
+                        <button
+                          onClick={() => setRoleChangeTarget(m)}
+                          className={`px-2 py-0.5 rounded text-xs font-medium cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-blue-300 transition-all ${
+                            ROLES.find(r => r.key === m.role)?.color || "bg-gray-100 text-gray-600"
+                          }`}
+                          title={t("members.changeRole")}
+                        >
+                          {t(`members.role.${m.role}`)}
+                        </button>
+                      ) : (
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          ROLES.find(r => r.key === m.role)?.color || "bg-gray-100 text-gray-600"
+                        }`}>
+                          {t(`members.role.${m.role}`)}
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-5">
                       <StatusBadge status={effectiveStatus} createdAt={m.createdAt} t={t} />
@@ -321,6 +336,15 @@ export default function MembersPage() {
         type={confirmAction?.type || "remove"}
         memberName={confirmAction?.member.contactName || ""}
         memberEmail={confirmAction?.member.email || ""}
+        t={t}
+      />
+
+      <RoleChangeDialog
+        open={roleChangeTarget !== null}
+        member={roleChangeTarget}
+        onClose={() => setRoleChangeTarget(null)}
+        onSuccess={() => { setRoleChangeTarget(null); fetchMembers(); }}
+        setToast={setToast}
         t={t}
       />
     </div>
@@ -431,6 +455,165 @@ function ConfirmDialog({ open, onClose, onConfirm, loading, type, memberName, me
                 ? t("common.loading")
                 : isRemove ? t("members.remove.dialog.confirm") : t("members.resend.dialog.confirm")}
             </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+function RoleChangeDialog({ open, member, onClose, onSuccess, setToast, t }: {
+  open: boolean;
+  member: MemberInfo | null;
+  onClose: () => void;
+  onSuccess: () => void;
+  setToast: (toast: { type: "success" | "error"; message: string }) => void;
+  t: (key: string) => string;
+}) {
+  const [newRole, setNewRole] = useState("");
+  const [otpEnabled, setOtpEnabled] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+
+  useEffect(() => {
+    if (open && member) {
+      setNewRole(member.role);
+      setCode("");
+      setError("");
+      setCodeSent(false);
+      securityService.getOtpStatus().then((s) => setOtpEnabled(s.otpEnabled)).catch(() => {});
+    }
+  }, [open, member]);
+
+  const handleSendCode = async () => {
+    setSendingCode(true);
+    try {
+      await securityService.sendEmailCode();
+      setCodeSent(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("common.error"));
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!member || newRole === member.role) return;
+    setLoading(true);
+    setError("");
+    try {
+      await memberService.changeRole(member.id, {
+        role: newRole,
+        ...(otpEnabled ? { otpCode: code } : { emailCode: code }),
+      });
+      setToast({ type: "success", message: t("members.changeRole.success") });
+      onSuccess();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("common.error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog.Root open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Dialog.Content
+          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden"
+          aria-describedby="role-change-desc"
+        >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--gray-100)]">
+            <div className="flex items-center gap-2">
+              <ArrowsRightLeftIcon className="w-5 h-5 text-[var(--gray-400)]" />
+              <Dialog.Title className="font-semibold text-[var(--gray-900)]">{t("members.changeRole.title")}</Dialog.Title>
+            </div>
+            <button onClick={onClose} className="p-1 rounded-md hover:bg-[var(--gray-100)] text-[var(--gray-400)]">
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-5">
+            {/* Member info */}
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--gray-50)] border border-[var(--gray-100)]">
+              <div className="w-9 h-9 rounded-full bg-[var(--gray-200)] flex items-center justify-center text-sm font-semibold text-[var(--gray-600)]">
+                {member?.contactName.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-[var(--gray-900)] truncate">{member?.contactName}</div>
+                <div className="text-xs text-[var(--gray-500)] truncate">{member?.email}</div>
+              </div>
+            </div>
+
+            {/* Role selection */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--gray-500)] mb-2">{t("members.changeRole.newRole")}</label>
+              <div className="grid grid-cols-3 gap-2">
+                {ROLES.map((r) => (
+                  <button key={r.key} onClick={() => setNewRole(r.key)}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all text-center ${
+                      newRole === r.key
+                        ? "border-[var(--primary-black)] bg-[var(--gray-50)]"
+                        : "border-[var(--gray-200)] hover:border-[var(--gray-300)]"
+                    }`}>
+                    <r.icon className={`w-5 h-5 ${newRole === r.key ? "text-[var(--gray-900)]" : "text-[var(--gray-400)]"}`} />
+                    <span className={`text-xs font-medium ${newRole === r.key ? "text-[var(--gray-900)]" : "text-[var(--gray-600)]"}`}>
+                      {t(`members.role.${r.key}`)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Verification */}
+            {newRole !== member?.role && (
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--gray-500)] mb-2">
+                  {otpEnabled ? t("members.changeRole.otpCode") : t("members.changeRole.emailCode")}
+                </label>
+                {!otpEnabled && !codeSent && (
+                  <button onClick={handleSendCode} disabled={sendingCode}
+                    className="mb-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50">
+                    {sendingCode ? t("members.changeRole.sendingCode") : t("members.changeRole.sendCode")}
+                  </button>
+                )}
+                {!otpEnabled && codeSent && (
+                  <p className="mb-2 text-xs text-green-600">{t("members.changeRole.codeSent")}</p>
+                )}
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
+                  placeholder="000000"
+                  maxLength={6}
+                  className="w-full text-center text-xl font-mono tracking-[0.4em] border border-[var(--gray-300)] rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            )}
+
+            {error && (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
+                <ExclamationTriangleIcon className="w-4 h-4 text-red-500 shrink-0" />
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
+            <p id="role-change-desc" className="text-xs text-[var(--gray-400)]">{t("members.changeRole.desc")}</p>
+
+            <div className="flex gap-3">
+              <button onClick={onClose} disabled={loading}
+                className="flex-1 px-4 py-2.5 border border-[var(--gray-300)] rounded-lg text-sm font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)]">
+                {t("common.cancel")}
+              </button>
+              <button onClick={handleSubmit}
+                disabled={loading || newRole === member?.role || code.length !== 6}
+                className="flex-1 px-4 py-2.5 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
+                {loading ? t("common.loading") : t("members.changeRole.confirm")}
+              </button>
+            </div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

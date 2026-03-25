@@ -573,6 +573,17 @@ const en = {
   "members.col.status": "Status",
   "members.col.joined": "Joined",
   "members.col.actions": "Actions",
+  "members.changeRole": "Change role",
+  "members.changeRole.title": "Change Role",
+  "members.changeRole.newRole": "New Role",
+  "members.changeRole.otpCode": "Authenticator Code",
+  "members.changeRole.emailCode": "Email Verification Code",
+  "members.changeRole.sendCode": "Send verification code",
+  "members.changeRole.sendingCode": "Sending...",
+  "members.changeRole.codeSent": "Code sent to your email",
+  "members.changeRole.desc": "Role changes require identity verification for security. This action is logged.",
+  "members.changeRole.confirm": "Confirm Change",
+  "members.changeRole.success": "Role updated successfully",
 
   // mcp
   "mcp.title": "MCP Configuration",

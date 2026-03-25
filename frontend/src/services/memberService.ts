@@ -25,6 +25,9 @@ export const memberService = {
   resendInvite(id: number): Promise<string> {
     return api.post<string>(`/api/v1/members/${id}/resend-invite`);
   },
+  changeRole(id: number, data: { role: string; otpCode?: string; emailCode?: string }): Promise<MemberInfo> {
+    return api.put<MemberInfo>(`/api/v1/members/${id}/role`, data);
+  },
   remove(id: number): Promise<string> {
     return api.delete<string>(`/api/v1/members/${id}`);
   },

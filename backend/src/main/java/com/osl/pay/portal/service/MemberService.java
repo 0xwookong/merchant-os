@@ -1,5 +1,6 @@
 package com.osl.pay.portal.service;
 
+import com.osl.pay.portal.model.dto.ChangeRoleRequest;
 import com.osl.pay.portal.model.dto.InviteMemberRequest;
 import com.osl.pay.portal.model.dto.MemberResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,4 +12,5 @@ public interface MemberService {
     MemberResponse invite(Long merchantId, Long currentUserId, InviteMemberRequest request, HttpServletRequest httpRequest);
     void remove(Long merchantId, Long currentUserId, Long memberId, HttpServletRequest httpRequest);
     void resendInvite(Long merchantId, Long currentUserId, Long memberId, HttpServletRequest httpRequest);
+    MemberResponse changeRole(Long merchantId, Long currentUserId, Long memberId, ChangeRoleRequest request, HttpServletRequest httpRequest);
 }

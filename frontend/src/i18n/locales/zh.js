@@ -573,6 +573,17 @@ const zh = {
   "members.col.status": "状态",
   "members.col.joined": "加入时间",
   "members.col.actions": "操作",
+  "members.changeRole": "修改角色",
+  "members.changeRole.title": "修改角色",
+  "members.changeRole.newRole": "新角色",
+  "members.changeRole.otpCode": "身份验证器验证码",
+  "members.changeRole.emailCode": "邮件验证码",
+  "members.changeRole.sendCode": "发送验证码",
+  "members.changeRole.sendingCode": "发送中...",
+  "members.changeRole.codeSent": "验证码已发送到您的邮箱",
+  "members.changeRole.desc": "角色变更需要身份验证以确保安全，此操作将记录审计日志。",
+  "members.changeRole.confirm": "确认变更",
+  "members.changeRole.success": "角色已更新",
 
   // mcp
   "mcp.title": "MCP 配置中心",

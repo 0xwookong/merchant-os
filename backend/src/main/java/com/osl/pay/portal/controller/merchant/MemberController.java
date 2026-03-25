@@ -1,6 +1,7 @@
 package com.osl.pay.portal.controller.merchant;
 
 import com.osl.pay.portal.common.result.Result;
+import com.osl.pay.portal.model.dto.ChangeRoleRequest;
 import com.osl.pay.portal.model.dto.InviteMemberRequest;
 import com.osl.pay.portal.model.dto.MemberResponse;
 import com.osl.pay.portal.security.AuthUserDetails;
@@ -38,6 +39,14 @@ public class MemberController {
                                        HttpServletRequest httpRequest) {
         memberService.resendInvite(user.getMerchantId(), user.getUserId(), id, httpRequest);
         return Result.ok("已重新发送邀请");
+    }
+
+    @PutMapping("/{id}/role")
+    public Result<MemberResponse> changeRole(@AuthenticationPrincipal AuthUserDetails user,
+                                              @PathVariable Long id,
+                                              @Valid @RequestBody ChangeRoleRequest request,
+                                              HttpServletRequest httpRequest) {
+        return Result.ok(memberService.changeRole(user.getMerchantId(), user.getUserId(), id, request, httpRequest));
     }
 
     @DeleteMapping("/{id}")

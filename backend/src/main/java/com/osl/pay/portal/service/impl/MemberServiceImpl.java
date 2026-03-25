@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.osl.pay.portal.common.audit.AuditEventType;
 import com.osl.pay.portal.common.audit.AuditService;
 import com.osl.pay.portal.common.exception.BizException;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.osl.pay.portal.model.dto.ChangeRoleRequest;
 import com.osl.pay.portal.model.dto.InviteMemberRequest;
 import com.osl.pay.portal.model.dto.MemberResponse;
 import com.osl.pay.portal.model.entity.MerchantUser;
@@ -11,6 +13,7 @@ import com.osl.pay.portal.model.enums.UserRole;
 import com.osl.pay.portal.model.enums.UserStatus;
 import com.osl.pay.portal.repository.MerchantUserMapper;
 import com.osl.pay.portal.security.AuthRedisService;
+import com.osl.pay.portal.service.ActionVerificationService;
 import com.osl.pay.portal.service.EmailService;
 import com.osl.pay.portal.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +36,7 @@ public class MemberServiceImpl implements MemberService {
     private final PasswordEncoder passwordEncoder;
     private final AuditService auditService;
     private final AuthRedisService authRedis;
+    private final ActionVerificationService actionVerification;
 
     private static final Set<String> VALID_ROLES = Set.of("ADMIN", "BUSINESS", "TECH");
 
@@ -127,6 +131,44 @@ public class MemberServiceImpl implements MemberService {
                 "Resent invitation to " + user.getEmail());
 
         log.info("Invitation resent: merchantId={}, memberId={}, email={}", merchantId, memberId, user.getEmail());
+    }
+
+    @Override
+    public MemberResponse changeRole(Long merchantId, Long currentUserId, Long memberId,
+                                      ChangeRoleRequest request, HttpServletRequest httpRequest) {
+        if (!VALID_ROLES.contains(request.getRole())) {
+            throw new BizException(40000, "无效的角色");
+        }
+
+        if (currentUserId.equals(memberId)) {
+            throw new BizException(40000, "无法修改自己的角色");
+        }
+
+        MerchantUser target = merchantUserMapper.selectById(memberId);
+        if (target == null || !target.getMerchantId().equals(merchantId)) {
+            throw new BizException(40400, "成员不存在");
+        }
+
+        if (target.getRole().getValue().equals(request.getRole())) {
+            throw new BizException(40000, "角色未变更");
+        }
+
+        // Verify action (OTP or email code)
+        actionVerification.verify(currentUserId, request.getOtpCode(), request.getEmailCode());
+
+        String oldRole = target.getRole().getValue();
+        merchantUserMapper.update(new LambdaUpdateWrapper<MerchantUser>()
+                .eq(MerchantUser::getId, memberId)
+                .set(MerchantUser::getRole, UserRole.valueOf(request.getRole())));
+
+        auditService.log("MEMBER_ROLE_CHANGED", currentUserId, merchantId,
+                target.getEmail(), httpRequest, true,
+                "Role changed: " + oldRole + " → " + request.getRole());
+
+        log.info("Member role changed: merchantId={}, memberId={}, {} → {}", merchantId, memberId, oldRole, request.getRole());
+
+        target.setRole(UserRole.valueOf(request.getRole()));
+        return toResponse(target);
     }
 
     private MemberResponse toResponse(MerchantUser u) {
