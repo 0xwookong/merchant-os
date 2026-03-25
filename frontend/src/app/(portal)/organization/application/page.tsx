@@ -39,6 +39,7 @@ export default function ApplicationPage() {
   const [directors, setDirectors] = useState<DirectorInfo[]>([{ ...EMPTY_PERSON }]);
   const [authorizedPersons, setAuthorizedPersons] = useState<AuthorizedPersonInfo[]>([{ ...EMPTY_AUTH }]);
   const [licenceInfo, setLicenceInfo] = useState<LicenceInfo | undefined>();
+  const [uploadedDocs, setUploadedDocs] = useState<import("@/services/applicationService").DocumentResponse[]>([]);
   const [declarations, setDeclarations] = useState({ info: false, sanctions: false, terms: false });
   const errorRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +47,11 @@ export default function ApplicationPage() {
 
   async function loadCurrent() {
     try {
-      const data = await applicationService.getCurrent();
+      const [data, docs] = await Promise.all([
+        applicationService.getCurrent(),
+        applicationService.listDocuments().catch(() => [] as import("@/services/applicationService").DocumentResponse[]),
+      ]);
+      if (docs.length > 0) setUploadedDocs(docs);
       if (data) {
         setAppData(data);
         setAppStatus(data.status);
@@ -118,6 +123,30 @@ export default function ApplicationPage() {
       if (blank(form.sourceOfIncome)) return t("app.field.sourceOfIncome") + t("app.validate.required");
       if (blank(form.supportedFiat)) return t("app.field.supportedFiat") + t("app.validate.required");
       if (blank(form.supportedCrypto)) return t("app.field.supportedCrypto") + t("app.validate.required");
+    }
+    if (step === docsStep) {
+      const hasDoc = (type: string) => uploadedDocs.some((d) => d.docType === type);
+      if (!hasDoc("BUSINESS_LICENSE")) return t("app.doc.formation") + t("app.validate.required");
+      if (!hasDoc("BUSINESS_PROFILE")) return t("app.doc.businessProfile") + t("app.validate.required");
+      if (!hasDoc("ARTICLES")) return t("app.doc.articles") + t("app.validate.required");
+      if (!hasDoc("SHARE_STRUCTURE")) return t("app.doc.orgChart") + t("app.validate.required");
+      if (!hasDoc("SHAREHOLDER_LIST")) return t("app.doc.shareholderList") + t("app.validate.required");
+      if (!hasDoc("DIRECTOR_LIST")) return t("app.doc.directorList") + t("app.validate.required");
+      if (!hasDoc("DIRECTOR_ID")) return t("app.doc.directorId") + t("app.validate.required");
+      if (!hasDoc("ADDRESS_PROOF")) return t("app.doc.addressProof") + t("app.validate.required");
+      // UBO ID for each UBO
+      if (!noUboDecl) {
+        for (let i = 0; i < ubos.length; i++) {
+          if (!uploadedDocs.some((d) => d.docType === "UBO_ID_FRONT" && d.uboIndex === i)) {
+            return `${ubos[i].name || "UBO #" + (i + 1)} — ${t("app.doc.uboFront")}${t("app.validate.required")}`;
+          }
+        }
+      }
+      // VASP/CASP additional required docs
+      if (isVaspCasp) {
+        if (!hasDoc("REGULATORY_PERMIT")) return t("app.doc.regulatoryPermit") + t("app.validate.required");
+        if (!hasDoc("AML_POLICY")) return t("app.doc.amlPolicy") + t("app.validate.required");
+      }
     }
     return null;
   }
@@ -233,7 +262,7 @@ export default function ApplicationPage() {
             onDirectorsChange={setDirectors} onAuthorizedPersonsChange={setAuthorizedPersons} />
         )}
         {step === 3 && <StepBusiness form={form} update={updateField} licenceInfo={licenceInfo} onLicenceInfoChange={setLicenceInfo} />}
-        {step === docsStep && <StepDocuments ubos={noUboDecl ? [] : ubos} isVaspCasp={isVaspCasp} />}
+        {step === docsStep && <StepDocuments ubos={noUboDecl ? [] : ubos} isVaspCasp={isVaspCasp} docs={uploadedDocs} onDocsChange={setUploadedDocs} />}
         {step === confirmStep && (
           <StepConfirm form={form} legalRep={legalRep} ubos={ubos} noUboDeclaration={noUboDecl}
             controlStructureDesc={controlDesc} declarations={declarations} onDeclarationsChange={setDeclarations}

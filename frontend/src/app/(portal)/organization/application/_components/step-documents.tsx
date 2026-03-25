@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useI18n } from "@/providers/language-provider";
 import { applicationService } from "@/services/applicationService";
 import type { DocumentResponse, UboInfo } from "@/services/applicationService";
@@ -9,24 +9,21 @@ import { ArrowUpTrayIcon, TrashIcon, DocumentIcon } from "@heroicons/react/24/ou
 interface Props {
   ubos: UboInfo[];
   isVaspCasp: boolean;
+  docs: DocumentResponse[];
+  onDocsChange: (docs: DocumentResponse[]) => void;
 }
 
-export default function StepDocuments({ ubos, isVaspCasp }: Props) {
+export default function StepDocuments({ ubos, isVaspCasp, docs, onDocsChange }: Props) {
   const { t } = useI18n();
-  const [docs, setDocs] = useState<DocumentResponse[]>([]);
   const [uploading, setUploading] = useState<string | null>(null);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    applicationService.listDocuments().then(setDocs).catch(() => {});
-  }, []);
 
   async function handleUpload(file: File, docType: string, uboIndex?: number) {
     setUploading(docType + (uboIndex !== undefined ? `-${uboIndex}` : ""));
     setError("");
     try {
       const doc = await applicationService.uploadDocument(file, docType, uboIndex);
-      setDocs((prev) => [...prev, doc]);
+      onDocsChange([...docs, doc]);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally { setUploading(null); }
@@ -35,7 +32,7 @@ export default function StepDocuments({ ubos, isVaspCasp }: Props) {
   async function handleDelete(docId: number) {
     try {
       await applicationService.deleteDocument(docId);
-      setDocs((prev) => prev.filter((d) => d.id !== docId));
+      onDocsChange(docs.filter((d) => d.id !== docId));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     }
