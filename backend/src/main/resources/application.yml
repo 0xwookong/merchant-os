@@ -19,6 +19,23 @@ spring:
       host: localhost
       port: 6379
 
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:false}
+          starttls:
+            enable: ${SMTP_STARTTLS:false}
+
+# Email sender
+email:
+  from: ${EMAIL_FROM:noreply@osl-pay.com}
+  from-name: ${EMAIL_FROM_NAME:OSL Pay}
+
 # MyBatis-Plus
 mybatis-plus:
   configuration:

@@ -182,6 +182,63 @@ CREATE TABLE IF NOT EXISTS t_webhook_log (
     FOREIGN KEY (webhook_id) REFERENCES t_webhook_config(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Email template table (data-driven email content)
+CREATE TABLE IF NOT EXISTS t_email_template (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(50) NOT NULL COMMENT 'Template code: VERIFY_EMAIL, PASSWORD_RESET, INVITATION, etc.',
+    locale VARCHAR(10) NOT NULL DEFAULT 'en' COMMENT 'Language: en, zh',
+    subject VARCHAR(200) NOT NULL COMMENT 'Email subject (supports {var} placeholders)',
+    body_html TEXT NOT NULL COMMENT 'HTML body content (supports {var} placeholders, wrapped in brand layout)',
+    description VARCHAR(200) COMMENT 'What this template is for',
+    status ENUM('ACTIVE','DISABLED') NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_code_locale (code, locale)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed default email templates
+INSERT INTO t_email_template (code, locale, subject, body_html, description) VALUES
+-- Verification email
+('VERIFY_EMAIL', 'en', 'Verify your email — OSL Pay',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">Thank you for registering with OSL Pay. Please click the button below to verify your email address.</p>
+<div style="text-align:center;margin:32px 0"><a href="{verifyLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">Verify Email</a></div>
+<p style="color:#9ca3af;font-size:13px;line-height:1.5;margin:0">If the button doesn\'t work, copy and paste this link:<br/><a href="{verifyLink}" style="color:#2563eb;word-break:break-all">{verifyLink}</a></p>
+<p style="color:#9ca3af;font-size:13px;margin:16px 0 0">This link expires in 30 minutes.</p>',
+'Email verification for new registrations'),
+
+('VERIFY_EMAIL', 'zh', '验证您的邮箱 — OSL Pay',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">感谢您注册 OSL Pay。请点击下方按钮验证您的邮箱地址。</p>
+<div style="text-align:center;margin:32px 0"><a href="{verifyLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">验证邮箱</a></div>
+<p style="color:#9ca3af;font-size:13px;line-height:1.5;margin:0">如果按钮无法点击，请复制以下链接到浏览器：<br/><a href="{verifyLink}" style="color:#2563eb;word-break:break-all">{verifyLink}</a></p>
+<p style="color:#9ca3af;font-size:13px;margin:16px 0 0">此链接 30 分钟内有效。</p>',
+'新用户注册邮箱验证'),
+
+-- Password reset email (single merchant)
+('PASSWORD_RESET', 'en', 'Reset your password — OSL Pay',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">We received a request to reset your password. Click the button below to set a new password.</p>
+{resetLinksHtml}
+<p style="color:#9ca3af;font-size:13px;margin:16px 0 0">If you didn\'t request this, you can safely ignore this email. The link expires in 30 minutes.</p>',
+'Password reset email'),
+
+('PASSWORD_RESET', 'zh', '重置您的密码 — OSL Pay',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">我们收到了重置您密码的请求。请点击下方按钮设置新密码。</p>
+{resetLinksHtml}
+<p style="color:#9ca3af;font-size:13px;margin:16px 0 0">如果这不是您本人操作，请忽略此邮件。链接 30 分钟内有效。</p>',
+'密码重置邮件'),
+
+-- Invitation email
+('INVITATION', 'en', 'You''ve been invited to OSL Pay',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">Hi {contactName},<br/><br/>You''ve been invited to join the OSL Pay Merchant Portal. Sign in with the credentials provided by your administrator to get started.</p>
+<div style="text-align:center;margin:32px 0"><a href="{loginLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">Sign In</a></div>
+<p style="color:#9ca3af;font-size:13px;margin:0">If you weren''t expecting this invitation, please ignore this email.</p>',
+'Team member invitation'),
+
+('INVITATION', 'zh', '您已被邀请加入 OSL Pay',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">您好 {contactName}，<br/><br/>您已被邀请加入 OSL Pay 商户平台。请使用管理员提供的凭据登录。</p>
+<div style="text-align:center;margin:32px 0"><a href="{loginLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">登录平台</a></div>
+<p style="color:#9ca3af;font-size:13px;margin:0">如果您不知道为何收到此邮件，请忽略。</p>',
+'团队成员邀请');
+
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
 CREATE TABLE IF NOT EXISTS t_audit_log (
