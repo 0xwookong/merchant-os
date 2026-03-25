@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/providers/language-provider";
 import { applicationService } from "@/services/applicationService";
 import type { ApplicationSaveDraftRequest, ApplicationResponse, PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo, LicenceInfo } from "@/services/applicationService";
@@ -40,6 +40,7 @@ export default function ApplicationPage() {
   const [authorizedPersons, setAuthorizedPersons] = useState<AuthorizedPersonInfo[]>([{ ...EMPTY_AUTH }]);
   const [licenceInfo, setLicenceInfo] = useState<LicenceInfo | undefined>();
   const [declarations, setDeclarations] = useState({ info: false, sanctions: false, terms: false });
+  const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadCurrent(); }, []);
 
@@ -123,7 +124,11 @@ export default function ApplicationPage() {
 
   async function saveDraft(nextStep: number) {
     const validationError = validateCurrentStep();
-    if (validationError) { setError(validationError); return; }
+    if (validationError) {
+      setError(validationError);
+      setTimeout(() => errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+      return;
+    }
 
     setSaving(true); setError("");
     try {
@@ -217,7 +222,7 @@ export default function ApplicationPage() {
         ))}
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{error}</div>}
+      {error && <div ref={errorRef} className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{error}</div>}
 
       <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-8">
         {step === 1 && <StepCompany form={form} update={updateField} />}
