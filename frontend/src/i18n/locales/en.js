@@ -77,7 +77,7 @@ const en = {
   "auth.login.networkError": "Network error, please try again",
   "auth.login.otp.title": "Two-Factor Verification",
   "auth.login.otp.subtitle": "Enter the 6-digit code from your authenticator app, or a recovery code",
-  "auth.login.otp.placeholder": "000000 or 0000-0000",
+  "auth.login.otp.placeholder": "000000",
   "auth.login.otp.verify": "Verify",
   "auth.login.otp.verifying": "Verifying...",
   "auth.login.otp.back": "Back to login",
