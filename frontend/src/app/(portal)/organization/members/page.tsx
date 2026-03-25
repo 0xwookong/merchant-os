@@ -275,23 +275,11 @@ export default function MembersPage() {
                     </td>
                     <td className="py-3 px-5 text-[var(--gray-600)]">{m.email}</td>
                     <td className="py-3 px-5">
-                      {!isSelf && effectiveStatus === "ACTIVE" ? (
-                        <button
-                          onClick={() => setRoleChangeTarget(m)}
-                          className={`px-2 py-0.5 rounded text-xs font-medium cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-blue-300 transition-all ${
-                            ROLES.find(r => r.key === m.role)?.color || "bg-gray-100 text-gray-600"
-                          }`}
-                          title={t("members.changeRole")}
-                        >
-                          {t(`members.role.${m.role}`)}
-                        </button>
-                      ) : (
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          ROLES.find(r => r.key === m.role)?.color || "bg-gray-100 text-gray-600"
-                        }`}>
-                          {t(`members.role.${m.role}`)}
-                        </span>
-                      )}
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        ROLES.find(r => r.key === m.role)?.color || "bg-gray-100 text-gray-600"
+                      }`}>
+                        {t(`members.role.${m.role}`)}
+                      </span>
                     </td>
                     <td className="py-3 px-5">
                       <StatusBadge status={effectiveStatus} createdAt={m.createdAt} t={t} />
@@ -306,6 +294,12 @@ export default function MembersPage() {
                             className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {resendingId === m.id ? t("members.resend.sending") : t("members.resend")}
+                          </button>
+                        )}
+                        {!isSelf && effectiveStatus === "ACTIVE" && (
+                          <button onClick={() => setRoleChangeTarget(m)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--gray-600)] hover:bg-[var(--gray-100)] transition-colors">
+                            {t("members.changeRole")}
                           </button>
                         )}
                         {!isSelf && m.otpEnabled && (
