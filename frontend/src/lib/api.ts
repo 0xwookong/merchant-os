@@ -1,7 +1,21 @@
-import { getAccessToken } from "./auth";
+import { getAccessToken, clearAccessToken, clearRefreshToken } from "./auth";
 import { getEnvironment } from "./environment";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+/**
+ * Emit a global event when the session expires (401).
+ * AuthProvider listens for this and triggers logout + redirect.
+ */
+function handleSessionExpired() {
+  // Clear tokens immediately to prevent further requests with expired token
+  clearAccessToken();
+  clearRefreshToken();
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("oslpay_user");
+    window.dispatchEvent(new CustomEvent("auth:session-expired"));
+  }
+}
 
 interface ApiResponse<T> {
   code: number;
@@ -65,12 +79,17 @@ async function request<T>(
       throw new ApiError(50000, "服务器错误，请稍后重试", res.status);
     }
     if (res.status === 401 || res.status === 403) {
+      handleSessionExpired();
       throw new ApiError(res.status, "登录已过期，请重新登录", res.status);
     }
     throw new ApiError(res.status, `请求失败 (HTTP ${res.status})`, res.status);
   }
 
   if (body.code !== 0) {
+    // Backend returns JSON 401/403 (e.g., expired JWT parsed by Spring Security)
+    if (res.status === 401 || res.status === 403) {
+      handleSessionExpired();
+    }
     throw new ApiError(body.code, body.message, res.status);
   }
 

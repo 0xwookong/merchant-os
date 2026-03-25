@@ -109,6 +109,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  // Listen for global session-expired events from api.ts
+  // This handles the case where any API call gets 401 during the session
+  useEffect(() => {
+    function handleExpired() {
+      // Tokens already cleared by api.ts; just update React state
+      setUser(null);
+    }
+    window.addEventListener("auth:session-expired", handleExpired);
+    return () => window.removeEventListener("auth:session-expired", handleExpired);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
