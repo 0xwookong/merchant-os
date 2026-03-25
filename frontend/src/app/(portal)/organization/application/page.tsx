@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useI18n } from "@/providers/language-provider";
-import { getEnvironment } from "@/lib/environment";
 import { applicationService } from "@/services/applicationService";
 import type { ApplicationSaveDraftRequest, ApplicationResponse, PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo, LicenceInfo } from "@/services/applicationService";
 import StepCompany from "./_components/step-company";
@@ -19,10 +18,9 @@ const EMPTY_AUTH: AuthorizedPersonInfo = { ...EMPTY_PERSON, phone: "", email: ""
 
 export default function ApplicationPage() {
   const { t } = useI18n();
-  const isSandbox = getEnvironment() === "sandbox";
-  const totalSteps = isSandbox ? 4 : 5;
-  const confirmStep = totalSteps;
-  const docsStep = isSandbox ? -1 : 4;
+  const totalSteps = 5;
+  const confirmStep = 5;
+  const docsStep = 4;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -160,9 +158,7 @@ export default function ApplicationPage() {
   const allDeclared = declarations.info && declarations.sanctions && declarations.terms;
   const isVaspCasp = form.counterpartyType === "CASP" || form.counterpartyType === "VASP";
 
-  const STEP_LABELS = isSandbox
-    ? [t("app.step.company"), t("app.step.legal"), t("app.step.business"), t("app.step.confirm")]
-    : [t("app.step.company"), t("app.step.legal"), t("app.step.business"), t("app.step.documents"), t("app.step.confirm")];
+  const STEP_LABELS = [t("app.step.company"), t("app.step.legal"), t("app.step.business"), t("app.step.documents"), t("app.step.confirm")];
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin h-8 w-8 border-2 border-[var(--gray-300)] border-t-[var(--primary-black)] rounded-full" /></div>;
