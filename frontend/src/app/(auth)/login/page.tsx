@@ -58,8 +58,10 @@ export default function LoginPage() {
     }
   };
 
+  const isValidOtpInput = (v: string) => /^\d{6}$/.test(v) || /^\d{4}-\d{4}$/.test(v);
+
   const handleOtpVerify = async () => {
-    if (!otpToken || otpCode.length !== 6) return;
+    if (!otpToken || !isValidOtpInput(otpCode)) return;
     setLoading(true);
     setError("");
     try {
@@ -95,17 +97,17 @@ export default function LoginPage() {
           <input
             type="text"
             value={otpCode}
-            onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
-            placeholder="000000"
-            maxLength={6}
+            onChange={(e) => { setOtpCode(e.target.value.replace(/[^\d-]/g, "").slice(0, 9)); setError(""); }}
+            placeholder={t("auth.login.otp.placeholder")}
+            maxLength={9}
             autoFocus
-            className="w-full text-center text-2xl font-mono tracking-[0.5em] border border-[var(--gray-300)] rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-[var(--primary-black)] focus:border-transparent"
+            className="w-full text-center text-2xl font-mono tracking-[0.3em] border border-[var(--gray-300)] rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-[var(--primary-black)] focus:border-transparent"
           />
         </div>
 
         <button
           onClick={handleOtpVerify}
-          disabled={loading || otpCode.length !== 6}
+          disabled={loading || !isValidOtpInput(otpCode)}
           className="w-full bg-[var(--primary-black)] text-white font-medium py-3 px-5 rounded-xl hover:bg-[#1a1a1a] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? (

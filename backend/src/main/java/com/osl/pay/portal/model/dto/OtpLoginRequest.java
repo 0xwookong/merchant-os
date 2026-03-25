@@ -11,6 +11,6 @@ public class OtpLoginRequest {
     private String otpToken;
 
     @NotBlank(message = "验证码不能为空")
-    @Pattern(regexp = "^\\d{6}$", message = "验证码必须为 6 位数字")
+    @Pattern(regexp = "^(\\d{6}|\\d{4}-\\d{4})$", message = "请输入 6 位验证码或恢复码")
     private String code;
 }
