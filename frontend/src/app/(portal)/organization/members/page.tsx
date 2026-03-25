@@ -1,14 +1,22 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { useI18n } from "@/providers/language-provider";
 import { useAuth } from "@/providers/auth-provider";
 import { memberService, type MemberInfo } from "@/services/memberService";
 import {
   PlusIcon,
+  EnvelopeIcon,
+  UserIcon,
   ShieldCheckIcon,
   BriefcaseIcon,
   CodeBracketIcon,
+  ExclamationTriangleIcon,
+  PaperAirplaneIcon,
+  CheckCircleIcon,
+  XMarkIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 const ROLES = [
@@ -16,6 +24,8 @@ const ROLES = [
   { key: "BUSINESS", icon: BriefcaseIcon, color: "bg-blue-100 text-blue-700" },
   { key: "TECH", icon: CodeBracketIcon, color: "bg-green-100 text-green-700" },
 ] as const;
+
+type ConfirmAction = { type: "remove"; member: MemberInfo } | { type: "resend"; member: MemberInfo } | null;
 
 export default function MembersPage() {
   const { t } = useI18n();
@@ -29,6 +39,9 @@ export default function MembersPage() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [error, setError] = useState("");
   const [resendingId, setResendingId] = useState<number | null>(null);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const fetchMembers = useCallback(() => {
     setLoading(true);
@@ -36,6 +49,13 @@ export default function MembersPage() {
   }, []);
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const handleInvite = async () => {
     setInviteLoading(true);
@@ -47,37 +67,41 @@ export default function MembersPage() {
       setRole("TECH");
       setContactName("");
       fetchMembers();
+      setToast({ type: "success", message: t("members.invite.success") });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "邀请失败");
+      setError(err instanceof Error ? err.message : t("members.invite.error"));
     } finally {
       setInviteLoading(false);
     }
   };
 
-  const handleResend = async (id: number) => {
-    setResendingId(id);
+  const handleConfirm = async () => {
+    if (!confirmAction) return;
+    setConfirmLoading(true);
     try {
-      await memberService.resendInvite(id);
-      alert(t("members.resend.success"));
+      if (confirmAction.type === "remove") {
+        await memberService.remove(confirmAction.member.id);
+        fetchMembers();
+        setToast({ type: "success", message: t("members.remove.success") });
+      } else {
+        setResendingId(confirmAction.member.id);
+        await memberService.resendInvite(confirmAction.member.id);
+        setToast({ type: "success", message: t("members.resend.success") });
+      }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : t("members.resend.error"));
+      setToast({ type: "error", message: err instanceof Error ? err.message : t("common.error") });
     } finally {
+      setConfirmLoading(false);
       setResendingId(null);
-    }
-  };
-
-  const handleRemove = async (id: number) => {
-    if (!confirm(t("members.remove.confirm"))) return;
-    try {
-      await memberService.remove(id);
-      fetchMembers();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "操作失败");
+      setConfirmAction(null);
     }
   };
 
   return (
     <div className="space-y-8">
+      {/* Toast notification */}
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -108,41 +132,74 @@ export default function MembersPage() {
 
       {/* Invite form */}
       {showInvite && (
-        <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-6 space-y-4">
-          <h3 className="font-semibold text-[var(--gray-900)]">{t("members.invite")}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">{t("members.invite.email")}</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("members.invite.email.placeholder")}
-                className="w-full border border-[var(--gray-300)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-[var(--gray-100)] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <PaperAirplaneIcon className="w-5 h-5 text-[var(--gray-400)]" />
+              <h3 className="font-semibold text-[var(--gray-900)]">{t("members.invite")}</h3>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">{t("members.invite.name")}</label>
-              <input type="text" value={contactName} onChange={(e) => setContactName(e.target.value)}
-                placeholder={t("members.invite.name.placeholder")}
-                className="w-full border border-[var(--gray-300)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">{t("members.invite.role")}</label>
-              <select value={role} onChange={(e) => setRole(e.target.value)}
-                className="w-full border border-[var(--gray-300)] rounded-lg px-3 py-2.5 text-sm">
-                <option value="ADMIN">{t("members.role.ADMIN")}</option>
-                <option value="BUSINESS">{t("members.role.BUSINESS")}</option>
-                <option value="TECH">{t("members.role.TECH")}</option>
-              </select>
-            </div>
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <div className="flex gap-3">
-            <button onClick={handleInvite} disabled={inviteLoading || !email}
-              className="px-5 py-2.5 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed">
-              {inviteLoading ? t("members.invite.submitting") : t("members.invite.submit")}
-            </button>
             <button onClick={() => { setShowInvite(false); setError(""); }}
-              className="px-5 py-2.5 border border-[var(--gray-300)] rounded-lg text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)]">
-              {t("members.cancel")}
+              className="p-1 rounded-md hover:bg-[var(--gray-100)] transition-colors text-[var(--gray-400)] hover:text-[var(--gray-600)]">
+              <XMarkIcon className="w-5 h-5" />
             </button>
+          </div>
+          <div className="p-6 space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--gray-500)] mb-2">
+                  {t("members.invite.email")}
+                </label>
+                <div className="relative">
+                  <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--gray-400)]" />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t("members.invite.email.placeholder")}
+                    className="w-full border border-[var(--gray-300)] rounded-lg pl-9 pr-3 py-2.5 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--gray-500)] mb-2">
+                  {t("members.invite.name")}
+                </label>
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--gray-400)]" />
+                  <input type="text" value={contactName} onChange={(e) => setContactName(e.target.value)}
+                    placeholder={t("members.invite.name.placeholder")}
+                    className="w-full border border-[var(--gray-300)] rounded-lg pl-9 pr-3 py-2.5 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--gray-500)] mb-2">
+                  {t("members.invite.role")}
+                </label>
+                <div className="relative">
+                  <ShieldCheckIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--gray-400)]" />
+                  <select value={role} onChange={(e) => setRole(e.target.value)}
+                    className="w-full appearance-none border border-[var(--gray-300)] rounded-lg pl-9 pr-9 py-2.5 text-sm text-[var(--gray-900)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="ADMIN">{t("members.role.ADMIN")}</option>
+                    <option value="BUSINESS">{t("members.role.BUSINESS")}</option>
+                    <option value="TECH">{t("members.role.TECH")}</option>
+                  </select>
+                  <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--gray-400)] pointer-events-none" />
+                </div>
+              </div>
+            </div>
+            {error && (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
+                <ExclamationTriangleIcon className="w-4 h-4 text-red-500 shrink-0" />
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button onClick={handleInvite} disabled={inviteLoading || !email}
+                className="flex items-center gap-2 px-5 py-2.5 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
+                <PaperAirplaneIcon className="w-4 h-4" />
+                {inviteLoading ? t("members.invite.submitting") : t("members.invite.submit")}
+              </button>
+              <button onClick={() => { setShowInvite(false); setError(""); }}
+                className="px-5 py-2.5 border border-[var(--gray-300)] rounded-lg text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition-colors">
+                {t("members.cancel")}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -184,12 +241,12 @@ export default function MembersPage() {
                       {t(`members.status.${m.status}`)}
                     </span>
                   </td>
-                  <td className="py-3 px-5 text-[var(--gray-400)] text-xs">{new Date(m.createdAt).toLocaleDateString("zh-CN")}</td>
+                  <td className="py-3 px-5 text-[var(--gray-400)] text-xs">{new Date(m.createdAt).toLocaleDateString()}</td>
                   <td className="py-3 px-5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       {m.status === "PENDING" && (
                         <button
-                          onClick={() => handleResend(m.id)}
+                          onClick={() => setConfirmAction({ type: "resend", member: m })}
                           disabled={resendingId === m.id}
                           className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -197,7 +254,7 @@ export default function MembersPage() {
                         </button>
                       )}
                       {m.id !== user?.userId && (
-                        <button onClick={() => handleRemove(m.id)}
+                        <button onClick={() => setConfirmAction({ type: "remove", member: m })}
                           className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
                           {t("members.remove")}
                         </button>
@@ -210,6 +267,115 @@ export default function MembersPage() {
           </table>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmAction !== null}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleConfirm}
+        loading={confirmLoading}
+        type={confirmAction?.type || "remove"}
+        memberName={confirmAction?.member.contactName || ""}
+        memberEmail={confirmAction?.member.email || ""}
+        t={t}
+      />
+    </div>
+  );
+}
+
+// ===== Sub-components =====
+
+function ConfirmDialog({ open, onClose, onConfirm, loading, type, memberName, memberEmail, t }: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+  type: "remove" | "resend";
+  memberName: string;
+  memberEmail: string;
+  t: (key: string) => string;
+}) {
+  const isRemove = type === "remove";
+
+  return (
+    <Dialog.Root open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+        <Dialog.Content
+          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-lg p-6 space-y-5 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+          aria-describedby="confirm-desc"
+        >
+          {/* Icon */}
+          <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${
+            isRemove ? "bg-red-100" : "bg-blue-100"
+          }`}>
+            {isRemove
+              ? <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+              : <PaperAirplaneIcon className="w-6 h-6 text-blue-600" />}
+          </div>
+
+          {/* Title & description */}
+          <div className="text-center">
+            <Dialog.Title className="text-lg font-semibold text-[var(--gray-900)]">
+              {isRemove ? t("members.remove.dialog.title") : t("members.resend.dialog.title")}
+            </Dialog.Title>
+            <p id="confirm-desc" className="text-sm text-[var(--gray-500)] mt-2">
+              {isRemove ? t("members.remove.dialog.desc") : t("members.resend.dialog.desc")}
+            </p>
+          </div>
+
+          {/* Member info card */}
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--gray-50)] border border-[var(--gray-100)]">
+            <div className="w-9 h-9 rounded-full bg-[var(--gray-200)] flex items-center justify-center text-sm font-semibold text-[var(--gray-600)]">
+              {memberName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-[var(--gray-900)] truncate">{memberName}</div>
+              <div className="text-xs text-[var(--gray-500)] truncate">{memberEmail}</div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 px-4 py-2.5 border border-[var(--gray-300)] rounded-lg text-sm font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition-colors disabled:opacity-50"
+            >
+              {t("common.cancel")}
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={loading}
+              className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${
+                isRemove ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {loading
+                ? t("common.loading")
+                : isRemove ? t("members.remove.dialog.confirm") : t("members.resend.dialog.confirm")}
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+function Toast({ type, message, onClose }: { type: "success" | "error"; message: string; onClose: () => void }) {
+  return (
+    <div className={`fixed top-20 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-lg shadow-lg border animate-in slide-in-from-right-5 fade-in-0 ${
+      type === "success"
+        ? "bg-white border-green-200 text-green-700"
+        : "bg-white border-red-200 text-red-700"
+    }`}>
+      {type === "success"
+        ? <CheckCircleIcon className="w-5 h-5 text-green-500 shrink-0" />
+        : <ExclamationTriangleIcon className="w-5 h-5 text-red-500 shrink-0" />}
+      <span className="text-sm font-medium">{message}</span>
+      <button onClick={onClose} className="p-0.5 rounded hover:bg-[var(--gray-100)] transition-colors ml-2">
+        <XMarkIcon className="w-4 h-4 text-[var(--gray-400)]" />
+      </button>
     </div>
   );
 }
