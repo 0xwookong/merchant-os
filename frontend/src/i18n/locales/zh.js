@@ -555,12 +555,19 @@ const zh = {
   "members.role.TECH.desc": "仅看开发者套件",
   "members.status.ACTIVE": "已激活",
   "members.status.PENDING": "待接受",
+  "members.status.EXPIRED": "已过期",
+  "members.invited.today": "今日发送",
+  "members.invited.daysAgo": "{days} 天前发送",
+  "members.you": "我",
+  "members.empty.title": "邀请你的团队",
+  "members.empty.desc": "添加团队成员开始协作，通过角色分配控制每位成员的访问权限。",
   "members.cancel": "取消",
   "members.col.name": "姓名",
   "members.col.email": "邮箱",
   "members.col.role": "角色",
   "members.col.status": "状态",
   "members.col.joined": "加入时间",
+  "members.col.actions": "操作",
 
   // mcp
   "mcp.title": "MCP 配置中心",
@@ -721,6 +728,29 @@ const zh = {
 
   "journey.devGuide.title": "开发者快速开始",
   "journey.devGuide.subtitle": "选择集成方式，按步骤完成技术对接",
+
+  // 安全设置
+  "security.title": "安全设置",
+  "security.subtitle": "管理账户安全和两步验证",
+  "security.otp.title": "两步验证 (2FA)",
+  "security.otp.authenticator": "身份验证器",
+  "security.otp.enabled": "已启用",
+  "security.otp.disabled": "未设置",
+  "security.otp.desc": "使用身份验证器应用（Google Authenticator、Authy 等）生成验证码",
+  "security.otp.bind": "设置",
+  "security.otp.unbind": "解除绑定",
+  "security.otp.bind.title": "设置身份验证器",
+  "security.otp.bind.step1": "使用身份验证器应用扫描下方二维码，或手动输入密钥。",
+  "security.otp.bind.step2": "输入身份验证器应用中显示的 6 位验证码，完成设置。",
+  "security.otp.bind.manualEntry": "无法扫码？手动输入此密钥：",
+  "security.otp.bind.next": "我已扫描",
+  "security.otp.bind.confirm": "验证并启用",
+  "security.otp.unbind.title": "解除身份验证器",
+  "security.otp.unbind.desc": "输入当前身份验证器中的验证码以确认解除绑定。解除后如需重新启用，需要重新设置。",
+  "security.otp.unbind.codeLabel": "验证码",
+  "security.otp.unbind.confirm": "确认解除",
+
+  "common.back": "返回",
 };
 
 export default zh;

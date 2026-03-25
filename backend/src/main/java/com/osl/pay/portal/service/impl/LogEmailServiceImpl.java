@@ -39,6 +39,14 @@ public class LogEmailServiceImpl implements EmailService {
     }
 
     @Override
+    public void sendVerificationCode(String to, String code) {
+        log.info("========== VERIFICATION CODE ==========");
+        log.info("To: {}", to);
+        log.info("Code: {}", code);
+        log.info("========================================");
+    }
+
+    @Override
     public void sendPasswordResetEmail(String to, Map<String, String> resetTokens) {
         log.info("========== PASSWORD RESET ==========");
         log.info("To: {}", to);

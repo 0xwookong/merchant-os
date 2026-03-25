@@ -67,6 +67,13 @@ public class SmtpEmailServiceImpl implements EmailService {
         sendTemplated("INVITATION", DEFAULT_LOCALE, to, vars);
     }
 
+    @Override
+    @Async
+    public void sendVerificationCode(String to, String code) {
+        Map<String, String> vars = Map.of("code", code);
+        sendTemplated("VERIFICATION_CODE", DEFAULT_LOCALE, to, vars);
+    }
+
     /**
      * Load template from DB, render variables, wrap in brand layout, and send.
      * Falls back to a plain-text notification if no template found.
@@ -136,6 +143,7 @@ public class SmtpEmailServiceImpl implements EmailService {
             case "VERIFY_EMAIL" -> "Verify Your Email";
             case "PASSWORD_RESET" -> "Reset Your Password";
             case "INVITATION" -> "You're Invited";
+            case "VERIFICATION_CODE" -> "Verification Code";
             default -> "Notification";
         };
     }

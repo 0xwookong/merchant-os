@@ -110,14 +110,12 @@ export default function TopBar() {
                   </DropdownMenu.Item>
 
                   <DropdownMenu.Item
-                    className="flex items-center gap-3 mx-1.5 px-3 py-2.5 text-sm text-[var(--gray-400)] rounded-lg cursor-not-allowed outline-none"
-                    disabled
+                    className="flex items-center gap-3 mx-1.5 px-3 py-2.5 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] rounded-lg cursor-pointer outline-none transition-colors"
+                    onSelect={() => router.push("/security")}
                   >
                     <ShieldCheckIcon className="w-4 h-4" />
                     <span className="flex-1">{t("user.menu.securitySettings")}</span>
-                    <span className="text-[10px] bg-[var(--gray-100)] text-[var(--gray-400)] px-1.5 py-0.5 rounded-full font-medium">
-                      {t("user.menu.comingSoon")}
-                    </span>
+                    <ChevronRightIcon className="w-4 h-4 text-[var(--gray-400)]" />
                   </DropdownMenu.Item>
 
                   <DropdownMenu.Separator className="h-px bg-[var(--gray-100)] my-1" />

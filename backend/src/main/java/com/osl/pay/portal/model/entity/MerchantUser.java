@@ -28,6 +28,10 @@ public class MerchantUser {
 
     private Boolean emailVerified;
 
+    private String otpSecret;
+
+    private Boolean otpEnabled;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 

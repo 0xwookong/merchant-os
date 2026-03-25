@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useI18n } from "@/providers/language-provider";
 import { useAuth } from "@/providers/auth-provider";
@@ -9,6 +9,7 @@ import {
   PlusIcon,
   EnvelopeIcon,
   UserIcon,
+  UserPlusIcon,
   ShieldCheckIcon,
   BriefcaseIcon,
   CodeBracketIcon,
@@ -17,6 +18,7 @@ import {
   CheckCircleIcon,
   XMarkIcon,
   ChevronDownIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 
 const ROLES = [
@@ -25,7 +27,27 @@ const ROLES = [
   { key: "TECH", icon: CodeBracketIcon, color: "bg-green-100 text-green-700" },
 ] as const;
 
+const INVITE_EXPIRE_DAYS = 7;
+
 type ConfirmAction = { type: "remove"; member: MemberInfo } | { type: "resend"; member: MemberInfo } | null;
+
+/** Compute effective status: ACTIVE, PENDING, or EXPIRED */
+function getEffectiveStatus(m: MemberInfo): "ACTIVE" | "PENDING" | "EXPIRED" {
+  if (m.status === "ACTIVE") return "ACTIVE";
+  const daysSince = Math.floor((Date.now() - new Date(m.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+  return daysSince >= INVITE_EXPIRE_DAYS ? "EXPIRED" : "PENDING";
+}
+
+/** Format date as YYYY-MM-DD */
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Days since a date */
+function daysSince(dateStr: string): number {
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+}
 
 export default function MembersPage() {
   const { t } = useI18n();
@@ -50,7 +72,6 @@ export default function MembersPage() {
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
-  // Auto-dismiss toast
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 3000);
@@ -97,9 +118,10 @@ export default function MembersPage() {
     }
   };
 
+  const isMe = (m: MemberInfo) => m.id === user?.userId;
+
   return (
     <div className="space-y-8">
-      {/* Toast notification */}
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       {/* Header */}
@@ -207,7 +229,23 @@ export default function MembersPage() {
       {/* Member list */}
       {loading ? (
         <div className="bg-white rounded-xl border border-[var(--gray-200)] p-6 animate-pulse">
-          <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-12 bg-[var(--gray-100)] rounded" />)}</div>
+          <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-12 bg-[var(--gray-100)] rounded" />)}</div>
+        </div>
+      ) : members.length <= 1 ? (
+        /* Empty state — only the admin themselves */
+        <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-10 text-center">
+          <div className="mx-auto w-14 h-14 rounded-full bg-[var(--gray-100)] flex items-center justify-center mb-4">
+            <UserPlusIcon className="w-7 h-7 text-[var(--gray-400)]" />
+          </div>
+          <h3 className="text-lg font-semibold text-[var(--gray-900)]">{t("members.empty.title")}</h3>
+          <p className="text-sm text-[var(--gray-500)] mt-1 max-w-sm mx-auto">{t("members.empty.desc")}</p>
+          <button
+            onClick={() => setShowInvite(true)}
+            className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            <PlusIcon className="w-4 h-4" />
+            {t("members.invite")}
+          </button>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm overflow-hidden">
@@ -219,56 +257,62 @@ export default function MembersPage() {
                 <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.role")}</th>
                 <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.status")}</th>
                 <th className="text-left py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.joined")}</th>
-                <th className="text-right py-3 px-5 font-semibold text-[var(--gray-900)]"></th>
+                <th className="text-right py-3 px-5 font-semibold text-[var(--gray-900)]">{t("members.col.actions")}</th>
               </tr>
             </thead>
             <tbody>
-              {members.map((m) => (
-                <tr key={m.id} className="border-b border-[var(--gray-50)] hover:bg-[var(--gray-50)] transition-colors">
-                  <td className="py-3 px-5 text-[var(--gray-900)]">{m.contactName}</td>
-                  <td className="py-3 px-5 text-[var(--gray-600)]">{m.email}</td>
-                  <td className="py-3 px-5">
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      ROLES.find(r => r.key === m.role)?.color || "bg-gray-100 text-gray-600"
-                    }`}>
-                      {t(`members.role.${m.role}`)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-5">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      m.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {t(`members.status.${m.status}`)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-5 text-[var(--gray-400)] text-xs">{new Date(m.createdAt).toLocaleDateString()}</td>
-                  <td className="py-3 px-5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {m.status === "PENDING" && (
-                        <button
-                          onClick={() => setConfirmAction({ type: "resend", member: m })}
-                          disabled={resendingId === m.id}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {resendingId === m.id ? t("members.resend.sending") : t("members.resend")}
-                        </button>
-                      )}
-                      {m.id !== user?.userId && (
-                        <button onClick={() => setConfirmAction({ type: "remove", member: m })}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
-                          {t("members.remove")}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {members.map((m) => {
+                const effectiveStatus = getEffectiveStatus(m);
+                const isSelf = isMe(m);
+                return (
+                  <tr key={m.id} className={`border-b border-[var(--gray-50)] hover:bg-[var(--gray-50)] transition-colors ${isSelf ? "bg-blue-50/30" : ""}`}>
+                    <td className="py-3 px-5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[var(--gray-900)]">{m.contactName}</span>
+                        {isSelf && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">{t("members.you")}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-3 px-5 text-[var(--gray-600)]">{m.email}</td>
+                    <td className="py-3 px-5">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        ROLES.find(r => r.key === m.role)?.color || "bg-gray-100 text-gray-600"
+                      }`}>
+                        {t(`members.role.${m.role}`)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-5">
+                      <StatusBadge status={effectiveStatus} createdAt={m.createdAt} t={t} />
+                    </td>
+                    <td className="py-3 px-5 text-[var(--gray-500)] text-xs font-mono">{formatDate(m.createdAt)}</td>
+                    <td className="py-3 px-5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {(effectiveStatus === "PENDING" || effectiveStatus === "EXPIRED") && (
+                          <button
+                            onClick={() => setConfirmAction({ type: "resend", member: m })}
+                            disabled={resendingId === m.id}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {resendingId === m.id ? t("members.resend.sending") : t("members.resend")}
+                          </button>
+                        )}
+                        {!isSelf && (
+                          <button onClick={() => setConfirmAction({ type: "remove", member: m })}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
+                            {t("members.remove")}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Confirm Dialog */}
       <ConfirmDialog
         open={confirmAction !== null}
         onClose={() => setConfirmAction(null)}
@@ -284,6 +328,42 @@ export default function MembersPage() {
 }
 
 // ===== Sub-components =====
+
+function StatusBadge({ status, createdAt, t }: { status: "ACTIVE" | "PENDING" | "EXPIRED"; createdAt: string; t: (key: string) => string }) {
+  if (status === "ACTIVE") {
+    return (
+      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+        {t("members.status.ACTIVE")}
+      </span>
+    );
+  }
+
+  if (status === "EXPIRED") {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+          {t("members.status.EXPIRED")}
+        </span>
+      </div>
+    );
+  }
+
+  // PENDING — show "Sent X days ago"
+  const days = daysSince(createdAt);
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+        {t("members.status.PENDING")}
+      </span>
+      <span className="text-[10px] text-[var(--gray-400)] flex items-center gap-0.5">
+        <ClockIcon className="w-3 h-3" />
+        {days === 0
+          ? t("members.invited.today")
+          : t("members.invited.daysAgo").replace("{days}", String(days))}
+      </span>
+    </div>
+  );
+}
 
 function ConfirmDialog({ open, onClose, onConfirm, loading, type, memberName, memberEmail, t }: {
   open: boolean;
@@ -305,7 +385,6 @@ function ConfirmDialog({ open, onClose, onConfirm, loading, type, memberName, me
           className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-lg p-6 space-y-5 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
           aria-describedby="confirm-desc"
         >
-          {/* Icon */}
           <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${
             isRemove ? "bg-red-100" : "bg-blue-100"
           }`}>
@@ -314,7 +393,6 @@ function ConfirmDialog({ open, onClose, onConfirm, loading, type, memberName, me
               : <PaperAirplaneIcon className="w-6 h-6 text-blue-600" />}
           </div>
 
-          {/* Title & description */}
           <div className="text-center">
             <Dialog.Title className="text-lg font-semibold text-[var(--gray-900)]">
               {isRemove ? t("members.remove.dialog.title") : t("members.resend.dialog.title")}
@@ -324,7 +402,6 @@ function ConfirmDialog({ open, onClose, onConfirm, loading, type, memberName, me
             </p>
           </div>
 
-          {/* Member info card */}
           <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--gray-50)] border border-[var(--gray-100)]">
             <div className="w-9 h-9 rounded-full bg-[var(--gray-200)] flex items-center justify-center text-sm font-semibold text-[var(--gray-600)]">
               {memberName.charAt(0).toUpperCase()}
@@ -335,7 +412,6 @@ function ConfirmDialog({ open, onClose, onConfirm, loading, type, memberName, me
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3">
             <button
               onClick={onClose}

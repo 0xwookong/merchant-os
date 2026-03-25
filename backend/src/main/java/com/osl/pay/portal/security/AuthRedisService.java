@@ -69,6 +69,70 @@ public class AuthRedisService {
         return userId != null ? Long.valueOf(userId) : null;
     }
 
+    // ===== Email Verification Code =====
+
+    private static final String EMAIL_CODE_PREFIX = "auth:email-code:";
+    private static final int EMAIL_CODE_EXPIRE_MINUTES = 5;
+    private static final int EMAIL_CODE_MAX_ATTEMPTS = 5;
+
+    public void saveEmailCode(Long userId, String code) {
+        // Store as "code:0" (code + attempt counter)
+        redis.opsForValue().set(
+                EMAIL_CODE_PREFIX + userId,
+                code + ":0",
+                Duration.ofMinutes(EMAIL_CODE_EXPIRE_MINUTES));
+    }
+
+    /**
+     * Verify email code. Returns true if valid. Consumes the code on success.
+     * Increments attempt counter on failure. Returns false if expired, wrong, or max attempts.
+     */
+    public boolean verifyEmailCode(Long userId, String code) {
+        String key = EMAIL_CODE_PREFIX + userId;
+        String stored = redis.opsForValue().get(key);
+        if (stored == null) return false;
+
+        String[] parts = stored.split(":");
+        if (parts.length != 2) return false;
+
+        int attempts = Integer.parseInt(parts[1]);
+        if (attempts >= EMAIL_CODE_MAX_ATTEMPTS) {
+            redis.delete(key);
+            return false;
+        }
+
+        if (parts[0].equals(code)) {
+            redis.delete(key);
+            return true;
+        }
+
+        // Wrong code — increment attempts
+        redis.opsForValue().set(key, parts[0] + ":" + (attempts + 1),
+                Duration.ofMinutes(EMAIL_CODE_EXPIRE_MINUTES));
+        return false;
+    }
+
+    /** Check if a code was recently sent (rate limit: 1 per minute) */
+    public boolean hasRecentEmailCode(Long userId) {
+        return redis.hasKey(EMAIL_CODE_PREFIX + userId) == Boolean.TRUE;
+    }
+
+    // ===== OTP Setup (temporary secret before binding) =====
+
+    private static final String OTP_SETUP_PREFIX = "auth:otp-setup:";
+    private static final int OTP_SETUP_EXPIRE_MINUTES = 10;
+
+    public void saveOtpSetupSecret(Long userId, String secret) {
+        redis.opsForValue().set(
+                OTP_SETUP_PREFIX + userId,
+                secret,
+                Duration.ofMinutes(OTP_SETUP_EXPIRE_MINUTES));
+    }
+
+    public String getAndDeleteOtpSetupSecret(Long userId) {
+        return redis.opsForValue().getAndDelete(OTP_SETUP_PREFIX + userId);
+    }
+
     // ===== Login Failure Counter =====
 
     private static final String FAIL_PREFIX = "auth:login-fail:";

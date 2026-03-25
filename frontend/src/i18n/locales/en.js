@@ -555,12 +555,19 @@ const en = {
   "members.role.TECH.desc": "Developer tools only",
   "members.status.ACTIVE": "Active",
   "members.status.PENDING": "Pending",
+  "members.status.EXPIRED": "Expired",
+  "members.invited.today": "Sent today",
+  "members.invited.daysAgo": "Sent {days}d ago",
+  "members.you": "You",
+  "members.empty.title": "Invite your team",
+  "members.empty.desc": "Add team members to collaborate — assign roles to control what each person can access.",
   "members.cancel": "Cancel",
   "members.col.name": "Name",
   "members.col.email": "Email",
   "members.col.role": "Role",
   "members.col.status": "Status",
   "members.col.joined": "Joined",
+  "members.col.actions": "Actions",
 
   // mcp
   "mcp.title": "MCP Configuration",
@@ -721,6 +728,29 @@ const en = {
 
   "journey.devGuide.title": "Developer Quick Start",
   "journey.devGuide.subtitle": "Choose an integration mode and follow the step-by-step guide",
+
+  // Security settings
+  "security.title": "Security Settings",
+  "security.subtitle": "Manage your account security and two-factor authentication",
+  "security.otp.title": "Two-Factor Authentication (2FA)",
+  "security.otp.authenticator": "Authenticator App",
+  "security.otp.enabled": "Enabled",
+  "security.otp.disabled": "Not set up",
+  "security.otp.desc": "Use an authenticator app (Google Authenticator, Authy, etc.) to generate verification codes",
+  "security.otp.bind": "Set Up",
+  "security.otp.unbind": "Remove",
+  "security.otp.bind.title": "Set Up Authenticator",
+  "security.otp.bind.step1": "Scan the QR code below with your authenticator app, or manually enter the secret key.",
+  "security.otp.bind.step2": "Enter the 6-digit verification code from your authenticator app to complete setup.",
+  "security.otp.bind.manualEntry": "Can't scan? Enter this key manually:",
+  "security.otp.bind.next": "I've Scanned It",
+  "security.otp.bind.confirm": "Verify & Enable",
+  "security.otp.unbind.title": "Remove Authenticator",
+  "security.otp.unbind.desc": "Enter your current authenticator code to confirm removal. You will need to set up 2FA again if you want to re-enable it.",
+  "security.otp.unbind.codeLabel": "Authenticator Code",
+  "security.otp.unbind.confirm": "Remove 2FA",
+
+  "common.back": "Back",
 };
 
 export default en;

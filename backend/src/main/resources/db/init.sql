@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS t_merchant_user (
     role ENUM('ADMIN','BUSINESS','TECH') NOT NULL DEFAULT 'ADMIN',
     status ENUM('ACTIVE','LOCKED','DISABLED') NOT NULL DEFAULT 'ACTIVE',
     email_verified TINYINT(1) NOT NULL DEFAULT 0,
+    otp_secret VARCHAR(64) DEFAULT NULL COMMENT 'TOTP secret (Base32 encoded)',
+    otp_enabled TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Whether OTP 2FA is enabled',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_merchant_email (merchant_id, email),
@@ -237,7 +239,20 @@ INSERT INTO t_email_template (code, locale, subject, body_html, description) VAL
 '<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">您好 {contactName}，<br/><br/>您已被邀请加入 OSL Pay 商户平台。请点击下方按钮设置密码并激活您的账户。</p>
 <div style="text-align:center;margin:32px 0"><a href="{activateLink}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 32px;border-radius:8px">设置密码并激活</a></div>
 <p style="color:#9ca3af;font-size:13px;margin:0">链接 30 分钟内有效。如果您不知道为何收到此邮件，请忽略。</p>',
-'团队成员邀请');
+'团队成员邀请'),
+
+-- Verification code email
+('VERIFICATION_CODE', 'en', 'Your verification code — OSL Pay',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">You requested a verification code for a sensitive operation on your OSL Pay account.</p>
+<div style="text-align:center;margin:32px 0"><div style="display:inline-block;background:#f3f4f6;border-radius:12px;padding:16px 40px;letter-spacing:8px;font-size:32px;font-weight:700;color:#1f2937;font-family:monospace">{code}</div></div>
+<p style="color:#9ca3af;font-size:13px;margin:0">This code expires in 5 minutes. If you did not request this, please ignore this email.</p>',
+'Email verification code for sensitive operations'),
+
+('VERIFICATION_CODE', 'zh', '您的验证码 — OSL Pay',
+'<p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 24px">您正在进行敏感操作，请使用以下验证码完成验证。</p>
+<div style="text-align:center;margin:32px 0"><div style="display:inline-block;background:#f3f4f6;border-radius:12px;padding:16px 40px;letter-spacing:8px;font-size:32px;font-weight:700;color:#1f2937;font-family:monospace">{code}</div></div>
+<p style="color:#9ca3af;font-size:13px;margin:0">验证码 5 分钟内有效。如果这不是您本人操作，请忽略此邮件。</p>',
+'敏感操作邮件验证码');
 
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
