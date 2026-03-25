@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(brew install:*)",
-      "Bash(pdftoppm -v)"
+      "Bash(pdftoppm -v)",
+      "Bash(xargs ls:*)",
+      "Bash(xargs cat:*)",
+      "Bash(mysql:*)",
+      "Bash(mvn compile:*)",
+      "Bash(mvn test:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm test:*)",
+      "Bash(git add:*)",
+      "Bash(mvn dependency:tree)",
+      "Bash(pnpm vitest:*)"
     ]
   }
 }
