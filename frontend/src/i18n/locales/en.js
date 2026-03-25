@@ -778,6 +778,176 @@ const en = {
   "security.otp.unbind.confirm": "Remove 2FA",
 
   "common.back": "Back",
+
+  // Unified Application (KYB + Onboarding)
+  "nav.organization.application": "Merchant Application",
+  "app.title": "Merchant Application",
+  "app.subtitle": "Complete your business information to activate payment services",
+  "app.step.company": "Company Info",
+  "app.step.legal": "Legal & UBO",
+  "app.step.business": "Business Info",
+  "app.next": "Next",
+  "app.saveDraft": "Save Draft",
+  "app.submittedInfo": "Submitted Information",
+
+  // Status
+  "app.status.DRAFT": "Draft",
+  "app.status.SUBMITTED": "Submitted",
+  "app.status.UNDER_REVIEW": "Under Review",
+  "app.status.APPROVED": "Approved",
+  "app.status.REJECTED": "Rejected",
+  "app.status.NEED_MORE_INFO": "More Info Needed",
+
+  // Rejected
+  "app.rejected.title": "Your application was rejected",
+
+  // Timeline
+  "app.timeline.title": "Review Progress",
+  "app.timeline.submitted": "Application Submitted",
+  "app.timeline.reviewing": "Under Review",
+  "app.timeline.approved": "Approved",
+  "app.timeline.result": "Review Result",
+
+  // Sections
+  "app.section.registration": "Company Registration",
+  "app.section.address": "Registered Address",
+  "app.section.contact": "Primary Contact",
+  "app.section.legalRep": "Legal Representative / Authorized Signatory",
+  "app.section.ubo": "Ultimate Beneficial Owners (UBO)",
+  "app.section.business": "Business Information",
+
+  // Fields
+  "app.field.companyName": "Company Legal Name",
+  "app.field.companyNameEn": "Company Name (English)",
+  "app.field.regCountry": "Country / Region of Registration",
+  "app.field.regNumber": "Registration Number",
+  "app.field.businessLicenseNo": "Business License No.",
+  "app.field.companyType": "Company Type",
+  "app.field.incorporationDate": "Date of Incorporation",
+  "app.field.addressLine1": "Address Line 1",
+  "app.field.addressLine2": "Address Line 2",
+  "app.field.city": "City",
+  "app.field.stateProvince": "State / Province",
+  "app.field.postalCode": "Postal Code",
+  "app.field.country": "Country / Region",
+  "app.field.contactName": "Contact Name",
+  "app.field.contactTitle": "Title / Position",
+  "app.field.contactEmail": "Email",
+  "app.field.contactPhone": "Phone",
+  "app.field.legalRepName": "Full Name",
+  "app.field.nationality": "Nationality / Region",
+  "app.field.idType": "ID Type",
+  "app.field.idNumber": "ID Number",
+  "app.field.dateOfBirth": "Date of Birth",
+  "app.field.sharePercentage": "Ownership %",
+  "app.field.controlStructure": "Control Structure Description",
+  "app.field.businessType": "Business Type",
+  "app.field.website": "Website",
+  "app.field.monthlyVolume": "Est. Monthly Volume",
+  "app.field.monthlyTxCount": "Est. Monthly Transactions",
+  "app.field.supportedFiat": "Supported Fiat Currencies",
+  "app.field.supportedCrypto": "Supported Cryptocurrencies",
+  "app.field.useCases": "Use Cases",
+  "app.field.businessDesc": "Business Description",
+
+  // Placeholders
+  "app.ph.companyName": "e.g. ABC Trading Ltd",
+  "app.ph.companyNameEn": "English name (optional)",
+  "app.ph.select": "Select...",
+  "app.ph.regNumber": "e.g. 12345678",
+  "app.ph.businessLicenseNo": "If applicable",
+  "app.ph.addressLine1": "Street address",
+  "app.ph.addressLine2": "Apt, suite, unit (optional)",
+  "app.ph.contactName": "Full name",
+  "app.ph.contactTitle": "e.g. CEO, Director",
+  "app.ph.contactEmail": "name@company.com",
+  "app.ph.businessDesc": "Describe your business model, target customers, and payment flow",
+  "app.ph.controlStructure": "Describe the ownership and control structure of the company",
+
+  // Country names
+  "app.country.CN": "China",
+  "app.country.HK": "Hong Kong, China",
+  "app.country.TW": "Taiwan, China",
+  "app.country.MO": "Macao, China",
+  "app.country.US": "United States",
+  "app.country.GB": "United Kingdom",
+  "app.country.SG": "Singapore",
+  "app.country.JP": "Japan",
+  "app.country.KR": "South Korea",
+  "app.country.AU": "Australia",
+  "app.country.CA": "Canada",
+  "app.country.DE": "Germany",
+
+  // Company types
+  "app.companyType.LIMITED": "Limited Company",
+  "app.companyType.PARTNERSHIP": "Partnership",
+  "app.companyType.SOLE_PROPRIETORSHIP": "Sole Proprietorship",
+  "app.companyType.OTHER": "Other",
+
+  // ID types
+  "app.idType.PASSPORT": "Passport",
+  "app.idType.ID_CARD": "National ID Card",
+  "app.idType.DRIVERS_LICENSE": "Driver's License",
+
+  // UBO
+  "app.ubo.hint": "List all individuals who directly or indirectly own ≥25% of the company",
+  "app.ubo.noUboDecl": "No individual directly or indirectly owns 25% or more of this company",
+  "app.ubo.title": "UBO",
+  "app.ubo.fillFromRep": "Copy from legal rep",
+  "app.ubo.add": "Add another UBO",
+
+  // Business types
+  "app.bizType.E_COMMERCE": "E-Commerce",
+  "app.bizType.GAMING": "Gaming",
+  "app.bizType.SAAS": "SaaS",
+  "app.bizType.CROSS_BORDER": "Cross-Border Trade",
+  "app.bizType.FINANCE": "Financial Services",
+  "app.bizType.OTHER": "Other",
+
+  // Use cases
+  "app.useCase.ONLINE_PAYMENT": "Online Payment",
+  "app.useCase.FIAT_ONRAMP": "Fiat On-Ramp / Off-Ramp",
+  "app.useCase.CROSS_BORDER": "Cross-Border Remittance",
+  "app.useCase.OTC": "OTC Trading",
+  "app.useCase.OTHER": "Other",
+
+  // Step labels (extended)
+  "app.step.documents": "Documents",
+  "app.step.confirm": "Confirm & Submit",
+  "app.submit": "Submit Application",
+
+  // Need more info
+  "app.needInfo.title": "Additional information requested",
+
+  // Timeline hint
+  "app.timeline.hint": "While your application is under review, you can start integrating in the sandbox environment.",
+
+  // Document upload (Step 4)
+  "app.doc.section.company": "Company Documents",
+  "app.doc.section.legalRep": "Legal Representative ID",
+  "app.doc.section.ubo": "UBO Identity Documents",
+  "app.doc.section.bank": "Financial Documents",
+  "app.doc.section.optional": "Optional Documents",
+  "app.doc.businessLicense": "Business License / Certificate of Incorporation",
+  "app.doc.articles": "Articles of Association / Memorandum",
+  "app.doc.legalRepFront": "Legal Rep ID (Front)",
+  "app.doc.legalRepBack": "Legal Rep ID (Back)",
+  "app.doc.uboFront": "ID (Front)",
+  "app.doc.uboBack": "ID (Back)",
+  "app.doc.bankStatement": "Bank Statement / Proof of Account (last 3 months)",
+  "app.doc.shareStructure": "Shareholding Structure Chart",
+  "app.doc.hint": "PDF, JPG, or PNG — max 10MB",
+
+  // Confirm & Submit (Step 5)
+  "app.confirm.declarations": "Compliance Declarations",
+  "app.confirm.declInfo": "I confirm that all information provided above is true, complete, and accurate.",
+  "app.confirm.declSanctions": "I confirm that this company and its beneficial owners are not on any international sanctions lists (including but not limited to OFAC, UN, EU sanctions lists).",
+  "app.confirm.declTerms": "I have read and agree to the OSLPay Merchant Service Agreement and Privacy Policy.",
+  "app.confirm.submitNote": "After submission, your application will enter the review process and cannot be modified. Estimated review time: 3–5 business days.",
+
+  // Validation
+  "app.validate.required": " is required",
+  "app.validate.uboRequired": "Please add at least one UBO, or declare no UBO",
 };
 
 export default en;

@@ -26,8 +26,9 @@ async function request<T>(
 ): Promise<T> {
   const url = `${BASE_URL}${path}`;
 
+  const isFormData = options.body instanceof FormData;
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(options.headers as Record<string, string>),
   };
 
@@ -58,6 +59,9 @@ async function request<T>(
     // Response is not JSON (e.g., HTML error page from gateway)
     if (res.status >= 500) {
       throw new ApiError(50000, "服务器错误，请稍后重试", res.status);
+    }
+    if (res.status === 401 || res.status === 403) {
+      throw new ApiError(res.status, "登录已过期，请重新登录", res.status);
     }
     throw new ApiError(res.status, `请求失败 (HTTP ${res.status})`, res.status);
   }
@@ -91,6 +95,13 @@ export const api = {
 
   delete<T>(path: string): Promise<T> {
     return request<T>(path, { method: "DELETE" });
+  },
+
+  upload<T>(path: string, formData: FormData): Promise<T> {
+    return request<T>(path, {
+      method: "POST",
+      body: formData,
+    });
   },
 };
 

@@ -255,6 +255,91 @@ INSERT INTO t_email_template (code, locale, subject, body_html, description) VAL
 <p style="color:#9ca3af;font-size:13px;margin:0">验证码 5 分钟内有效。如果这不是您本人操作，请忽略此邮件。</p>',
 '敏感操作邮件验证码');
 
+-- Unified merchant application table (replaces t_kyb_application + t_onboarding_application)
+CREATE TABLE IF NOT EXISTS t_merchant_application (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+
+    -- Status management
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT 'DRAFT/SUBMITTED/UNDER_REVIEW/APPROVED/REJECTED/NEED_MORE_INFO',
+    current_step INT NOT NULL DEFAULT 1,
+
+    -- Step 1: Company info
+    company_name VARCHAR(200),
+    company_name_en VARCHAR(200),
+    reg_country VARCHAR(100),
+    reg_number VARCHAR(100),
+    business_license_no VARCHAR(100),
+    company_type VARCHAR(50),
+    incorporation_date DATE,
+    address_line1 VARCHAR(300),
+    address_line2 VARCHAR(300),
+    city VARCHAR(100),
+    state_province VARCHAR(100),
+    postal_code VARCHAR(20),
+    country VARCHAR(100),
+    contact_name VARCHAR(100),
+    contact_title VARCHAR(100),
+    contact_email VARCHAR(200),
+    contact_phone VARCHAR(50),
+
+    -- Step 2: Legal representative (JSON object)
+    legal_rep JSON COMMENT '{ name, nationality, idType, idNumber, dateOfBirth }',
+    -- Step 2: UBOs (JSON array)
+    ubos JSON COMMENT '[{ name, nationality, idType, idNumber, dateOfBirth, sharePercentage, isLegalRep }]',
+    no_ubo_declaration TINYINT(1) NOT NULL DEFAULT 0,
+    control_structure_desc TEXT,
+
+    -- Step 3: Business info
+    business_type VARCHAR(50),
+    website VARCHAR(300),
+    monthly_volume VARCHAR(50),
+    monthly_tx_count VARCHAR(50),
+    supported_fiat VARCHAR(500),
+    supported_crypto VARCHAR(500),
+    use_cases VARCHAR(500),
+    business_desc TEXT,
+
+    -- Step 5: Compliance declarations
+    info_accuracy_confirmed TINYINT(1) NOT NULL DEFAULT 0,
+    sanctions_declared TINYINT(1) NOT NULL DEFAULT 0,
+    terms_accepted TINYINT(1) NOT NULL DEFAULT 0,
+
+    -- Review info
+    reject_reason TEXT,
+    need_info_details JSON COMMENT 'Items that need supplementation',
+    reviewer_notes TEXT COMMENT 'Internal review notes, not exposed to merchant',
+    reviewed_at DATETIME,
+    reviewed_by VARCHAR(100),
+
+    -- Timestamps
+    submitted_at DATETIME,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_merchant_id (merchant_id),
+    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Application document table (file uploads for merchant application)
+CREATE TABLE IF NOT EXISTS t_application_document (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    application_id BIGINT NOT NULL,
+    merchant_id BIGINT NOT NULL,
+    doc_type VARCHAR(50) NOT NULL COMMENT 'BUSINESS_LICENSE, ARTICLES, LEGAL_REP_ID_FRONT, LEGAL_REP_ID_BACK, UBO_ID_FRONT, UBO_ID_BACK, BANK_STATEMENT, SHARE_STRUCTURE, OTHER',
+    doc_name VARCHAR(200),
+    file_path VARCHAR(500) NOT NULL,
+    file_size BIGINT,
+    mime_type VARCHAR(50),
+    ubo_index INT COMMENT 'UBO index (0-based), NULL for company/legal-rep docs',
+    status VARCHAR(20) NOT NULL DEFAULT 'UPLOADED' COMMENT 'UPLOADED/ACCEPTED/REJECTED',
+    reject_reason VARCHAR(300),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_application_id (application_id),
+    INDEX idx_merchant_id (merchant_id),
+    FOREIGN KEY (application_id) REFERENCES t_merchant_application(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
 CREATE TABLE IF NOT EXISTS t_audit_log (

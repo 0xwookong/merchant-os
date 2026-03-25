@@ -38,6 +38,8 @@ class LogApiTest {
     @Autowired private DomainWhitelistMapper domainWhitelistMapper;
     @Autowired private ApiRequestLogMapper apiRequestLogMapper;
     @Autowired private AuditLogMapper auditLogMapper;
+    @Autowired private MerchantApplicationMapper merchantApplicationMapper;
+    @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private StringRedisTemplate redis;
 
     private String token;
@@ -55,6 +57,8 @@ class LogApiTest {
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
+        applicationDocumentMapper.delete(null);
+        merchantApplicationMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");
         if (keys != null && !keys.isEmpty()) redis.delete(keys);

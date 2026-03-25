@@ -98,21 +98,14 @@ export const MENU_CONFIG: MenuItem[] = [
     key: "organization",
     labelKey: "nav.organization",
     icon: "BuildingOffice2Icon",
-    roles: ["ADMIN"],
+    roles: ["ADMIN", "BUSINESS"],
     children: [
       {
-        key: "kyb",
-        labelKey: "nav.organization.kyb",
-        icon: "ShieldCheckIcon",
-        path: "/organization/kyb",
-        roles: ["ADMIN"],
-      },
-      {
-        key: "onboarding",
-        labelKey: "nav.organization.onboarding",
+        key: "application",
+        labelKey: "nav.organization.application",
         icon: "DocumentTextIcon",
-        path: "/organization/onboarding",
-        roles: ["ADMIN"],
+        path: "/organization/application",
+        roles: ["ADMIN", "BUSINESS"],
       },
       {
         key: "members",

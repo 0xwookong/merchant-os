@@ -39,6 +39,8 @@ class OnboardingApiTest {
     @Autowired private DomainWhitelistMapper domainWhitelistMapper;
     @Autowired private KybApplicationMapper kybApplicationMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
+    @Autowired private MerchantApplicationMapper merchantApplicationMapper;
+    @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private StringRedisTemplate redis;
 
     @BeforeEach
@@ -53,6 +55,8 @@ class OnboardingApiTest {
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
+        applicationDocumentMapper.delete(null);
+        merchantApplicationMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");
         if (keys != null && !keys.isEmpty()) redis.delete(keys);

@@ -20,22 +20,23 @@ describe("菜单配置 - 角色过滤", () => {
     expect(developer?.children).toHaveLength(7);
   });
 
-  it("ADMIN 角色 → 组织管理包含 KYB、入驻申请、成员与权限", () => {
+  it("ADMIN 角色 → 组织管理包含入驻申请、成员与权限", () => {
     const items = filterMenuByRole(MENU_CONFIG, "ADMIN");
     const org = items.find((i) => i.key === "organization");
-    expect(org?.children?.map((c) => c.key)).toEqual(["kyb", "onboarding", "members"]);
+    expect(org?.children?.map((c) => c.key)).toEqual(["application", "members"]);
   });
 
-  it("BUSINESS 角色 → 看到仪表盘、交易中心、快速开始", () => {
+  it("BUSINESS 角色 → 看到仪表盘、交易中心、组织管理（入驻申请）、快速开始", () => {
     const items = filterMenuByRole(MENU_CONFIG, "BUSINESS");
     const keys = items.map((i) => i.key);
-    expect(keys).toEqual(["dashboard", "transactions", "getting-started"]);
+    expect(keys).toEqual(["dashboard", "transactions", "organization", "getting-started"]);
   });
 
-  it("BUSINESS 角色 → 看不到开发者工具和组织管理", () => {
+  it("BUSINESS 角色 → 看不到开发者工具，组织管理仅含入驻申请", () => {
     const items = filterMenuByRole(MENU_CONFIG, "BUSINESS");
     expect(items.find((i) => i.key === "developer")).toBeUndefined();
-    expect(items.find((i) => i.key === "organization")).toBeUndefined();
+    const org = items.find((i) => i.key === "organization");
+    expect(org?.children?.map((c) => c.key)).toEqual(["application"]);
   });
 
   it("TECH 角色 → 看到开发者工具和快速开始", () => {

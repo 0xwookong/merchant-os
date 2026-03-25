@@ -39,6 +39,8 @@ class OrderApiTest {
     @Autowired private KybApplicationMapper kybApplicationMapper;
     @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
+    @Autowired private MerchantApplicationMapper merchantApplicationMapper;
+    @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private StringRedisTemplate redis;
 
     private Long merchantId;
@@ -55,6 +57,8 @@ class OrderApiTest {
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
+        applicationDocumentMapper.delete(null);
+        merchantApplicationMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");
         if (keys != null && !keys.isEmpty()) redis.delete(keys);

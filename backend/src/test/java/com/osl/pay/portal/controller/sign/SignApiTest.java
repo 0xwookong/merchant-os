@@ -40,6 +40,8 @@ class SignApiTest {
     @Autowired private WebhookLogMapper webhookLogMapper;
     @Autowired private DomainWhitelistMapper domainWhitelistMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
+    @Autowired private MerchantApplicationMapper merchantApplicationMapper;
+    @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private StringRedisTemplate redis;
 
     private String token;
@@ -58,6 +60,8 @@ class SignApiTest {
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
+        applicationDocumentMapper.delete(null);
+        merchantApplicationMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");
         if (keys != null && !keys.isEmpty()) redis.delete(keys);

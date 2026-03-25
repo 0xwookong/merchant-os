@@ -124,7 +124,7 @@ export default function GettingStartedPage() {
               {stepStatuses.kyb === "completed" ? null : (
                 <div className="mt-3 flex items-center gap-3">
                   <Link
-                    href="/organization/kyb"
+                    href="/organization/application"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary-black)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
                   >
                     {stepStatuses.kyb === "pending" || stepStatuses.kyb === "locked"
@@ -162,7 +162,7 @@ export default function GettingStartedPage() {
               ) : stepStatuses.onboarding === "completed" ? null : (
                 <div className="mt-3 flex items-center gap-3">
                   <Link
-                    href="/organization/onboarding"
+                    href="/organization/application"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary-black)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
                   >
                     {stepStatuses.onboarding === "pending"

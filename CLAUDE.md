@@ -145,8 +145,7 @@ frontend/src/app/
 │   │   ├── logs/page.tsx         # API 请求日志
 │   │   └── mcp/page.tsx          # MCP 配置中心
 │   ├── organization/             # 组织管理
-│   │   ├── kyb/page.tsx          # KYB 认证
-│   │   ├── onboarding/page.tsx   # 入驻申请
+│   │   ├── application/page.tsx  # 入驻申请（统一 KYB + Onboarding）
 │   │   └── members/page.tsx      # 成员与权限
 │   └── getting-started/page.tsx  # 快速开始
 └── api/                          # Next.js API Routes（BFF 层，可选）

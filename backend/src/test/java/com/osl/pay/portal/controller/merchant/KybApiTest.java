@@ -15,6 +15,8 @@ import com.osl.pay.portal.repository.OrderMapper;
 import com.osl.pay.portal.repository.MerchantUserMapper;
 import com.osl.pay.portal.repository.WebhookConfigMapper;
 import com.osl.pay.portal.repository.WebhookLogMapper;
+import com.osl.pay.portal.repository.MerchantApplicationMapper;
+import com.osl.pay.portal.repository.ApplicationDocumentMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -49,6 +51,8 @@ class KybApiTest {
     @Autowired private DomainWhitelistMapper domainWhitelistMapper;
     @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
+    @Autowired private MerchantApplicationMapper merchantApplicationMapper;
+    @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private StringRedisTemplate redis;
 
     @BeforeEach
@@ -63,6 +67,8 @@ class KybApiTest {
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
+        applicationDocumentMapper.delete(null);
+        merchantApplicationMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");
         if (keys != null && !keys.isEmpty()) redis.delete(keys);

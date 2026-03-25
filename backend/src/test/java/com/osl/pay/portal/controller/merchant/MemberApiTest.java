@@ -40,6 +40,8 @@ class MemberApiTest {
     @Autowired private DomainWhitelistMapper domainWhitelistMapper;
     @Autowired private ApiRequestLogMapper apiRequestLogMapper;
     @Autowired private AuditLogMapper auditLogMapper;
+    @Autowired private MerchantApplicationMapper merchantApplicationMapper;
+    @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private StringRedisTemplate redis;
     @Autowired private AuthRedisService authRedis;
 
@@ -58,6 +60,8 @@ class MemberApiTest {
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
         merchantUserMapper.delete(null);
+        applicationDocumentMapper.delete(null);
+        merchantApplicationMapper.delete(null);
         merchantMapper.delete(null);
         Set<String> keys = redis.keys("auth:*");
         if (keys != null && !keys.isEmpty()) redis.delete(keys);
