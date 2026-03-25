@@ -81,6 +81,7 @@ const zh = {
   "auth.login.otp.verifying": "验证中...",
   "auth.login.otp.back": "返回登录",
   "auth.login.otp.recoveryHint": "丢失了身份验证器？您可以输入恢复码替代。",
+  "auth.login.otp.lostAllHint": "恢复码也丢失了？请联系组织管理员或 {email} 获取帮助。",
   "auth.login.role.admin": "管理员",
   "auth.login.role.business": "业务人员",
   "auth.login.role.tech": "技术人员",

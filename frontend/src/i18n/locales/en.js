@@ -81,6 +81,7 @@ const en = {
   "auth.login.otp.verifying": "Verifying...",
   "auth.login.otp.back": "Back to login",
   "auth.login.otp.recoveryHint": "Lost your authenticator? You can enter a recovery code instead.",
+  "auth.login.otp.lostAllHint": "Lost both? Contact your organization admin or {email} for help.",
   "auth.login.role.admin": "Admin",
   "auth.login.role.business": "Business",
   "auth.login.role.tech": "Developer",

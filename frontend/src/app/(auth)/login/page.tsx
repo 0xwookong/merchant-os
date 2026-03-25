@@ -115,7 +115,14 @@ export default function LoginPage() {
           )}
         </button>
 
-        <p className="text-center text-xs text-[var(--gray-400)]">{t("auth.login.otp.recoveryHint")}</p>
+        <div className="text-center space-y-1">
+          <p className="text-xs text-[var(--gray-400)]">{t("auth.login.otp.recoveryHint")}</p>
+          <p className="text-xs text-[var(--gray-400)]">
+            {t("auth.login.otp.lostAllHint").split("{email}")[0]}
+            <a href="mailto:support@osl-pay.com" className="text-[var(--gray-600)] hover:underline">support@osl-pay.com</a>
+            {t("auth.login.otp.lostAllHint").split("{email}")[1]}
+          </p>
+        </div>
 
         <button
           onClick={() => { setOtpToken(null); setOtpCode(""); setError(""); }}
