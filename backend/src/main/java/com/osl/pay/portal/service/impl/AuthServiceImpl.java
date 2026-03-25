@@ -43,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthRedisService authRedis;
     private final AuditService auditService;
+    private final com.osl.pay.portal.security.TotpService totpService;
 
     @Value("${server.ssl.enabled:false}")
     private boolean sslEnabled;
@@ -220,7 +221,55 @@ public class AuthServiceImpl implements AuthService {
             throw new BizException(40104, "商户已停用");
         }
 
-        // Success
+        // OTP check — if enabled, don't issue tokens yet
+        if (Boolean.TRUE.equals(user.getOtpEnabled())) {
+            authRedis.resetFailCount(user.getId());
+            String otpToken = generateToken();
+            authRedis.saveOtpLoginToken(otpToken, user.getId());
+            auditService.log(AuditEventType.LOGIN_OTP_REQUIRED, user.getId(), user.getMerchantId(),
+                    user.getEmail(), httpRequest, true, null);
+            return LoginResponse.requireOtp(otpToken);
+        }
+
+        // Success — no OTP required
+        return issueTokens(user, merchant, httpRequest, httpResponse);
+    }
+
+    /**
+     * Verify OTP code during login and issue tokens.
+     */
+    public LoginResponse verifyLoginOtp(String otpToken, String code,
+                                         HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        Long userId = authRedis.getAndDeleteOtpLoginToken(otpToken);
+        if (userId == null) {
+            throw new BizException(40101, "验证已过期，请重新登录");
+        }
+
+        MerchantUser user = merchantUserMapper.selectById(userId);
+        if (user == null || !Boolean.TRUE.equals(user.getOtpEnabled())) {
+            throw new BizException(40101, "验证失败");
+        }
+
+        if (!totpService.verify(user.getOtpSecret(), code)) {
+            // Put token back so user can retry (with a fresh token)
+            String newOtpToken = generateToken();
+            authRedis.saveOtpLoginToken(newOtpToken, userId);
+            auditService.log(AuditEventType.LOGIN_FAILED, userId, user.getMerchantId(),
+                    user.getEmail(), httpRequest, false, "wrong OTP");
+            // Return error with new token for retry
+            throw new BizException(40106, "验证码错误");
+        }
+
+        Merchant merchant = merchantMapper.selectById(user.getMerchantId());
+        if (merchant == null || merchant.getStatus() != MerchantStatus.ACTIVE) {
+            throw new BizException(40104, "商户已停用");
+        }
+
+        return issueTokens(user, merchant, httpRequest, httpResponse);
+    }
+
+    private LoginResponse issueTokens(MerchantUser user, Merchant merchant,
+                                       HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         authRedis.resetFailCount(user.getId());
         String accessToken = jwtService.generateAccessToken(
                 user.getId(), user.getMerchantId(), user.getEmail(), user.getRole().getValue());

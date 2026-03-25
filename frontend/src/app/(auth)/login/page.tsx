@@ -14,6 +14,7 @@ import {
   EyeSlashIcon,
   ArrowRightIcon,
   BuildingOffice2Icon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
 export default function LoginPage() {
@@ -25,6 +26,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [merchants, setMerchants] = useState<MerchantSelectItem[] | null>(null);
+  const [otpToken, setOtpToken] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+
+  const handleLoginSuccess = (res: LoginResponse) => {
+    setAccessToken(res.accessToken!);
+    if (res.refreshToken) setRefreshToken(res.refreshToken);
+    router.push("/");
+  };
 
   const handleLogin = async (merchantId?: number) => {
     if (!email.trim() || !password) {
@@ -36,9 +45,9 @@ export default function LoginPage() {
     try {
       const res: LoginResponse = await authService.login({ email, password, merchantId });
       if (res.authenticated) {
-        setAccessToken(res.accessToken!);
-        if (res.refreshToken) setRefreshToken(res.refreshToken);
-        router.push("/");
+        handleLoginSuccess(res);
+      } else if (res.requireOtp && res.otpToken) {
+        setOtpToken(res.otpToken);
       } else if (res.merchants) {
         setMerchants(res.merchants);
       }
@@ -49,7 +58,72 @@ export default function LoginPage() {
     }
   };
 
+  const handleOtpVerify = async () => {
+    if (!otpToken || otpCode.length !== 6) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await authService.verifyLoginOtp(otpToken, otpCode);
+      if (res.authenticated) {
+        handleLoginSuccess(res);
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t("auth.login.networkError"));
+      setOtpCode("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); handleLogin(); };
+
+  // OTP verification step
+  if (otpToken) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <ShieldCheckIcon className="w-6 h-6 text-blue-600" />
+          </div>
+          <h1 className="text-xl font-semibold text-[var(--gray-900)]">{t("auth.login.otp.title")}</h1>
+          <p className="text-sm text-[var(--gray-500)] mt-1">{t("auth.login.otp.subtitle")}</p>
+        </div>
+
+        {error && <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">{error}</div>}
+
+        <div>
+          <input
+            type="text"
+            value={otpCode}
+            onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
+            placeholder="000000"
+            maxLength={6}
+            autoFocus
+            className="w-full text-center text-2xl font-mono tracking-[0.5em] border border-[var(--gray-300)] rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-[var(--primary-black)] focus:border-transparent"
+          />
+        </div>
+
+        <button
+          onClick={handleOtpVerify}
+          disabled={loading || otpCode.length !== 6}
+          className="w-full bg-[var(--primary-black)] text-white font-medium py-3 px-5 rounded-xl hover:bg-[#1a1a1a] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{t("auth.login.otp.verifying")}</>
+          ) : (
+            <>{t("auth.login.otp.verify")}<ArrowRightIcon className="w-4 h-4" /></>
+          )}
+        </button>
+
+        <button
+          onClick={() => { setOtpToken(null); setOtpCode(""); setError(""); }}
+          className="w-full text-sm text-[var(--gray-500)] hover:text-[var(--gray-700)] transition-colors"
+        >
+          {t("auth.login.otp.back")}
+        </button>
+      </div>
+    );
+  }
 
   if (merchants) {
     return (

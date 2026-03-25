@@ -32,6 +32,12 @@ public class LoginResponse {
     /** Only set when authenticated=false, means user must pick a merchant */
     private List<MerchantSelectItem> merchants;
 
+    /** True if OTP verification is required before tokens are issued */
+    private boolean requireOtp;
+
+    /** Temporary token for OTP verification step (only set when requireOtp=true) */
+    private String otpToken;
+
     /** Factory: successful login */
     public static LoginResponse success(String accessToken, Long userId, Long merchantId,
                                         String email, String role, String companyName) {
@@ -51,6 +57,15 @@ public class LoginResponse {
         LoginResponse r = new LoginResponse();
         r.authenticated = false;
         r.merchants = merchants;
+        return r;
+    }
+
+    /** Factory: OTP verification required */
+    public static LoginResponse requireOtp(String otpToken) {
+        LoginResponse r = new LoginResponse();
+        r.authenticated = false;
+        r.requireOtp = true;
+        r.otpToken = otpToken;
         return r;
     }
 }

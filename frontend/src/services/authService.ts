@@ -37,6 +37,8 @@ interface LoginResponse {
   role?: string;
   companyName?: string;
   merchants?: MerchantSelectItem[];
+  requireOtp?: boolean;
+  otpToken?: string;
 }
 
 interface ForgotPasswordRequest {
@@ -66,6 +68,10 @@ export const authService = {
 
   login(data: LoginRequest): Promise<LoginResponse> {
     return api.post<LoginResponse>("/api/v1/auth/login", data);
+  },
+
+  verifyLoginOtp(otpToken: string, code: string): Promise<LoginResponse> {
+    return api.post<LoginResponse>("/api/v1/auth/verify-otp", { otpToken, code });
   },
 
   refresh(refreshToken: string | null): Promise<LoginResponse> {

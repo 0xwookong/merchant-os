@@ -12,6 +12,8 @@ public interface AuthService {
 
     LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 
+    LoginResponse verifyLoginOtp(String otpToken, String code, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
+
     LoginResponse refreshToken(String refreshToken, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 
     void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse);

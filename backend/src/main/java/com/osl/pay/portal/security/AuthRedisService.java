@@ -133,6 +133,25 @@ public class AuthRedisService {
         return redis.opsForValue().getAndDelete(OTP_SETUP_PREFIX + userId);
     }
 
+    // ===== OTP Login Token (pre-auth, pending OTP verification) =====
+
+    private static final String OTP_LOGIN_PREFIX = "auth:otp-login:";
+    private static final int OTP_LOGIN_EXPIRE_MINUTES = 5;
+
+    /** Store userId pending OTP verification during login. */
+    public void saveOtpLoginToken(String token, Long userId) {
+        redis.opsForValue().set(
+                OTP_LOGIN_PREFIX + token,
+                userId.toString(),
+                Duration.ofMinutes(OTP_LOGIN_EXPIRE_MINUTES));
+    }
+
+    /** Returns userId if token valid, null otherwise. Consumes the token. */
+    public Long getAndDeleteOtpLoginToken(String token) {
+        String userId = redis.opsForValue().getAndDelete(OTP_LOGIN_PREFIX + token);
+        return userId != null ? Long.valueOf(userId) : null;
+    }
+
     // ===== Login Failure Counter =====
 
     private static final String FAIL_PREFIX = "auth:login-fail:";

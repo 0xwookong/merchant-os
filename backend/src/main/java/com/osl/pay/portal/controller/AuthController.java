@@ -39,6 +39,13 @@ public class AuthController {
         return Result.ok(authService.login(request, httpRequest, httpResponse));
     }
 
+    @PostMapping("/verify-otp")
+    public Result<LoginResponse> verifyLoginOtp(@Valid @RequestBody OtpLoginRequest request,
+                                                 HttpServletRequest httpRequest,
+                                                 HttpServletResponse httpResponse) {
+        return Result.ok(authService.verifyLoginOtp(request.getOtpToken(), request.getCode(), httpRequest, httpResponse));
+    }
+
     @PostMapping("/refresh")
     public Result<LoginResponse> refresh(@RequestBody(required = false) RefreshRequest body,
                                          HttpServletRequest httpRequest,
