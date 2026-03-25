@@ -8,19 +8,15 @@ import com.osl.pay.portal.model.entity.ApplicationDocument;
 import com.osl.pay.portal.model.entity.MerchantApplication;
 import com.osl.pay.portal.repository.ApplicationDocumentMapper;
 import com.osl.pay.portal.repository.MerchantApplicationMapper;
+import com.osl.pay.portal.service.FileStorageService;
 import com.osl.pay.portal.service.MerchantApplicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +32,7 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
     private final MerchantApplicationMapper applicationMapper;
     private final ApplicationDocumentMapper documentMapper;
     private final AuditService auditService;
+    private final FileStorageService fileStorage;
 
     private static final Set<String> IMMUTABLE_STATUSES = Set.of("SUBMITTED", "UNDER_REVIEW", "APPROVED");
     private static final Set<String> RESUBMITTABLE_STATUSES = Set.of("REJECTED", "NEED_MORE_INFO");
@@ -49,9 +46,6 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
             "BUSINESS_PROFILE", "SHAREHOLDER_LIST", "DIRECTOR_LIST", "ADDRESS_PROOF",
             "REGULATORY_PERMIT", "AML_POLICY", "CDD_POLICY", "SANCTIONS_POLICY",
             "DIRECTOR_ID", "AUTH_PERSON_ID", "OTHER");
-
-    @Value("${oslpay.upload.path:uploads}")
-    private String uploadBasePath;
 
     // ─── getCurrent ───
 
@@ -197,8 +191,15 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
             throw new BizException(40000, "只支持 PDF、JPG、PNG 格式");
         }
 
-        // Save file to disk
-        String relativePath = saveFile(merchantId, app.getId(), file);
+        // Save file via storage service (local or S3)
+        String ext = "";
+        String originalName = file.getOriginalFilename();
+        if (originalName != null && originalName.contains(".")) {
+            ext = originalName.substring(originalName.lastIndexOf("."));
+        }
+        String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
+        String directory = merchantId + "/" + app.getId();
+        String relativePath = fileStorage.store(directory, fileName, file);
 
         // Save to DB
         ApplicationDocument doc = new ApplicationDocument();
@@ -359,29 +360,6 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         if (totalShare > 100) {
             throw new BizException(40000, "UBO 持股比例总和不能超过 100%");
         }
-    }
-
-    // ─── File operations ───
-
-    private String saveFile(Long merchantId, Long applicationId, MultipartFile file) {
-        String ext = "";
-        String originalName = file.getOriginalFilename();
-        if (originalName != null && originalName.contains(".")) {
-            ext = originalName.substring(originalName.lastIndexOf("."));
-        }
-        String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
-        String relativePath = merchantId + "/" + applicationId + "/" + fileName;
-        Path fullPath = Paths.get(uploadBasePath, relativePath).toAbsolutePath();
-
-        try {
-            Files.createDirectories(fullPath.getParent());
-            file.transferTo(fullPath.toFile());
-        } catch (IOException e) {
-            log.error("Failed to save file: {}", fullPath, e);
-            throw new BizException(50000, "文件保存失败");
-        }
-
-        return relativePath;
     }
 
     // ─── Helpers ───
