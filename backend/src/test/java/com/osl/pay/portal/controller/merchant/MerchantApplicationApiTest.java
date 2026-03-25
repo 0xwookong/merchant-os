@@ -480,8 +480,8 @@ class MerchantApplicationApiTest {
     class Submit {
 
         @Test
-        @DisplayName("完整数据提交（沙箱）→ APPROVED 自动审批")
-        void should_autoApprove_when_sandbox() throws Exception {
+        @DisplayName("完整数据提交 → 状态变为 SUBMITTED，等待审核")
+        void should_setSubmitted() throws Exception {
             saveFullDraft();
 
             mockMvc.perform(post("/api/v1/application/submit")
@@ -489,23 +489,9 @@ class MerchantApplicationApiTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(submitDeclarations())))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.status").value("APPROVED"))
+                    .andExpect(jsonPath("$.data.status").value("SUBMITTED"))
                     .andExpect(jsonPath("$.data.infoAccuracyConfirmed").value(true))
                     .andExpect(jsonPath("$.data.submittedAt").isNotEmpty());
-        }
-
-        @Test
-        @DisplayName("完整数据提交（生产）→ SUBMITTED")
-        void should_setSubmitted_when_production() throws Exception {
-            saveFullDraft();
-
-            mockMvc.perform(post("/api/v1/application/submit")
-                            .header("Authorization", "Bearer " + token)
-                            .header("X-Environment", "production")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(submitDeclarations())))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.status").value("SUBMITTED"));
         }
 
         @Test

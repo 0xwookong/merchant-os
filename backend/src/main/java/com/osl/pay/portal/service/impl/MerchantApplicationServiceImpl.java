@@ -2,7 +2,6 @@ package com.osl.pay.portal.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.osl.pay.portal.common.audit.AuditService;
-import com.osl.pay.portal.common.context.EnvironmentContext;
 import com.osl.pay.portal.common.exception.BizException;
 import com.osl.pay.portal.model.dto.*;
 import com.osl.pay.portal.model.entity.ApplicationDocument;
@@ -124,15 +123,14 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         app.setSanctionsDeclared(true);
         app.setTermsAccepted(true);
 
-        // Sandbox auto-approves, production goes to SUBMITTED
-        app.setStatus(EnvironmentContext.isSandbox() ? "APPROVED" : "SUBMITTED");
+        // Always go to SUBMITTED — approval is done by compliance team (or via DB for testing)
+        app.setStatus("SUBMITTED");
         app.setSubmittedAt(LocalDateTime.now());
         applicationMapper.updateById(app);
 
         auditService.log("APPLICATION_SUBMITTED", userId, merchantId,
-                null, httpRequest, true,
-                "Status: " + app.getStatus());
-        log.info("Application submitted: merchantId={}, status={}", merchantId, app.getStatus());
+                null, httpRequest, true, null);
+        log.info("Application submitted: merchantId={}", merchantId);
         return toResponse(app);
     }
 
@@ -158,16 +156,15 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         app.setInfoAccuracyConfirmed(true);
         app.setSanctionsDeclared(true);
         app.setTermsAccepted(true);
-        app.setStatus(EnvironmentContext.isSandbox() ? "APPROVED" : "SUBMITTED");
+        app.setStatus("SUBMITTED");
         app.setSubmittedAt(LocalDateTime.now());
         app.setRejectReason(null);
         app.setNeedInfoDetails(null);
         applicationMapper.updateById(app);
 
         auditService.log("APPLICATION_RESUBMITTED", userId, merchantId,
-                null, httpRequest, true,
-                "Status: " + app.getStatus());
-        log.info("Application resubmitted: merchantId={}, status={}", merchantId, app.getStatus());
+                null, httpRequest, true, null);
+        log.info("Application resubmitted: merchantId={}", merchantId);
         return toResponse(app);
     }
 
