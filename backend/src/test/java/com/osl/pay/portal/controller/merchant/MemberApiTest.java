@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.osl.pay.portal.security.AuthRedisService;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +41,7 @@ class MemberApiTest {
     @Autowired private ApiRequestLogMapper apiRequestLogMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private StringRedisTemplate redis;
+    @Autowired private AuthRedisService authRedis;
 
     private String token;
     private Long adminUserId;
@@ -147,7 +149,7 @@ class MemberApiTest {
     }
 
     @Test
-    @DisplayName("移除成员 → 200，列表减少一人")
+    @DisplayName("移除成员（需 2FA 验证） → 200，列表减少一人")
     void should_removeMember() throws Exception {
         // Invite first
         MvcResult inviteResult = mockMvc.perform(post("/api/v1/members/invite")
@@ -158,16 +160,25 @@ class MemberApiTest {
         Long memberId = objectMapper.readTree(inviteResult.getResponse().getContentAsString())
                 .path("data").path("id").asLong();
 
-        mockMvc.perform(delete("/api/v1/members/" + memberId)
-                        .header("Authorization", "Bearer " + token))
+        // Prepare email verification code for the admin (no OTP bound)
+        authRedis.saveEmailCode(adminUserId, "123456");
+
+        mockMvc.perform(post("/api/v1/members/" + memberId + "/remove")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("emailCode", "123456"))))
                 .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("移除自己 → 400 '无法移除自己的账号'")
     void should_rejectRemoveSelf() throws Exception {
-        mockMvc.perform(delete("/api/v1/members/" + adminUserId)
-                        .header("Authorization", "Bearer " + token))
+        authRedis.saveEmailCode(adminUserId, "123456");
+
+        mockMvc.perform(post("/api/v1/members/" + adminUserId + "/remove")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("emailCode", "123456"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("无法移除自己的账号"));
     }

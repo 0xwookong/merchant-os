@@ -31,7 +31,7 @@ const ROLES = [
 
 const INVITE_EXPIRE_DAYS = 7;
 
-type ConfirmAction = { type: "remove"; member: MemberInfo } | { type: "resend"; member: MemberInfo } | { type: "resetOtp"; member: MemberInfo } | null;
+type ConfirmAction = { type: "resend"; member: MemberInfo } | null;
 
 /** Compute effective status: ACTIVE, PENDING, or EXPIRED */
 function getEffectiveStatus(m: MemberInfo): "ACTIVE" | "PENDING" | "EXPIRED" {
@@ -68,6 +68,7 @@ export default function MembersPage() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [roleChangeTarget, setRoleChangeTarget] = useState<MemberInfo | null>(null);
   const [resetOtpTarget, setResetOtpTarget] = useState<MemberInfo | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<MemberInfo | null>(null);
 
   const fetchMembers = useCallback(() => {
     setLoading(true);
@@ -104,15 +105,9 @@ export default function MembersPage() {
     if (!confirmAction) return;
     setConfirmLoading(true);
     try {
-      if (confirmAction.type === "remove") {
-        await memberService.remove(confirmAction.member.id);
-        fetchMembers();
-        setToast({ type: "success", message: t("members.remove.success") });
-      } else if (confirmAction.type === "resend") {
-        setResendingId(confirmAction.member.id);
-        await memberService.resendInvite(confirmAction.member.id);
-        setToast({ type: "success", message: t("members.resend.success") });
-      }
+      setResendingId(confirmAction.member.id);
+      await memberService.resendInvite(confirmAction.member.id);
+      setToast({ type: "success", message: t("members.resend.success") });
     } catch (err: unknown) {
       setToast({ type: "error", message: err instanceof Error ? err.message : t("common.error") });
     } finally {
@@ -321,7 +316,7 @@ export default function MembersPage() {
                           </button>
                         )}
                         {!isSelf && (
-                          <button onClick={() => setConfirmAction({ type: "remove", member: m })}
+                          <button onClick={() => setRemoveTarget(m)}
                             className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
                             {t("members.remove")}
                           </button>
@@ -337,11 +332,11 @@ export default function MembersPage() {
       )}
 
       <ConfirmDialog
-        open={confirmAction !== null && confirmAction.type !== "resetOtp"}
+        open={confirmAction !== null}
         onClose={() => setConfirmAction(null)}
         onConfirm={handleConfirm}
         loading={confirmLoading}
-        type={(confirmAction?.type === "resend" ? "resend" : "remove") as "remove" | "resend"}
+        type="resend"
         memberName={confirmAction?.member.contactName || ""}
         memberEmail={confirmAction?.member.email || ""}
         t={t}
@@ -363,6 +358,16 @@ export default function MembersPage() {
         onSuccess={() => { setResetOtpTarget(null); fetchMembers(); }}
         setToast={setToast}
         t={t}
+      />
+
+      <VerifiedActionDialog
+        open={removeTarget !== null}
+        member={removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        onSuccess={() => { setRemoveTarget(null); fetchMembers(); }}
+        setToast={setToast}
+        t={t}
+        variant="remove"
       />
     </div>
   );
@@ -751,6 +756,141 @@ function RoleChangeDialog({ open, member, onClose, onSuccess, setToast, t }: {
                 {loading ? t("common.loading") : t("members.changeRole.confirm")}
               </button>
             </div>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+function VerifiedActionDialog({ open, member, onClose, onSuccess, setToast, t, variant }: {
+  open: boolean;
+  member: MemberInfo | null;
+  onClose: () => void;
+  onSuccess: () => void;
+  setToast: (toast: { type: "success" | "error"; message: string }) => void;
+  t: (key: string) => string;
+  variant: "remove";
+}) {
+  const [otpEnabled, setOtpEnabled] = useState(false);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setCode("");
+      setError("");
+      setCodeSent(false);
+      securityService.getOtpStatus().then((s) => setOtpEnabled(s.otpEnabled)).catch(() => {});
+    }
+  }, [open]);
+
+  const handleSendCode = async () => {
+    setSendingCode(true);
+    try {
+      await securityService.sendEmailCode();
+      setCodeSent(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("common.error"));
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!member) return;
+    setLoading(true);
+    setError("");
+    try {
+      const verifyData = otpEnabled ? { otpCode: code } : { emailCode: code };
+      if (variant === "remove") {
+        await memberService.remove(member.id, verifyData);
+        setToast({ type: "success", message: t("members.remove.success") });
+      }
+      onSuccess();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("common.error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const config = {
+    remove: {
+      icon: <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />,
+      iconBg: "bg-red-100",
+      title: t("members.remove.dialog.title"),
+      desc: t("members.remove.dialog.desc"),
+      confirmLabel: t("members.remove.dialog.confirm"),
+      confirmClass: "bg-red-600 hover:bg-red-700",
+    },
+  }[variant];
+
+  return (
+    <Dialog.Root open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-lg p-6 space-y-5"
+          aria-describedby="verified-action-desc"
+        >
+          <div className={`mx-auto w-12 h-12 rounded-full ${config.iconBg} flex items-center justify-center`}>
+            {config.icon}
+          </div>
+
+          <div className="text-center">
+            <Dialog.Title className="text-lg font-semibold text-[var(--gray-900)]">{config.title}</Dialog.Title>
+            <p id="verified-action-desc" className="text-sm text-[var(--gray-500)] mt-2">{config.desc}</p>
+          </div>
+
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--gray-50)] border border-[var(--gray-100)]">
+            <div className="w-9 h-9 rounded-full bg-[var(--gray-200)] flex items-center justify-center text-sm font-semibold text-[var(--gray-600)]">
+              {member?.contactName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-[var(--gray-900)] truncate">{member?.contactName}</div>
+              <div className="text-xs text-[var(--gray-500)] truncate">{member?.email}</div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--gray-500)] mb-2">
+              {otpEnabled ? t("members.changeRole.otpCode") : t("members.changeRole.emailCode")}
+            </label>
+            {!otpEnabled && !codeSent && (
+              <button onClick={handleSendCode} disabled={sendingCode}
+                className="mb-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50">
+                {sendingCode ? t("members.changeRole.sendingCode") : t("members.changeRole.sendCode")}
+              </button>
+            )}
+            {!otpEnabled && codeSent && (
+              <p className="mb-2 text-xs text-green-600">{t("members.changeRole.codeSent")}</p>
+            )}
+            <input type="text" value={code}
+              onChange={(e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
+              placeholder="000000" maxLength={6}
+              className="w-full text-center text-xl font-mono tracking-[0.4em] border border-[var(--gray-300)] rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
+              <ExclamationTriangleIcon className="w-4 h-4 text-red-500 shrink-0" />
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button onClick={onClose} disabled={loading}
+              className="flex-1 px-4 py-2.5 border border-[var(--gray-300)] rounded-lg text-sm font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)]">
+              {t("common.cancel")}
+            </button>
+            <button onClick={handleSubmit} disabled={loading || code.length !== 6}
+              className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${config.confirmClass}`}>
+              {loading ? t("common.loading") : config.confirmLabel}
+            </button>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

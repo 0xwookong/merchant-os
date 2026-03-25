@@ -10,7 +10,7 @@ import java.util.List;
 public interface MemberService {
     List<MemberResponse> list(Long merchantId);
     MemberResponse invite(Long merchantId, Long currentUserId, InviteMemberRequest request, HttpServletRequest httpRequest);
-    void remove(Long merchantId, Long currentUserId, Long memberId, HttpServletRequest httpRequest);
+    void remove(Long merchantId, Long currentUserId, Long memberId, String otpCode, String emailCode, HttpServletRequest httpRequest);
     void resendInvite(Long merchantId, Long currentUserId, Long memberId, HttpServletRequest httpRequest);
     MemberResponse changeRole(Long merchantId, Long currentUserId, Long memberId, ChangeRoleRequest request, HttpServletRequest httpRequest);
     void resetOtp(Long merchantId, Long currentUserId, Long memberId, String otpCode, String emailCode, HttpServletRequest httpRequest);

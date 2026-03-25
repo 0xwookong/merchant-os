@@ -92,7 +92,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void remove(Long merchantId, Long currentUserId, Long memberId, HttpServletRequest httpRequest) {
+    public void remove(Long merchantId, Long currentUserId, Long memberId,
+                        String otpCode, String emailCode, HttpServletRequest httpRequest) {
         if (currentUserId.equals(memberId)) {
             throw new BizException(40000, "无法移除自己的账号");
         }
@@ -101,6 +102,9 @@ public class MemberServiceImpl implements MemberService {
         if (user == null || !user.getMerchantId().equals(merchantId)) {
             throw new BizException(40400, "成员不存在");
         }
+
+        // Verify the admin's identity before destructive action
+        actionVerification.verify(currentUserId, otpCode, emailCode);
 
         merchantUserMapper.deleteById(memberId);
 

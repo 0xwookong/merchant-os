@@ -32,7 +32,7 @@ export const memberService = {
   resetOtp(id: number, data: { otpCode?: string; emailCode?: string }): Promise<string> {
     return api.post<string>(`/api/v1/members/${id}/reset-otp`, data);
   },
-  remove(id: number): Promise<string> {
-    return api.delete<string>(`/api/v1/members/${id}`);
+  remove(id: number, data: { otpCode?: string; emailCode?: string }): Promise<string> {
+    return api.post<string>(`/api/v1/members/${id}/remove`, data);
   },
 };

@@ -60,11 +60,13 @@ public class MemberController {
         return Result.ok("OTP 已重置");
     }
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}/remove")
     public Result<String> remove(@AuthenticationPrincipal AuthUserDetails user,
                                  @PathVariable Long id,
+                                 @Valid @RequestBody ResetOtpRequest request,
                                  HttpServletRequest httpRequest) {
-        memberService.remove(user.getMerchantId(), user.getUserId(), id, httpRequest);
+        memberService.remove(user.getMerchantId(), user.getUserId(), id,
+                request.getOtpCode(), request.getEmailCode(), httpRequest);
         return Result.ok("已移除");
     }
 }
