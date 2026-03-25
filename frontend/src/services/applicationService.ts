@@ -95,6 +95,9 @@ export interface ApplicationResponse {
   sanctionsDeclared: boolean;
   termsAccepted: boolean;
 
+  // Signatures
+  signatures: { director: SignatureInfo; cco: SignatureInfo } | null;
+
   // Review
   rejectReason: string | null;
   needInfoDetails: string[] | null;
@@ -156,10 +159,22 @@ export interface ApplicationSaveDraftRequest {
   licenceInfo?: LicenceInfo;
 }
 
+export interface SignatureInfo {
+  name: string;
+  title: string;
+  email: string;
+  confirmed: boolean;
+  signedAt?: string;
+}
+
 export interface ApplicationSubmitRequest {
   infoAccuracyConfirmed: boolean;
   sanctionsDeclared: boolean;
   termsAccepted: boolean;
+  signatures: {
+    director: SignatureInfo;
+    cco: SignatureInfo;
+  };
 }
 
 export interface DocumentResponse {

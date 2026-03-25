@@ -82,6 +82,10 @@ public class MerchantApplication {
     private Boolean sanctionsDeclared;
     private Boolean termsAccepted;
 
+    // Signatures (JSON)
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> signatures;
+
     // Review
     private String rejectReason;
 

@@ -117,7 +117,10 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         app.setSanctionsDeclared(true);
         app.setTermsAccepted(true);
 
-        // Always go to SUBMITTED — approval is done by compliance team (or via DB for testing)
+        // Validate and store signatures
+        validateSignatures(request);
+        app.setSignatures(request.getSignatures());
+
         app.setStatus("SUBMITTED");
         app.setSubmittedAt(LocalDateTime.now());
         applicationMapper.updateById(app);
@@ -150,6 +153,8 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         app.setInfoAccuracyConfirmed(true);
         app.setSanctionsDeclared(true);
         app.setTermsAccepted(true);
+        validateSignatures(request);
+        app.setSignatures(request.getSignatures());
         app.setStatus("SUBMITTED");
         app.setSubmittedAt(LocalDateTime.now());
         app.setRejectReason(null);
@@ -313,6 +318,26 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         }
         if (!Boolean.TRUE.equals(request.getTermsAccepted())) {
             throw new BizException(40000, "请同意服务协议和隐私政策");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void validateSignatures(ApplicationSubmitRequest request) {
+        Map<String, Object> sigs = request.getSignatures();
+        if (sigs == null) throw new BizException(40000, "请完成签名确认");
+
+        for (String role : List.of("director", "cco")) {
+            Object entry = sigs.get(role);
+            if (!(entry instanceof Map)) {
+                throw new BizException(40000, "请完成" + ("director".equals(role) ? "董事" : "首席合规官") + "签名");
+            }
+            Map<String, Object> sig = (Map<String, Object>) entry;
+            if (sig.get("name") == null || sig.get("name").toString().isBlank()) {
+                throw new BizException(40000, ("director".equals(role) ? "董事" : "首席合规官") + "姓名不能为空");
+            }
+            if (!Boolean.TRUE.equals(sig.get("confirmed"))) {
+                throw new BizException(40000, "请确认" + ("director".equals(role) ? "董事" : "首席合规官") + "签名");
+            }
         }
     }
 
@@ -485,6 +510,7 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         resp.setInfoAccuracyConfirmed(app.getInfoAccuracyConfirmed());
         resp.setSanctionsDeclared(app.getSanctionsDeclared());
         resp.setTermsAccepted(app.getTermsAccepted());
+        resp.setSignatures(app.getSignatures());
 
         resp.setRejectReason(app.getRejectReason());
         resp.setNeedInfoDetails(app.getNeedInfoDetails());

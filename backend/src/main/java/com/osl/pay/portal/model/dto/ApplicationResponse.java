@@ -66,6 +66,9 @@ public class ApplicationResponse {
     private Boolean sanctionsDeclared;
     private Boolean termsAccepted;
 
+    // Signatures
+    private Map<String, Object> signatures;
+
     // Review
     private String rejectReason;
     private List<String> needInfoDetails;

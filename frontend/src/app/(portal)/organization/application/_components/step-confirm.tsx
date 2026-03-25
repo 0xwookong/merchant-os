@@ -1,8 +1,8 @@
 "use client";
 
 import { useI18n } from "@/providers/language-provider";
-import { InfoRow } from "./form-fields";
-import type { ApplicationSaveDraftRequest, PersonInfo, UboInfo } from "@/services/applicationService";
+import { Field, InfoRow } from "./form-fields";
+import type { ApplicationSaveDraftRequest, PersonInfo, UboInfo, SignatureInfo } from "@/services/applicationService";
 
 interface Props {
   form: ApplicationSaveDraftRequest;
@@ -12,12 +12,14 @@ interface Props {
   controlStructureDesc: string;
   declarations: { info: boolean; sanctions: boolean; terms: boolean };
   onDeclarationsChange: (d: { info: boolean; sanctions: boolean; terms: boolean }) => void;
+  signatures: { director: SignatureInfo; cco: SignatureInfo };
+  onSignaturesChange: (s: { director: SignatureInfo; cco: SignatureInfo }) => void;
   onEditStep: (step: number) => void;
 }
 
 export default function StepConfirm({
   form, legalRep, ubos, noUboDeclaration, controlStructureDesc,
-  declarations, onDeclarationsChange, onEditStep,
+  declarations, onDeclarationsChange, signatures, onSignaturesChange, onEditStep,
 }: Props) {
   const { t } = useI18n();
 
@@ -125,6 +127,27 @@ export default function StepConfirm({
           label={t("app.confirm.declTerms")} />
       </div>
 
+      {/* Signatures */}
+      <div className="border-t border-[var(--gray-200)] pt-6 space-y-6">
+        <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("app.sign.title")}</h3>
+
+        <SignatureBlock
+          title={t("app.sign.director")}
+          sig={signatures.director}
+          onChange={(s) => onSignaturesChange({ ...signatures, director: s })}
+          confirmLabel={t("app.sign.directorConfirm")}
+          t={t}
+        />
+
+        <SignatureBlock
+          title={t("app.sign.cco")}
+          sig={signatures.cco}
+          onChange={(s) => onSignaturesChange({ ...signatures, cco: s })}
+          confirmLabel={t("app.sign.ccoConfirm")}
+          t={t}
+        />
+      </div>
+
       <p className="text-xs text-[var(--gray-400)]">{t("app.confirm.submitNote")}</p>
     </div>
   );
@@ -150,5 +173,33 @@ function DeclCheckbox({ checked, onChange, label }: { checked: boolean; onChange
         className="mt-0.5 h-4 w-4 rounded border-[var(--gray-300)] text-[var(--primary-black)] focus:ring-blue-500" />
       <span className="text-sm text-[var(--gray-700)]">{label}</span>
     </label>
+  );
+}
+
+function SignatureBlock({ title, sig, onChange, confirmLabel, t }: {
+  title: string; sig: SignatureInfo; onChange: (s: SignatureInfo) => void;
+  confirmLabel: string; t: (k: string) => string;
+}) {
+  const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+  return (
+    <div className="border border-[var(--gray-200)] rounded-lg p-5 space-y-4">
+      <h4 className="text-sm font-semibold text-[var(--gray-900)]">{title}</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label={t("app.sign.name")} value={sig.name} onChange={(v) => onChange({ ...sig, name: v })} required placeholder={t("app.ph.contactName")} />
+        <Field label={t("app.sign.position")} value={sig.title} onChange={(v) => onChange({ ...sig, title: v })} required placeholder={t("app.ph.contactTitle")} />
+        <Field label={t("app.sign.email")} value={sig.email} onChange={(v) => onChange({ ...sig, email: v })} required type="email" placeholder={t("app.ph.contactEmail")} />
+        <div className="flex items-end">
+          <div>
+            <span className="text-xs text-[var(--gray-500)]">{t("app.sign.date")}</span>
+            <p className="text-sm text-[var(--gray-900)] mt-0.5">{now}</p>
+          </div>
+        </div>
+      </div>
+      <label className="flex items-start gap-3 cursor-pointer pt-2 border-t border-[var(--gray-100)]">
+        <input type="checkbox" checked={sig.confirmed} onChange={(e) => onChange({ ...sig, confirmed: e.target.checked, signedAt: e.target.checked ? now : undefined })}
+          className="mt-0.5 h-4 w-4 rounded border-[var(--gray-300)] text-[var(--primary-black)] focus:ring-blue-500" />
+        <span className="text-sm text-[var(--gray-700)]">{confirmLabel}</span>
+      </label>
+    </div>
   );
 }

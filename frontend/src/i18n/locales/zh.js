@@ -1013,6 +1013,16 @@ const zh = {
   "app.doc.cddPolicy": "CDD 政策 / 程序（如适用）",
   "app.doc.sanctionsPolicy": "制裁筛查政策 / 程序",
 
+  "app.sign.title": "确认与签名",
+  "app.sign.director": "董事",
+  "app.sign.cco": "首席合规官（或等同职位）",
+  "app.sign.name": "姓名",
+  "app.sign.position": "职位/头衔",
+  "app.sign.email": "邮箱",
+  "app.sign.date": "签署时间",
+  "app.sign.directorConfirm": "本人特此证明所提供的信息真实、准确、完整，并以董事身份签署此表。",
+  "app.sign.ccoConfirm": "本人已审核此表，并以首席合规官（或等同职位）身份代表公司确认。",
+
   "app.validate.required": "不能为空",
   "app.validate.uboRequired": "请添加至少一位 UBO，或声明无 UBO",
 };

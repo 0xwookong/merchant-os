@@ -319,6 +319,9 @@ CREATE TABLE IF NOT EXISTS t_merchant_application (
     sanctions_declared TINYINT(1) NOT NULL DEFAULT 0,
     terms_accepted TINYINT(1) NOT NULL DEFAULT 0,
 
+    -- Signatures (JSON: director + CCO)
+    signatures JSON COMMENT '{director: {name,title,email,confirmed,signedAt}, cco: {name,title,email,confirmed,signedAt}}',
+
     -- Review info
     reject_reason TEXT,
     need_info_details JSON COMMENT 'Items that need supplementation',

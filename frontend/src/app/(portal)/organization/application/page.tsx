@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/providers/language-provider";
 import { applicationService } from "@/services/applicationService";
-import type { ApplicationSaveDraftRequest, ApplicationResponse, PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo, LicenceInfo } from "@/services/applicationService";
+import type { ApplicationSaveDraftRequest, ApplicationResponse, PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo, LicenceInfo, SignatureInfo } from "@/services/applicationService";
 import StepCompany from "./_components/step-company";
 import StepLegal from "./_components/step-legal";
 import StepBusiness from "./_components/step-business";
@@ -41,6 +41,8 @@ export default function ApplicationPage() {
   const [licenceInfo, setLicenceInfo] = useState<LicenceInfo | undefined>();
   const [uploadedDocs, setUploadedDocs] = useState<import("@/services/applicationService").DocumentResponse[]>([]);
   const [declarations, setDeclarations] = useState({ info: false, sanctions: false, terms: false });
+  const EMPTY_SIG: SignatureInfo = { name: "", title: "", email: "", confirmed: false };
+  const [signatures, setSignatures] = useState({ director: { ...EMPTY_SIG }, cco: { ...EMPTY_SIG } });
   const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadCurrent(); }, []);
@@ -179,7 +181,7 @@ export default function ApplicationPage() {
     setSubmitting(true); setError("");
     try {
       const isResubmit = appStatus === "REJECTED" || appStatus === "NEED_MORE_INFO";
-      const req = { infoAccuracyConfirmed: declarations.info, sanctionsDeclared: declarations.sanctions, termsAccepted: declarations.terms };
+      const req = { infoAccuracyConfirmed: declarations.info, sanctionsDeclared: declarations.sanctions, termsAccepted: declarations.terms, signatures };
       const result = isResubmit ? await applicationService.resubmit(req) : await applicationService.submit(req);
       setAppData(result);
       setAppStatus(result.status);
@@ -190,6 +192,8 @@ export default function ApplicationPage() {
 
   const isEditable = !appStatus || appStatus === "DRAFT" || appStatus === "REJECTED" || appStatus === "NEED_MORE_INFO";
   const allDeclared = declarations.info && declarations.sanctions && declarations.terms;
+  const allSigned = signatures.director.confirmed && signatures.cco.confirmed;
+  const canSubmit = allDeclared && allSigned;
   const isVaspCasp = form.counterpartyType === "CASP" || form.counterpartyType === "VASP";
 
   const STEP_LABELS = [t("app.step.company"), t("app.step.legal"), t("app.step.business"), t("app.step.documents"), t("app.step.confirm")];
@@ -266,6 +270,7 @@ export default function ApplicationPage() {
         {step === confirmStep && (
           <StepConfirm form={form} legalRep={legalRep} ubos={ubos} noUboDeclaration={noUboDecl}
             controlStructureDesc={controlDesc} declarations={declarations} onDeclarationsChange={setDeclarations}
+            signatures={signatures} onSignaturesChange={setSignatures}
             onEditStep={(s) => setStep(s)} />
         )}
 
@@ -277,7 +282,7 @@ export default function ApplicationPage() {
           ) : <div />}
 
           {step === confirmStep ? (
-            <button type="button" onClick={handleSubmit} disabled={submitting || !allDeclared}
+            <button type="button" onClick={handleSubmit} disabled={submitting || !canSubmit}
               className="bg-[var(--primary-black)] text-white text-sm font-medium py-2.5 px-6 rounded-lg hover:bg-[#1a1a1a] disabled:opacity-50 transition-all">
               {submitting ? t("common.loading") : t("app.submit")}
             </button>

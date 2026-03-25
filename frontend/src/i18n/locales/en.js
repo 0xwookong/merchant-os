@@ -1037,6 +1037,17 @@ const en = {
   "app.doc.cddPolicy": "CDD Policy / Procedures (if applicable)",
   "app.doc.sanctionsPolicy": "Sanction Screening Policy / Procedures",
 
+  // Signatures
+  "app.sign.title": "Acknowledgement & Signatures",
+  "app.sign.director": "Director",
+  "app.sign.cco": "Chief Compliance Officer (or equivalent)",
+  "app.sign.name": "Full Name",
+  "app.sign.position": "Position / Title",
+  "app.sign.email": "Email",
+  "app.sign.date": "Signed at",
+  "app.sign.directorConfirm": "I hereby certify that the information provided is true, accurate, and complete, and I sign this form in my capacity as Director.",
+  "app.sign.ccoConfirm": "I have reviewed this form and certify it on behalf of the company in my capacity as Chief Compliance Officer (or equivalent).",
+
   // Validation
   "app.validate.required": " is required",
   "app.validate.uboRequired": "Please add at least one UBO, or declare no UBO",

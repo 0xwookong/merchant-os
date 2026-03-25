@@ -194,6 +194,10 @@ class MerchantApplicationApiTest {
         req.setInfoAccuracyConfirmed(true);
         req.setSanctionsDeclared(true);
         req.setTermsAccepted(true);
+        req.setSignatures(Map.of(
+                "director", Map.of("name", "张三", "title", "Director", "email", "director@test.com", "confirmed", true),
+                "cco", Map.of("name", "王五", "title", "CCO", "email", "cco@test.com", "confirmed", true)
+        ));
         return req;
     }
 
