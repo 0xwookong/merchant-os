@@ -931,7 +931,7 @@ const zh = {
   "app.doc.uboBack": "证件（反面）",
   "app.doc.bankStatement": "银行开户证明 / 近 3 月银行流水",
   "app.doc.shareStructure": "股权结构图",
-  "app.doc.hint": "支持 PDF、JPG、PNG，单个文件最大 10MB",
+  "app.doc.hint": "支持 PDF、JPG、PNG，最大 10MB。可点击选择、拖拽或粘贴 (Ctrl+V)。",
 
   "app.confirm.declarations": "合规声明",
   "app.confirm.declInfo": "我确认以上信息真实、完整、准确。",

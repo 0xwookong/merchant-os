@@ -120,6 +120,16 @@ function UploadSlot({ label, hint, required, doc, uploading, onUpload, onDelete,
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   function handleFile(files: FileList | null) { if (files && files[0]) onUpload(files[0]); }
+  function handlePaste(e: React.ClipboardEvent) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].kind === "file") {
+        const file = items[i].getAsFile();
+        if (file) { e.preventDefault(); onUpload(file); return; }
+      }
+    }
+  }
 
   if (doc) {
     return (
@@ -137,8 +147,10 @@ function UploadSlot({ label, hint, required, doc, uploading, onUpload, onDelete,
   }
 
   return (
-    <div className="border-2 border-dashed border-[var(--gray-200)] rounded-lg p-4 text-center hover:border-[var(--gray-400)] transition-colors cursor-pointer"
+    <div className="border-2 border-dashed border-[var(--gray-200)] rounded-lg p-4 text-center hover:border-[var(--gray-400)] focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition-colors cursor-pointer outline-none"
+      tabIndex={0}
       onClick={() => inputRef.current?.click()}
+      onPaste={handlePaste}
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
       onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleFile(e.dataTransfer.files); }}>
       <input ref={inputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"

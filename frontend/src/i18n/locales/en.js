@@ -947,7 +947,7 @@ const en = {
   "app.doc.uboBack": "ID (Back)",
   "app.doc.bankStatement": "Bank Statement / Proof of Account (last 3 months)",
   "app.doc.shareStructure": "Shareholding Structure Chart",
-  "app.doc.hint": "PDF, JPG, or PNG — max 10MB",
+  "app.doc.hint": "PDF, JPG, or PNG — max 10MB. Click, drag & drop, or paste (Ctrl+V).",
 
   // Confirm & Submit (Step 5)
   "app.confirm.declarations": "Compliance Declarations",
