@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { setAccessToken, clearAccessToken, getRefreshToken, setRefreshToken, clearRefreshToken } from "@/lib/auth";
+import { getAccessToken, setAccessToken, clearAccessToken, getRefreshToken, setRefreshToken, clearRefreshToken } from "@/lib/auth";
 import { authService, type LoginResponse } from "@/services/authService";
 
 interface AuthUser {
@@ -33,11 +33,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount: try to restore session via refresh token (localStorage in dev, cookie in prod)
+  // On mount: restore session from sessionStorage (fast) or refresh token (network)
   useEffect(() => {
+    // 1. Try to restore from sessionStorage (covers page refresh without network call)
+    const existingToken = getAccessToken();
+    const cachedUser = typeof window !== "undefined" ? sessionStorage.getItem("oslpay_user") : null;
+    if (existingToken && cachedUser) {
+      try {
+        setUser(JSON.parse(cachedUser));
+        setIsLoading(false);
+        return;
+      } catch { /* fall through to refresh */ }
+    }
+
+    // 2. Try refresh token (covers new tab, expired access token)
     const storedRefreshToken = getRefreshToken();
     if (!storedRefreshToken) {
-      // No token stored — skip refresh, go straight to unauthenticated
       setIsLoading(false);
       return;
     }
@@ -47,20 +58,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (res.authenticated && res.accessToken) {
           setAccessToken(res.accessToken);
           if (res.refreshToken) setRefreshToken(res.refreshToken);
-          setUser({
+          const u: AuthUser = {
             userId: res.userId!,
             merchantId: res.merchantId!,
             email: res.email!,
             role: res.role!,
             companyName: res.companyName!,
-          });
+          };
+          setUser(u);
+          sessionStorage.setItem("oslpay_user", JSON.stringify(u));
         } else {
           clearRefreshToken();
+          sessionStorage.removeItem("oslpay_user");
         }
       })
       .catch(() => {
-        // Refresh failed — clear stale token
         clearRefreshToken();
+        sessionStorage.removeItem("oslpay_user");
       })
       .finally(() => {
         setIsLoading(false);
@@ -71,13 +85,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (response.authenticated && response.accessToken) {
       setAccessToken(response.accessToken);
       if (response.refreshToken) setRefreshToken(response.refreshToken);
-      setUser({
+      const u: AuthUser = {
         userId: response.userId!,
         merchantId: response.merchantId!,
         email: response.email!,
         role: response.role!,
         companyName: response.companyName!,
-      });
+      };
+      setUser(u);
+      sessionStorage.setItem("oslpay_user", JSON.stringify(u));
     }
   }, []);
 
@@ -89,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     clearAccessToken();
     clearRefreshToken();
+    sessionStorage.removeItem("oslpay_user");
     setUser(null);
   }, []);
 
