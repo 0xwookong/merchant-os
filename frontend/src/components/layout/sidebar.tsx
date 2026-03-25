@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
+import { useI18n } from "@/providers/language-provider";
 import { filterMenuByRole, MENU_CONFIG, type MenuItem } from "@/lib/menu-config";
 import { kybService } from "@/services/kybService";
 import {
@@ -23,6 +24,8 @@ import {
   ShieldCheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 
 const ICON_MAP: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
@@ -42,22 +45,43 @@ const ICON_MAP: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>
   ShieldCheckIcon,
 };
 
+const EXPANDED_WIDTH = 265;
+const COLLAPSED_WIDTH = 64;
+const COLLAPSED_KEY = "sidebar-collapsed";
+
 export default function Sidebar() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const pathname = usePathname();
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
   const [kybApproved, setKybApproved] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem(COLLAPSED_KEY) === "true") setCollapsed(true);
+  }, []);
+
+  const effectiveWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+  useEffect(() => {
+    document.documentElement.style.setProperty("--sidebar-width", `${effectiveWidth}px`);
+  }, [effectiveWidth]);
+
+  const toggleCollapse = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem(COLLAPSED_KEY, String(next));
+      return next;
+    });
+  };
 
   const menuItems = user ? filterMenuByRole(MENU_CONFIG, user.role) : [];
 
-  // Check KYB status for onboarding gate
   useEffect(() => {
     kybService.getStatus()
       .then((res) => setKybApproved(res.kybStatus === "APPROVED"))
       .catch(() => {});
   }, []);
 
-  // Auto-expand parent menu when a child path matches
   useEffect(() => {
     for (const item of menuItems) {
       if (item.children?.some((child) => child.path && pathname.startsWith(child.path))) {
@@ -69,11 +93,8 @@ export default function Sidebar() {
   const toggleExpand = (key: string) => {
     setExpandedKeys((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
@@ -84,37 +105,55 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-60 flex-shrink-0 flex flex-col h-screen fixed left-0 top-0 z-40">
-      {/* Logo area */}
-      <div className="h-16 bg-[var(--primary-black)] flex items-center px-5">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-[var(--neon-green)] rounded-lg flex items-center justify-center">
-            <span className="text-[var(--primary-black)] font-bold text-sm">O</span>
-          </div>
-          <span className="text-white font-semibold text-lg">OSL Pay</span>
-        </div>
-      </div>
-
-      {/* Nav area */}
-      <nav className="flex-1 bg-white border-r border-[var(--gray-200)] px-4 py-6 space-y-1 overflow-y-auto">
+    <aside
+      className="fixed left-0 top-16 bottom-0 z-40 flex flex-col bg-white border-r border-[var(--gray-200)] transition-[width] duration-200"
+      style={{ width: effectiveWidth }}
+    >
+      {/* Nav */}
+      <nav className={`flex-1 py-6 space-y-1 overflow-y-auto ${collapsed ? "px-2" : "px-4"}`}>
         {menuItems.map((item) => (
           <MenuItemComponent
             key={item.key}
             item={item}
+            t={t}
+            collapsed={collapsed}
             isExpanded={expandedKeys.has(item.key)}
             onToggle={() => toggleExpand(item.key)}
             isActive={isActive}
             isDisabled={item.key === "onboarding" && !kybApproved}
-            disabledTooltip="请先完成 KYB 认证"
+            disabledTooltip={t("nav.kybRequired")}
           />
         ))}
       </nav>
+
+      {/* Collapse/Expand toggle at bottom */}
+      <div className={`border-t border-[var(--gray-200)] py-3 ${collapsed ? "px-2 flex justify-center" : "px-4"}`}>
+        <button
+          onClick={toggleCollapse}
+          className={`flex items-center gap-3 rounded-lg text-sm font-medium text-[var(--gray-500)] hover:bg-[var(--gray-50)] hover:text-[var(--gray-700)] transition-colors ${
+            collapsed ? "p-2 justify-center" : "w-full px-3 py-2"
+          }`}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? (
+            <ChevronDoubleRightIcon className="w-5 h-5" />
+          ) : (
+            <>
+              <ChevronDoubleLeftIcon className="w-5 h-5 shrink-0" />
+              <span className="truncate">{t("nav.collapse")}</span>
+            </>
+          )}
+        </button>
+      </div>
+
     </aside>
   );
 }
 
 function MenuItemComponent({
   item,
+  t,
+  collapsed,
   isExpanded,
   onToggle,
   isActive,
@@ -122,6 +161,8 @@ function MenuItemComponent({
   disabledTooltip,
 }: {
   item: MenuItem;
+  t: (key: string) => string;
+  collapsed: boolean;
   isExpanded: boolean;
   onToggle: () => void;
   isActive: (path?: string) => boolean;
@@ -131,6 +172,56 @@ function MenuItemComponent({
   const IconComponent = ICON_MAP[item.icon];
   const hasChildren = item.children && item.children.length > 0;
   const active = !hasChildren && !isDisabled && isActive(item.path);
+  const label = t(item.labelKey);
+
+  if (collapsed) {
+    if (hasChildren) {
+      return (
+        <>
+          {item.children!.map((child) => (
+            <MenuItemComponent
+              key={child.key}
+              item={child}
+              t={t}
+              collapsed={collapsed}
+              isExpanded={false}
+              onToggle={() => {}}
+              isActive={isActive}
+            />
+          ))}
+        </>
+      );
+    }
+
+    if (isDisabled) {
+      return (
+        <div
+          className="flex items-center justify-center p-2 rounded-lg text-[var(--gray-400)] cursor-not-allowed"
+          title={disabledTooltip}
+        >
+          {IconComponent && <IconComponent className="w-5 h-5" />}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        href={item.path || "#"}
+        title={label}
+        className={`flex items-center justify-center p-2 rounded-lg transition-colors ${
+          active
+            ? "bg-[var(--primary-black)] text-white"
+            : "text-[var(--gray-700)] hover:bg-[var(--gray-50)]"
+        }`}
+      >
+        {IconComponent && (
+          <IconComponent
+            className={`w-5 h-5 ${active ? "text-[var(--neon-green)]" : "text-[var(--gray-500)]"}`}
+          />
+        )}
+      </Link>
+    );
+  }
 
   if (hasChildren) {
     return (
@@ -139,14 +230,14 @@ function MenuItemComponent({
           onClick={onToggle}
           className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition-colors"
         >
-          <div className="flex items-center gap-3">
-            {IconComponent && <IconComponent className="w-5 h-5 text-[var(--gray-500)]" />}
-            <span>{item.label}</span>
+          <div className="flex items-center gap-3 min-w-0">
+            {IconComponent && <IconComponent className="w-5 h-5 text-[var(--gray-500)] shrink-0" />}
+            <span className="truncate">{label}</span>
           </div>
           {isExpanded ? (
-            <ChevronDownIcon className="w-4 h-4 text-[var(--gray-400)]" />
+            <ChevronDownIcon className="w-4 h-4 text-[var(--gray-400)] shrink-0" />
           ) : (
-            <ChevronRightIcon className="w-4 h-4 text-[var(--gray-400)]" />
+            <ChevronRightIcon className="w-4 h-4 text-[var(--gray-400)] shrink-0" />
           )}
         </button>
         {isExpanded && (
@@ -155,6 +246,8 @@ function MenuItemComponent({
               <MenuItemComponent
                 key={child.key}
                 item={child}
+                t={t}
+                collapsed={false}
                 isExpanded={false}
                 onToggle={() => {}}
                 isActive={isActive}
@@ -172,8 +265,8 @@ function MenuItemComponent({
         className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--gray-400)] cursor-not-allowed"
         title={disabledTooltip}
       >
-        {IconComponent && <IconComponent className="w-5 h-5" />}
-        <span>{item.label}</span>
+        {IconComponent && <IconComponent className="w-5 h-5 shrink-0" />}
+        <span className="truncate">{label}</span>
       </div>
     );
   }
@@ -189,10 +282,10 @@ function MenuItemComponent({
     >
       {IconComponent && (
         <IconComponent
-          className={`w-5 h-5 ${active ? "text-[var(--neon-green)]" : "text-[var(--gray-500)]"}`}
+          className={`w-5 h-5 shrink-0 ${active ? "text-[var(--neon-green)]" : "text-[var(--gray-500)]"}`}
         />
       )}
-      <span>{item.label}</span>
+      <span className="truncate">{label}</span>
     </Link>
   );
 }

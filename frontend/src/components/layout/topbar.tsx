@@ -8,23 +8,18 @@ import { useEnvironment } from "@/providers/environment-provider";
 import { useI18n } from "@/providers/language-provider";
 import {
   ArrowRightStartOnRectangleIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
   KeyIcon,
   LanguageIcon,
-  ChevronDownIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import ChangePasswordDialog from "./change-password-dialog";
 
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN: "管理员",
-  BUSINESS: "业务人员",
-  TECH: "技术人员",
-};
-
 export default function TopBar() {
   const { user, logout } = useAuth();
   const { environment, toggleEnvironment } = useEnvironment();
-  const { locale, setLocale } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const router = useRouter();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
@@ -35,39 +30,46 @@ export default function TopBar() {
 
   const handlePasswordChanged = () => {
     setChangePasswordOpen(false);
-    // Force re-login since refresh token was revoked
     handleLogout();
   };
 
   return (
     <>
-      <header className="h-16 bg-[var(--primary-black)] flex items-center justify-between px-6 fixed top-0 left-60 right-0 z-30">
-        <div />
+      <header className="h-16 bg-[var(--primary-black)] flex items-center justify-between px-6 fixed top-0 left-0 right-0 z-50">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-[var(--neon-green)] rounded-lg flex items-center justify-center">
+            <span className="text-[var(--primary-black)] font-bold text-sm">O</span>
+          </div>
+          <span className="text-white font-semibold text-lg">OSL Pay</span>
+          <span className="text-gray-500 text-xl leading-none">·</span>
+          <span className="text-gray-400 text-sm font-medium">Merchant Portal</span>
+        </div>
 
         <div className="flex items-center gap-5">
           {/* Environment toggle */}
           <button
             onClick={toggleEnvironment}
-            className="relative w-[120px] h-8 rounded-full bg-white/10 p-0.5 transition-colors"
-            aria-label="切换环境"
+            className="relative w-[148px] h-8 rounded-full bg-white/10 p-0.5 transition-colors"
+            aria-label={t("env.toggleLabel")}
           >
             <div
-              className={`absolute top-0.5 h-7 w-[58px] rounded-full transition-all duration-200 ${
+              className={`absolute top-0.5 h-7 w-[72px] rounded-full transition-all duration-200 ${
                 environment === "production"
                   ? "left-0.5 bg-red-500/80"
-                  : "left-[60px] bg-green-500/80"
+                  : "left-[74px] bg-green-500/80"
               }`}
             />
             <div className="relative flex h-full">
-              <span className={`flex-1 flex items-center justify-center text-xs font-medium z-10 transition-colors ${
-                environment === "production" ? "text-white" : "text-gray-400"
+              <span className={`flex-1 flex items-center justify-center text-xs z-10 transition-colors ${
+                environment === "production" ? "text-white font-semibold" : "text-gray-400 font-medium"
               }`}>
-                生产
+                {t("env.production")}
               </span>
-              <span className={`flex-1 flex items-center justify-center text-xs font-medium z-10 transition-colors ${
-                environment === "sandbox" ? "text-white" : "text-gray-400"
+              <span className={`flex-1 flex items-center justify-center text-xs z-10 transition-colors ${
+                environment === "sandbox" ? "text-white font-semibold" : "text-gray-400 font-medium"
               }`}>
-                沙箱
+                {t("env.sandbox")}
               </span>
             </div>
           </button>
@@ -83,7 +85,7 @@ export default function TopBar() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-white font-medium">{user.companyName}</span>
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--neon-green)]/20 text-[var(--neon-green)]">
-                        {ROLE_LABELS[user.role] || user.role}
+                        {t(`user.role.${user.role}`) || user.role}
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 text-right">{user.email}</p>
@@ -94,47 +96,49 @@ export default function TopBar() {
 
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="min-w-[200px] bg-white rounded-lg shadow-lg border border-[var(--gray-200)] py-1 z-50"
+                  className="min-w-[220px] bg-white rounded-xl shadow-lg border border-[var(--gray-200)] py-1.5 z-50"
                   sideOffset={8}
                   align="end"
                 >
                   <DropdownMenu.Item
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] cursor-pointer outline-none"
+                    className="flex items-center gap-3 mx-1.5 px-3 py-2.5 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] rounded-lg cursor-pointer outline-none transition-colors"
                     onSelect={() => setChangePasswordOpen(true)}
                   >
                     <KeyIcon className="w-4 h-4 text-[var(--gray-500)]" />
-                    修改密码
+                    <span className="flex-1">{t("user.menu.changePassword")}</span>
+                    <ChevronRightIcon className="w-4 h-4 text-[var(--gray-400)]" />
                   </DropdownMenu.Item>
 
                   <DropdownMenu.Item
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--gray-400)] cursor-not-allowed outline-none"
+                    className="flex items-center gap-3 mx-1.5 px-3 py-2.5 text-sm text-[var(--gray-400)] rounded-lg cursor-not-allowed outline-none"
                     disabled
                   >
                     <ShieldCheckIcon className="w-4 h-4" />
-                    安全设置
-                    <span className="ml-auto text-[10px] bg-[var(--gray-100)] text-[var(--gray-400)] px-1.5 py-0.5 rounded">
-                      即将上线
+                    <span className="flex-1">{t("user.menu.securitySettings")}</span>
+                    <span className="text-[10px] bg-[var(--gray-100)] text-[var(--gray-400)] px-1.5 py-0.5 rounded-full font-medium">
+                      {t("user.menu.comingSoon")}
                     </span>
                   </DropdownMenu.Item>
 
                   <DropdownMenu.Separator className="h-px bg-[var(--gray-100)] my-1" />
 
                   <DropdownMenu.Item
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] cursor-pointer outline-none"
+                    className="flex items-center gap-3 mx-1.5 px-3 py-2.5 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] rounded-lg cursor-pointer outline-none transition-colors"
                     onSelect={() => setLocale(locale === "zh" ? "en" : "zh")}
                   >
                     <LanguageIcon className="w-4 h-4 text-[var(--gray-500)]" />
-                    {locale === "zh" ? "English" : "中文"}
+                    <span className="flex-1">{locale === "zh" ? "English" : "中文"}</span>
+                    <ChevronRightIcon className="w-4 h-4 text-[var(--gray-400)]" />
                   </DropdownMenu.Item>
 
                   <DropdownMenu.Separator className="h-px bg-[var(--gray-100)] my-1" />
 
                   <DropdownMenu.Item
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--error)] hover:bg-[var(--error-soft)] cursor-pointer outline-none"
+                    className="flex items-center gap-3 mx-1.5 px-3 py-2.5 text-sm text-[var(--error)] hover:bg-[var(--error-soft)] rounded-lg cursor-pointer outline-none transition-colors"
                     onSelect={handleLogout}
                   >
                     <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
-                    退出登录
+                    {t("user.menu.logout")}
                   </DropdownMenu.Item>
                 </DropdownMenu.Content>
               </DropdownMenu.Portal>

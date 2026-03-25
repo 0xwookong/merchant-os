@@ -2,9 +2,9 @@ type UserRole = "ADMIN" | "BUSINESS" | "TECH";
 
 export interface MenuItem {
   key: string;
-  label: string;
-  icon: string;   // Heroicon name
-  path?: string;   // Link path (leaf menu)
+  labelKey: string; // i18n key, resolved at render time
+  icon: string;     // Heroicon name
+  path?: string;    // Link path (leaf menu)
   roles: UserRole[];
   children?: MenuItem[];
 }
@@ -12,45 +12,46 @@ export interface MenuItem {
 /**
  * Full menu definition. Roles array defines who can see this item.
  * Parent items with children: if all children are filtered out, parent is hidden too.
+ * labelKey is an i18n key — call t(labelKey) in the component to get localized text.
  */
 export const MENU_CONFIG: MenuItem[] = [
   {
     key: "getting-started",
-    label: "快速开始",
+    labelKey: "nav.gettingStarted",
     icon: "RocketLaunchIcon",
     path: "/getting-started",
     roles: ["ADMIN", "BUSINESS", "TECH"],
   },
   {
     key: "dashboard",
-    label: "仪表盘",
+    labelKey: "nav.dashboard",
     icon: "ChartBarIcon",
     path: "/dashboard",
     roles: ["ADMIN", "BUSINESS"],
   },
   {
     key: "business",
-    label: "业务管理",
+    labelKey: "nav.business",
     icon: "BriefcaseIcon",
     roles: ["ADMIN", "BUSINESS"],
     children: [
       {
         key: "kyb",
-        label: "KYB 认证",
+        labelKey: "nav.business.kyb",
         icon: "ShieldCheckIcon",
         path: "/kyb",
         roles: ["ADMIN"],
       },
       {
         key: "onboarding",
-        label: "入驻申请",
+        labelKey: "nav.business.onboarding",
         icon: "DocumentTextIcon",
         path: "/business/onboarding",
         roles: ["ADMIN", "BUSINESS"],
       },
       {
         key: "members",
-        label: "成员与权限",
+        labelKey: "nav.business.members",
         icon: "UsersIcon",
         path: "/business/members",
         roles: ["ADMIN"],
@@ -59,55 +60,55 @@ export const MENU_CONFIG: MenuItem[] = [
   },
   {
     key: "developer",
-    label: "开发者套件",
+    labelKey: "nav.developer",
     icon: "CodeBracketIcon",
     roles: ["ADMIN", "TECH"],
     children: [
       {
         key: "docs",
-        label: "API 文档",
+        labelKey: "nav.developer.docs",
         icon: "BookOpenIcon",
         path: "/developer/docs",
         roles: ["ADMIN", "TECH"],
       },
       {
         key: "credentials",
-        label: "API 凭证",
+        labelKey: "nav.developer.credentials",
         icon: "KeyIcon",
         path: "/developer/credentials",
         roles: ["ADMIN", "TECH"],
       },
       {
         key: "domains",
-        label: "域名白名单",
+        labelKey: "nav.developer.domains",
         icon: "GlobeAltIcon",
         path: "/developer/domains",
         roles: ["ADMIN", "TECH"],
       },
       {
         key: "webhooks",
-        label: "Webhook 管理",
+        labelKey: "nav.developer.webhooks",
         icon: "BellAlertIcon",
         path: "/developer/webhooks",
         roles: ["ADMIN", "TECH"],
       },
       {
         key: "signature",
-        label: "签名工具",
+        labelKey: "nav.developer.signature",
         icon: "FingerPrintIcon",
         path: "/developer/signature",
         roles: ["ADMIN", "TECH"],
       },
       {
         key: "logs",
-        label: "API 请求日志",
+        labelKey: "nav.developer.logs",
         icon: "ClipboardDocumentListIcon",
         path: "/developer/logs",
         roles: ["ADMIN", "TECH"],
       },
       {
         key: "mcp",
-        label: "MCP 配置中心",
+        labelKey: "nav.developer.mcp",
         icon: "CpuChipIcon",
         path: "/developer/mcp",
         roles: ["ADMIN", "TECH"],
