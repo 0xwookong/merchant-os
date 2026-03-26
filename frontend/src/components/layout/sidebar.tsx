@@ -112,10 +112,8 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className={`flex-1 py-6 overflow-y-auto ${collapsed ? "px-2" : "px-4"}`}>
         {(() => {
-          // Hide guide section once all onboarding steps are done (application approved + tech integration)
-          const visibleItems = onboardingComplete
-            ? menuItems.filter((item) => item.section !== "guide")
-            : menuItems;
+          // Always show all menu items (including getting-started guide)
+          const visibleItems = menuItems;
 
           const sections: { section: string; items: typeof visibleItems }[] = [];
           for (const item of visibleItems) {

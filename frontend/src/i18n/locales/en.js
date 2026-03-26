@@ -291,7 +291,7 @@ const en = {
 
   // signature
   "signature.title": "Signature Tool",
-  "signature.subtitle": "Generate signatures, verify signatures, and encrypt data online",
+  "signature.subtitle": "Debug and test your signature implementation. For online API testing, use the Try It panel in API Documentation.",
   "signature.tab.generate": "Generate Signature",
   "signature.tab.verify": "Verify Signature",
   "signature.tab.encrypt": "Encrypt Data",
@@ -516,6 +516,11 @@ const en = {
   // mcp
   "mcp.title": "MCP Configuration",
   "mcp.subtitle": "Call OSLPay API directly from AI coding assistants without manual signature handling",
+  "mcp.scenario.title": "What can MCP do for your business?",
+  "mcp.scenario.desc": "MCP (Model Context Protocol) lets AI assistants like Claude, Cursor, and Copilot directly interact with OSLPay APIs. Your developers can ask AI to check order status, get quotes, or generate signatures — all through natural language, without writing integration code manually.",
+  "mcp.scenario.use1": "\"Check order ORD-123 status\"",
+  "mcp.scenario.use2": "\"Get a quote for 1000 USD to USDT\"",
+  "mcp.scenario.use3": "\"Generate a signature for my app\"",
   "mcp.env.title": "Current Environment",
   "mcp.env.api": "API Endpoint",
   "mcp.env.mcp": "MCP Endpoint",
@@ -648,6 +653,9 @@ const en = {
   "env.production": "Prod",
   "env.sandbox": "Sandbox",
   "env.toggleLabel": "Toggle environment",
+  "env.switch.title": "Switch to Production",
+  "env.switch.desc": "Production environment processes real transactions with real funds. Please make sure your integration has been thoroughly tested in sandbox before switching.",
+  "env.switch.confirm": "Switch to Production",
   "user.role.ADMIN": "Admin",
   "user.role.BUSINESS": "Business",
   "user.role.TECH": "Tech",

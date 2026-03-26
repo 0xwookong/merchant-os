@@ -11,6 +11,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   Cog6ToothIcon,
+  ExclamationTriangleIcon,
   KeyIcon,
   LanguageIcon,
   ShieldCheckIcon,
@@ -24,6 +25,7 @@ export default function TopBar() {
   const { t, locale, setLocale } = useI18n();
   const router = useRouter();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [pendingEnvSwitch, setPendingEnvSwitch] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -51,7 +53,14 @@ export default function TopBar() {
         <div className="flex items-center gap-5">
           {/* Environment toggle */}
           <button
-            onClick={toggleEnvironment}
+            onClick={() => {
+              if (environment === "sandbox") {
+                // Switching TO production — confirm first
+                setPendingEnvSwitch(true);
+              } else {
+                toggleEnvironment();
+              }
+            }}
             className="relative w-[148px] h-8 rounded-full bg-white/10 p-0.5 transition-colors"
             aria-label={t("env.toggleLabel")}
           >
@@ -163,6 +172,31 @@ export default function TopBar() {
         onClose={() => setChangePasswordOpen(false)}
         onSuccess={handlePasswordChanged}
       />
+
+      {/* Production environment switch confirmation */}
+      {pendingEnvSwitch && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setPendingEnvSwitch(false)}>
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-base font-semibold text-[var(--gray-900)]">{t("env.switch.title")}</h3>
+            </div>
+            <p className="text-sm text-[var(--gray-600)] mb-5">{t("env.switch.desc")}</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setPendingEnvSwitch(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--gray-700)] border border-[var(--gray-200)] rounded-lg hover:bg-[var(--gray-50)] transition-colors">
+                {t("common.cancel")}
+              </button>
+              <button onClick={() => { setPendingEnvSwitch(false); toggleEnvironment(); }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                {t("env.switch.confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

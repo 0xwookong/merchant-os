@@ -291,7 +291,7 @@ const zh = {
 
   // signature
   "signature.title": "签名工具",
-  "signature.subtitle": "在线生成签名、验证签名和加密数据",
+  "signature.subtitle": "调试和验证您的签名实现。如需在线测试 API 请求，请使用 API 文档中的 Try It 面板。",
   "signature.tab.generate": "生成签名",
   "signature.tab.verify": "验证签名",
   "signature.tab.encrypt": "加密数据",
@@ -516,6 +516,11 @@ const zh = {
   // mcp
   "mcp.title": "MCP 配置中心",
   "mcp.subtitle": "通过 AI 编程助手直接调用 OSLPay API，无需手动处理签名",
+  "mcp.scenario.title": "MCP 能为您的业务做什么？",
+  "mcp.scenario.desc": "MCP（Model Context Protocol）让 Claude、Cursor、Copilot 等 AI 助手直接与 OSLPay API 交互。您的开发团队可以用自然语言让 AI 查询订单状态、获取报价、生成签名 —— 无需手动编写集成代码。",
+  "mcp.scenario.use1": "\"查询订单 ORD-123 的状态\"",
+  "mcp.scenario.use2": "\"获取 1000 USD 兑换 USDT 的报价\"",
+  "mcp.scenario.use3": "\"为我的应用生成签名\"",
   "mcp.env.title": "当前环境",
   "mcp.env.api": "API 端点",
   "mcp.env.mcp": "MCP 端点",
@@ -648,6 +653,9 @@ const zh = {
   "env.production": "生产",
   "env.sandbox": "沙箱",
   "env.toggleLabel": "切换环境",
+  "env.switch.title": "切换到生产环境",
+  "env.switch.desc": "生产环境处理真实交易和真实资金。请确保您的集成已在沙箱环境中充分测试后再切换。",
+  "env.switch.confirm": "切换到生产环境",
   "user.role.ADMIN": "管理员",
   "user.role.BUSINESS": "业务人员",
   "user.role.TECH": "技术人员",

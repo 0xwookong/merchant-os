@@ -66,6 +66,17 @@ export default function McpPage() {
         <p className="text-sm text-[var(--gray-500)] mt-1">{t("mcp.subtitle")}</p>
       </div>
 
+      {/* Scenario explanation */}
+      <div className="bg-gradient-to-r from-[var(--gray-900)] to-[var(--gray-700)] rounded-xl p-6 text-white">
+        <h2 className="text-base font-semibold mb-2">{t("mcp.scenario.title")}</h2>
+        <p className="text-sm text-gray-300 leading-relaxed">{t("mcp.scenario.desc")}</p>
+        <div className="flex flex-wrap gap-3 mt-4">
+          {["mcp.scenario.use1", "mcp.scenario.use2", "mcp.scenario.use3"].map((key) => (
+            <span key={key} className="text-xs bg-white/10 rounded-full px-3 py-1">{t(key)}</span>
+          ))}
+        </div>
+      </div>
+
       {/* Environment info + Config JSON — 2 cols */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Current environment */}
