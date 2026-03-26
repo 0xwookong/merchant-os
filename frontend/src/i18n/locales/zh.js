@@ -657,7 +657,22 @@ const zh = {
   "user.menu.comingSoon": "即将上线",
   "user.menu.preferences": "偏好",
   "user.menu.language": "语言",
+  "user.menu.accountSettings": "账户设置",
   "user.menu.logout": "退出登录",
+
+  // settings
+  "settings.title": "账户设置",
+  "settings.subtitle": "查看和管理您的账户信息",
+  "settings.company.title": "公司信息",
+  "settings.company.desc": "公司信息与商户入驻绑定，无法在此修改",
+  "settings.company.name": "公司名称",
+  "settings.personal.title": "个人信息",
+  "settings.personal.contactName": "联系人姓名",
+  "settings.personal.email": "邮箱",
+  "settings.personal.role": "角色",
+  "settings.personal.createdAt": "注册时间",
+  "settings.personal.edit": "编辑",
+  "settings.profile.saved": "个人信息更新成功",
 
   // change password dialog
   "changePassword.title": "修改密码",

@@ -10,6 +10,7 @@ import {
   ArrowRightStartOnRectangleIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  Cog6ToothIcon,
   KeyIcon,
   LanguageIcon,
   ShieldCheckIcon,
@@ -115,6 +116,15 @@ export default function TopBar() {
                   >
                     <ShieldCheckIcon className="w-4 h-4" />
                     <span className="flex-1">{t("user.menu.securitySettings")}</span>
+                    <ChevronRightIcon className="w-4 h-4 text-[var(--gray-400)]" />
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    className="flex items-center gap-3 mx-1.5 px-3 py-2.5 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] rounded-lg cursor-pointer outline-none transition-colors"
+                    onSelect={() => router.push("/settings")}
+                  >
+                    <Cog6ToothIcon className="w-4 h-4 text-[var(--gray-500)]" />
+                    <span className="flex-1">{t("user.menu.accountSettings")}</span>
                     <ChevronRightIcon className="w-4 h-4 text-[var(--gray-400)]" />
                   </DropdownMenu.Item>
 

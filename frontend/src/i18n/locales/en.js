@@ -657,7 +657,22 @@ const en = {
   "user.menu.comingSoon": "Coming Soon",
   "user.menu.preferences": "Preferences",
   "user.menu.language": "Language",
+  "user.menu.accountSettings": "Account Settings",
   "user.menu.logout": "Log Out",
+
+  // settings
+  "settings.title": "Account Settings",
+  "settings.subtitle": "View and manage your account information",
+  "settings.company.title": "Company Information",
+  "settings.company.desc": "Company information is tied to your merchant onboarding and cannot be modified here",
+  "settings.company.name": "Company Name",
+  "settings.personal.title": "Personal Information",
+  "settings.personal.contactName": "Contact Name",
+  "settings.personal.email": "Email",
+  "settings.personal.role": "Role",
+  "settings.personal.createdAt": "Account Created",
+  "settings.personal.edit": "Edit",
+  "settings.profile.saved": "Profile updated successfully",
 
   // change password dialog
   "changePassword.title": "Change Password",

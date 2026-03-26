@@ -17,4 +17,5 @@ public final class AuditEventType {
     public static final String RATE_LIMITED = "RATE_LIMITED";
     public static final String CREDENTIAL_GENERATED = "CREDENTIAL_GENERATED";
     public static final String CREDENTIAL_ROTATED = "CREDENTIAL_ROTATED";
+    public static final String PROFILE_UPDATED = "PROFILE_UPDATED";
 }
