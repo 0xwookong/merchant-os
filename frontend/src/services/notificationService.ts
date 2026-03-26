@@ -27,4 +27,10 @@ export const notificationService = {
   markAllRead(): Promise<void> {
     return api.put("/api/v1/notifications/read", { all: true });
   },
+  remove(id: number): Promise<void> {
+    return api.delete(`/api/v1/notifications/${id}`);
+  },
+  clearAll(): Promise<void> {
+    return api.delete("/api/v1/notifications");
+  },
 };

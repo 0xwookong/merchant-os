@@ -678,6 +678,7 @@ const en = {
   "notifications.title": "Notifications",
   "notifications.empty": "No notifications",
   "notifications.markAllRead": "Mark all read",
+  "notifications.clearAll": "Clear all",
   "notifications.justNow": "Just now",
   "notifications.minutesAgo": "{count}m ago",
   "notifications.hoursAgo": "{count}h ago",

@@ -678,6 +678,7 @@ const zh = {
   "notifications.title": "通知",
   "notifications.empty": "暂无通知",
   "notifications.markAllRead": "全部已读",
+  "notifications.clearAll": "清空",
   "notifications.justNow": "刚刚",
   "notifications.minutesAgo": "{count} 分钟前",
   "notifications.hoursAgo": "{count} 小时前",

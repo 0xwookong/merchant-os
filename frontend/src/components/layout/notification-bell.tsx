@@ -12,6 +12,8 @@ import {
   UserPlusIcon,
   ShieldExclamationIcon,
   CheckIcon,
+  XMarkIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 
 const TYPE_ICONS: Record<string, { icon: typeof BellIcon; color: string }> = {
@@ -30,6 +32,7 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = useCallback(() => {
@@ -52,12 +55,17 @@ export default function NotificationBell() {
     if (!open) return;
     const handler = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setOpen(false);
+        closePanel();
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
+
+  const closePanel = () => {
+    setClosing(true);
+    setTimeout(() => { setOpen(false); setClosing(false); }, 150);
+  };
 
   const handleMarkAllRead = async () => {
     await notificationService.markAllRead();
@@ -72,9 +80,22 @@ export default function NotificationBell() {
       setUnreadCount((c) => Math.max(0, c - 1));
     }
     if (n.link) {
-      setOpen(false);
-      router.push(n.link);
+      closePanel();
+      setTimeout(() => router.push(n.link!), 160);
     }
+  };
+
+  const handleRemove = async (e: React.MouseEvent, n: NotificationItem) => {
+    e.stopPropagation();
+    await notificationService.remove(n.id);
+    setNotifications((prev) => prev.filter((item) => item.id !== n.id));
+    if (!n.isRead) setUnreadCount((c) => Math.max(0, c - 1));
+  };
+
+  const handleClearAll = async () => {
+    await notificationService.clearAll();
+    setNotifications([]);
+    setUnreadCount(0);
   };
 
   const formatTime = (dateStr: string) => {
@@ -95,7 +116,7 @@ export default function NotificationBell() {
     <div className="relative" ref={panelRef}>
       {/* Bell button */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => open ? closePanel() : setOpen(true)}
         className="relative p-2 rounded-lg hover:bg-white/10 transition-colors"
         aria-label={t("notifications.title")}
       >
@@ -109,19 +130,34 @@ export default function NotificationBell() {
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-lg border border-[var(--gray-200)] z-50 overflow-hidden">
+        <div
+          className={`absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-lg border border-[var(--gray-200)] z-50 overflow-hidden transition-all duration-150 origin-top-right ${
+            closing ? "opacity-0 scale-95" : "opacity-100 scale-100"
+          }`}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--gray-100)]">
             <h3 className="text-sm font-semibold text-[var(--gray-900)]">{t("notifications.title")}</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllRead}
-                className="flex items-center gap-1 text-xs text-[var(--gray-500)] hover:text-[var(--gray-700)] font-medium transition-colors"
-              >
-                <CheckIcon className="w-3.5 h-3.5" />
-                {t("notifications.markAllRead")}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="flex items-center gap-1 text-xs text-[var(--gray-500)] hover:text-[var(--gray-700)] font-medium transition-colors"
+                >
+                  <CheckIcon className="w-3.5 h-3.5" />
+                  {t("notifications.markAllRead")}
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  className="flex items-center gap-1 text-xs text-[var(--gray-500)] hover:text-red-600 font-medium transition-colors"
+                >
+                  <TrashIcon className="w-3.5 h-3.5" />
+                  {t("notifications.clearAll")}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* List */}
@@ -136,10 +172,10 @@ export default function NotificationBell() {
                 const typeInfo = TYPE_ICONS[n.type] || { icon: BellIcon, color: "text-[var(--gray-400)]" };
                 const Icon = typeInfo.icon;
                 return (
-                  <button
+                  <div
                     key={n.id}
                     onClick={() => handleClick(n)}
-                    className={`w-full text-left px-5 py-3.5 flex gap-3 hover:bg-[var(--gray-50)] transition-colors border-b border-[var(--gray-50)] ${
+                    className={`group w-full text-left px-5 py-3.5 flex gap-3 hover:bg-[var(--gray-50)] transition-colors border-b border-[var(--gray-50)] cursor-pointer ${
                       !n.isRead ? "bg-blue-50/40" : ""
                     }`}
                   >
@@ -158,7 +194,14 @@ export default function NotificationBell() {
                       <p className="text-xs text-[var(--gray-500)] mt-0.5 line-clamp-2">{n.message}</p>
                       <p className="text-xs text-[var(--gray-400)] mt-1">{formatTime(n.createdAt)}</p>
                     </div>
-                  </button>
+                    <button
+                      onClick={(e) => handleRemove(e, n)}
+                      className="shrink-0 mt-0.5 p-1 rounded-md opacity-0 group-hover:opacity-100 text-[var(--gray-400)] hover:text-red-500 hover:bg-red-50 transition-all"
+                      aria-label="Delete"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  </div>
                 );
               })
             )}
