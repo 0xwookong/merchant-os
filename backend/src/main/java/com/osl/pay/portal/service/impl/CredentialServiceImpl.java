@@ -62,6 +62,40 @@ public class CredentialServiceImpl implements CredentialService {
         return credential;
     }
 
+    @Override
+    @Transactional
+    public CredentialResponse rotateApiKeys(Long merchantId) {
+        ApiCredential credential = getOrFail(merchantId);
+        KeyPair newApiKeyPair = generateRsaKeyPair();
+        credential.setApiPublicKey(toPem("PUBLIC KEY", newApiKeyPair.getPublic().getEncoded()));
+        credential.setApiPrivateKey(toPem("PRIVATE KEY", newApiKeyPair.getPrivate().getEncoded()));
+        credentialMapper.updateById(credential);
+        log.info("Rotated API keys for merchant={}, appId={}", merchantId, credential.getAppId());
+        return toResponse(credential);
+    }
+
+    @Override
+    @Transactional
+    public CredentialResponse rotateWebhookKeys(Long merchantId) {
+        ApiCredential credential = getOrFail(merchantId);
+        KeyPair newWebhookKeyPair = generateRsaKeyPair();
+        credential.setWebhookPublicKey(toPem("PUBLIC KEY", newWebhookKeyPair.getPublic().getEncoded()));
+        credential.setWebhookPrivateKey(toPem("PRIVATE KEY", newWebhookKeyPair.getPrivate().getEncoded()));
+        credentialMapper.updateById(credential);
+        log.info("Rotated Webhook keys for merchant={}, appId={}", merchantId, credential.getAppId());
+        return toResponse(credential);
+    }
+
+    private ApiCredential getOrFail(Long merchantId) {
+        ApiCredential credential = credentialMapper.selectOne(
+                new LambdaQueryWrapper<ApiCredential>()
+                        .eq(ApiCredential::getMerchantId, merchantId));
+        if (credential == null) {
+            throw new com.osl.pay.portal.common.exception.BizException(40400, "API credentials not found");
+        }
+        return credential;
+    }
+
     private CredentialResponse toResponse(ApiCredential credential) {
         CredentialResponse response = new CredentialResponse();
         response.setAppId(credential.getAppId());

@@ -281,6 +281,13 @@ const en = {
   "credentials.quickLinks.signature.desc": "Generate and verify API signatures online",
   "credentials.quickLinks.webhooks": "Webhook Management",
   "credentials.quickLinks.webhooks.desc": "Configure Webhook endpoints and view push logs",
+  "credentials.rotate.api": "Rotate Key",
+  "credentials.rotate.webhook": "Rotate Key",
+  "credentials.rotate.title": "Rotate Key Pair",
+  "credentials.rotate.api.desc": "This will generate a new API RSA key pair. The old public key will be immediately invalidated. Make sure your integration is ready to use the new key.",
+  "credentials.rotate.webhook.desc": "This will generate a new Webhook RSA key pair. The old public key will be immediately invalidated. Make sure your Webhook verification is updated.",
+  "credentials.rotate.confirm": "Rotate",
+  "credentials.rotate.success": "Key pair rotated successfully",
 
   // signature
   "signature.title": "Signature Tool",

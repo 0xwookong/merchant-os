@@ -1,32 +1,27 @@
-# Task-027: 清理 KYB/Onboarding 遗留代码
+# Task-028: API 密钥轮换
 
 ## Status: Done
 
-## Scope Summary
+## 实现内容
 
-### 前端删除
-- `organization/kyb/` 页面目录
-- `organization/onboarding/` 页面目录
-- `services/kybService.ts` 和 `services/onboardingService.ts`
-- i18n 中 ~200 行 `kyb.*` 和 `onboarding.*` 翻译 key（en.js + zh.js）
+### 后端
+- `CredentialService` 新增 `rotateApiKeys()` / `rotateWebhookKeys()` 方法
+- `CredentialController` 新增 `POST /api/v1/credentials/rotate` 端点
+- `CredentialRotateRequest` DTO（keyType: api|webhook + OTP/邮箱验证码）
+- 2FA 验证通过 `ActionVerificationService`
+- 审计日志记录 `CREDENTIAL_ROTATED` 事件
+- appId 保持不变，只轮换 RSA 密钥对
 
-### 后端删除（17 文件）
-- KYB: Controller, Service, ServiceImpl, Entity, 2 DTO, Enum, Mapper, Test
-- Onboarding: Controller, Service, ServiceImpl, Entity, 2 DTO, Mapper, Test
-
-### 后端修改
-- `Merchant.java` — 移除 `kybStatus` 字段和 `KybStatus` import
-- `AuthServiceImpl.java` — 移除 `merchant.setKybStatus(KybStatus.NOT_STARTED)`
-- 17 个 test 文件 — 移除 `KybApplicationMapper` 和 `OnboardingApplicationMapper` 引用
-
-### 顺带修复的预存 bug
-- `LogApiTest.java` — 修复分页响应格式断言（`$.data` → `$.data.list`）
-- `OrderApiTest.java` — 修复 seedOrder 未设置 createdAt 导致的日期范围过滤问题
+### 前端
+- `credentialService` 新增 `rotate()` API 调用
+- Credentials 页面每个公钥卡片下方增加「轮换密钥」按钮（amber 色）
+- 点击后弹出 `VerifyActionDialog` 进行 2FA 验证
+- 轮换成功后自动刷新显示新公钥 + Toast 通知
+- i18n 新增 7 个翻译 key（en + zh）
 
 ## Verification
-- `pnpm build` ✅ 通过
-- `mvn compile` ✅ 通过
-- `mvn test` — 177 tests, 175 pass, 2 pre-existing failures (OrderApiTest, confirmed same before changes)
+- `pnpm build` ✅
+- `mvn compile` ✅
 
 ## Next Step
-Task-028: API 密钥轮换
+Task-029: 商户设置页

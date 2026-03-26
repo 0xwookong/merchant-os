@@ -281,6 +281,13 @@ const zh = {
   "credentials.quickLinks.signature.desc": "在线生成和验证 API 签名",
   "credentials.quickLinks.webhooks": "Webhook 管理",
   "credentials.quickLinks.webhooks.desc": "配置 Webhook 端点和查看推送日志",
+  "credentials.rotate.api": "轮换密钥",
+  "credentials.rotate.webhook": "轮换密钥",
+  "credentials.rotate.title": "轮换密钥对",
+  "credentials.rotate.api.desc": "将生成新的 API RSA 密钥对，旧公钥将立即失效。请确保您的集成已准备好使用新密钥。",
+  "credentials.rotate.webhook.desc": "将生成新的 Webhook RSA 密钥对，旧公钥将立即失效。请确保您的 Webhook 验证逻辑已更新。",
+  "credentials.rotate.confirm": "轮换",
+  "credentials.rotate.success": "密钥对轮换成功",
 
   // signature
   "signature.title": "签名工具",

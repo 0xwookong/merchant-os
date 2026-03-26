@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useI18n } from "@/providers/language-provider";
 import { useEnvironment } from "@/providers/environment-provider";
 import { credentialService, type CredentialData } from "@/services/credentialService";
+import { VerifyActionDialog, type VerifyData } from "@/components/ui/verify-action-dialog";
+import { Toast } from "@/components/ui/toast";
 import Link from "next/link";
 import {
   KeyIcon,
@@ -17,6 +19,7 @@ import {
   CreditCardIcon,
   CurrencyDollarIcon,
   ExclamationTriangleIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 type CopiedField = string | null;
@@ -46,6 +49,9 @@ export default function CredentialsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<CopiedField>(null);
+  const [rotateTarget, setRotateTarget] = useState<"api" | "webhook" | null>(null);
+  const [rotating, setRotating] = useState(false);
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const fetchCredentials = useCallback(() => {
     setLoading(true);
@@ -65,6 +71,26 @@ export default function CredentialsPage() {
       setTimeout(() => setCopiedField(null), 2000);
     } catch {
       // Fallback for non-secure context
+    }
+  };
+
+  const handleRotate = async (verifyData: VerifyData) => {
+    if (!rotateTarget) return;
+    setRotating(true);
+    try {
+      const updated = await credentialService.rotate({
+        keyType: rotateTarget,
+        otpCode: verifyData.otpCode,
+        emailCode: verifyData.emailCode,
+      });
+      setData(updated);
+      setRotateTarget(null);
+      setToast({ type: "success", message: t("credentials.rotate.success") });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t("common.operationFailed");
+      setToast({ type: "error", message: msg });
+    } finally {
+      setRotating(false);
     }
   };
 
@@ -125,6 +151,8 @@ export default function CredentialsPage() {
           copied={copiedField === "apiPublicKey"}
           onCopy={() => handleCopy(data.apiPublicKey, "apiPublicKey")}
           copiedLabel={t("credentials.copied")}
+          onRotate={() => setRotateTarget("api")}
+          rotateLabel={t("credentials.rotate.api")}
         />
         <KeyCredentialCard
           icon={ShieldCheckIcon}
@@ -134,6 +162,8 @@ export default function CredentialsPage() {
           copied={copiedField === "webhookPublicKey"}
           onCopy={() => handleCopy(data.webhookPublicKey, "webhookPublicKey")}
           copiedLabel={t("credentials.copied")}
+          onRotate={() => setRotateTarget("webhook")}
+          rotateLabel={t("credentials.rotate.webhook")}
         />
       </div>
 
@@ -243,6 +273,23 @@ export default function CredentialsPage() {
           ))}
         </div>
       </div>
+
+      {/* Rotate Verification Dialog */}
+      <VerifyActionDialog
+        open={rotateTarget !== null}
+        onClose={() => setRotateTarget(null)}
+        onSubmit={handleRotate}
+        title={t("credentials.rotate.title")}
+        description={rotateTarget === "api" ? t("credentials.rotate.api.desc") : t("credentials.rotate.webhook.desc")}
+        confirmLabel={t("credentials.rotate.confirm")}
+        icon={<ArrowPathIcon className="w-6 h-6 text-amber-600" />}
+        iconBg="bg-amber-100"
+        confirmClass="bg-amber-600 hover:bg-amber-700"
+      />
+
+      {toast && (
+        <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
+      )}
     </div>
   );
 }
@@ -287,9 +334,9 @@ function ShortCredentialCard({
   );
 }
 
-/** Multi-line key credential (Public Keys) — copy icon top-right of code block */
+/** Multi-line key credential (Public Keys) — copy icon top-right of code block + rotate button */
 function KeyCredentialCard({
-  icon: Icon, label, description, value, copied, onCopy, copiedLabel,
+  icon: Icon, label, description, value, copied, onCopy, copiedLabel, onRotate, rotateLabel,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
@@ -298,6 +345,8 @@ function KeyCredentialCard({
   copied: boolean;
   onCopy: () => void;
   copiedLabel: string;
+  onRotate?: () => void;
+  rotateLabel?: string;
 }) {
   return (
     <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-5">
@@ -322,9 +371,20 @@ function KeyCredentialCard({
           )}
         </button>
       </div>
-      {copied && (
-        <p className="text-xs text-green-600 mt-1">{copiedLabel}</p>
-      )}
+      <div className="flex items-center justify-between mt-2">
+        {copied ? (
+          <p className="text-xs text-green-600">{copiedLabel}</p>
+        ) : <span />}
+        {onRotate && (
+          <button
+            onClick={onRotate}
+            className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium transition-colors"
+          >
+            <ArrowPathIcon className="w-3.5 h-3.5" />
+            {rotateLabel}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

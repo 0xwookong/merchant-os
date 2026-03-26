@@ -16,4 +16,5 @@ public final class AuditEventType {
     public static final String LOGIN_OTP_REQUIRED = "LOGIN_OTP_REQUIRED";
     public static final String RATE_LIMITED = "RATE_LIMITED";
     public static final String CREDENTIAL_GENERATED = "CREDENTIAL_GENERATED";
+    public static final String CREDENTIAL_ROTATED = "CREDENTIAL_ROTATED";
 }
