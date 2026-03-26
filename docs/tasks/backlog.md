@@ -148,6 +148,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | M-1 | CSRF 已禁用 | MEDIUM | 文档化 | SPA + SameSite=Strict 可接受，需文档 |
 | M-11 | 浏览器返回按钮导致加载死循环 | MEDIUM | 独立 Task | auth/portal 页面间客户端重定向存在历史栈问题，需用 Next.js Middleware 在服务端处理 |
 | TD-003 | Refresh Token 临时使用 localStorage | HIGH | 上线前 | 开发阶段 HTTP 无法使用 httpOnly cookie，临时改为 localStorage 存储 refresh token 并通过 request body 传递。上线前必须改回 httpOnly cookie（搜索 TD-003 注释） |
+| TD-004 | 自增 ID 对外暴露（可枚举） | HIGH | 上线前 | 所有表使用 BIGINT AUTO_INCREMENT，对外暴露的数字 ID 可枚举，泄露业务规模。**方案 B（双 ID 模式）**：保留内部自增 ID，新增 `public_id VARCHAR(36) UNIQUE`（UUID v4）对外暴露。JWT claims、所有 Response DTO、前端类型全部改用 public_id。Internal API 不受影响。分 3 步：036a 认证链路（JWT+登录注册）→ 036b 业务实体（Webhook/Domain/Order 等 CRUD）→ 036c 只读实体（API Log/Webhook Log）。详细计划见 `docs/tasks/archive/036-public-id-plan.md` |
 
 ---
 

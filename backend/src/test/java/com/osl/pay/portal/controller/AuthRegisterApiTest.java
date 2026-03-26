@@ -262,27 +262,27 @@ class AuthRegisterApiTest {
     class RegisterBusinessRules {
 
         @Test
-        @DisplayName("公司名已存在（不同邮箱）→ HTTP 400，返回统一错误消息，不暴露'公司已存在'")
-        void should_returnGenericError_when_companyNameExists() throws Exception {
+        @DisplayName("相同公司名、不同邮箱 → 注册成功（公司名允许重复）")
+        void should_allowDuplicateCompanyName_when_differentEmail() throws Exception {
             // 先注册一个商户
             mockMvc.perform(post("/api/v1/auth/register")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(validRequest())));
+                    .content(objectMapper.writeValueAsString(validRequest())))
+                    .andExpect(status().isOk());
 
-            // 用不同邮箱注册同一公司名
+            // 用不同邮箱注册同一公司名 → 成功
             RegisterRequest req2 = validRequest();
             req2.setEmail("another@example.com");
             mockMvc.perform(post("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req2)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value(40002))
-                    .andExpect(jsonPath("$.message").value("注册信息有误，请检查后重试或联系客服"));
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(0));
         }
 
         @Test
-        @DisplayName("邮箱已存在（不同公司名）→ HTTP 400，返回与公司名重复相同的统一错误消息（防枚举）")
-        void should_returnSameGenericError_when_emailExists() throws Exception {
+        @DisplayName("邮箱已存在 → HTTP 400，返回统一错误消息（防枚举）")
+        void should_returnGenericError_when_emailExists() throws Exception {
             mockMvc.perform(post("/api/v1/auth/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validRequest())));
@@ -294,7 +294,6 @@ class AuthRegisterApiTest {
                             .content(objectMapper.writeValueAsString(req2)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value(40002))
-                    // 与公司名重复返回相同消息，防止攻击者区分
                     .andExpect(jsonPath("$.message").value("注册信息有误，请检查后重试或联系客服"));
         }
     }

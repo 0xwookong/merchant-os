@@ -81,16 +81,6 @@ public class AuthServiceImpl implements AuthService {
                 ? request.getCompanyName()
                 : "M-" + UUID.randomUUID().toString().substring(0, 8);
 
-        // Check company name uniqueness (only if user provided one)
-        if (request.getCompanyName() != null && !request.getCompanyName().isBlank()) {
-            Long existingMerchantCount = merchantMapper.selectCount(
-                    new LambdaQueryWrapper<Merchant>()
-                            .eq(Merchant::getCompanyName, companyName));
-            if (existingMerchantCount > 0) {
-                throw new BizException(40002, "注册信息有误，请检查后重试或联系客服");
-            }
-        }
-
         Merchant merchant = new Merchant();
         merchant.setCompanyName(companyName);
         merchant.setStatus(MerchantStatus.ACTIVE);

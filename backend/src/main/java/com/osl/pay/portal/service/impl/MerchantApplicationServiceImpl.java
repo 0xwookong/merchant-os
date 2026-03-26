@@ -7,10 +7,12 @@ import com.osl.pay.portal.model.dto.ApplicationReviewRequest;
 import com.osl.pay.portal.model.dto.*;
 import com.osl.pay.portal.model.entity.ApplicationDocument;
 import com.osl.pay.portal.model.entity.ApplicationStatusHistory;
+import com.osl.pay.portal.model.entity.Merchant;
 import com.osl.pay.portal.model.entity.MerchantApplication;
 import com.osl.pay.portal.repository.ApplicationDocumentMapper;
 import com.osl.pay.portal.repository.ApplicationStatusHistoryMapper;
 import com.osl.pay.portal.repository.MerchantApplicationMapper;
+import com.osl.pay.portal.repository.MerchantMapper;
 import com.osl.pay.portal.service.FileStorageService;
 import com.osl.pay.portal.service.MerchantApplicationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +37,7 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
     private final MerchantApplicationMapper applicationMapper;
     private final ApplicationDocumentMapper documentMapper;
     private final ApplicationStatusHistoryMapper statusHistoryMapper;
+    private final MerchantMapper merchantMapper;
     private final AuditService auditService;
     private final FileStorageService fileStorage;
 
@@ -513,6 +516,17 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
                 }
                 app.setStatus("APPROVED");
                 app.setReviewedAt(LocalDateTime.now());
+
+                // Sync verified company name from application to merchant record
+                if (app.getCompanyName() != null && !app.getCompanyName().isBlank()) {
+                    Merchant merchant = merchantMapper.selectById(request.getMerchantId());
+                    if (merchant != null) {
+                        merchant.setCompanyName(app.getCompanyName());
+                        merchantMapper.updateById(merchant);
+                        log.info("Merchant company name updated: merchantId={}, newName={}",
+                                request.getMerchantId(), app.getCompanyName());
+                    }
+                }
             }
             case "REJECTED" -> {
                 if (!"UNDER_REVIEW".equals(fromStatus)) {

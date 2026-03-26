@@ -1,30 +1,30 @@
-# Task-030: 通知系统
+# Task-037: 入驻审批通过后同步公司名称 + 去掉公司名唯一约束
 
-## Status: In Progress
+## Status: Verifying
 
-## 背景
-商户无法感知系统事件（申请状态变更、Webhook 投递失败、密钥轮换等），需要顶栏通知铃铛 + 下拉面板。
+## 改动总结
 
-## 设计决策
-- **展示方式**: 顶栏铃铛图标 + 未读数角标 + 下拉面板（不新建独立页面）
-- **数据获取**: 轮询（30s），不做 WebSocket（MVP 阶段）
-- **通知类型**: APPLICATION_STATUS（申请状态变更）、WEBHOOK_FAILED（推送失败）、CREDENTIAL_ROTATED（密钥轮换）、MEMBER_INVITED（成员邀请）、SECURITY_ALERT（安全事件）
-- **标记已读**: 单条标记 + 全部标记
+### 1. DB schema (`init.sql`)
+- `t_merchant.company_name`: `UNIQUE KEY uk_company_name` → `INDEX idx_company_name`（保留索引提升查询性能，去掉唯一约束）
 
-## Scope
-- 后端: `t_notification` 表 + `GET /api/v1/notifications` + `PUT /api/v1/notifications/read`
-- 前端: 顶栏铃铛组件 + 下拉通知面板
-- 不含: 通知触发逻辑（后续在各业务模块中逐步接入）
+### 2. AuthServiceImpl（注册）
+- 删除 lines 84-92 的公司名唯一性校验（`selectCount` + `BizException`）
+- 注册时即使提供了与已有商户相同的公司名，也允许注册
 
-## Development Plan
-- [ ] 1. 后端: t_notification 建表 + Entity + Mapper
-- [ ] 2. 后端: NotificationController (GET list + PUT mark read)
-- [ ] 3. 后端: mvn compile
-- [ ] 4. 前端: notificationService.ts
-- [ ] 5. 前端: NotificationBell 组件（铃铛+角标+下拉面板）
-- [ ] 6. 前端: 集成到 topbar
-- [ ] 7. 前端: i18n
-- [ ] 8. 验证: pnpm build
+### 3. MerchantApplicationServiceImpl（审批）
+- `review()` 方法 `APPROVED` 分支：读取 `t_merchant_application.company_name`，更新到 `t_merchant.company_name`
+- 新增 `MerchantMapper` 依赖注入 + `Merchant` 实体导入
+
+### 4. 测试
+- `should_returnGenericError_when_companyNameExists` → `should_allowDuplicateCompanyName_when_differentEmail`（断言注册成功）
+- `should_returnSameGenericError_when_emailExists` → `should_returnGenericError_when_emailExists`（简化命名和注释）
+
+## 待用户操作
+运行环境数据库需执行：
+```sql
+ALTER TABLE t_merchant DROP INDEX uk_company_name;
+CREATE INDEX idx_company_name ON t_merchant(company_name);
+```
 
 ## Next Step
-Task-031: 申请状态时间线
+继续技术债务清理或其他功能开发
