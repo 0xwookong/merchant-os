@@ -37,7 +37,7 @@ public class SignServiceImpl implements SignService {
             SignGenerateResponse response = new SignGenerateResponse();
             response.setSignatureString(signatureString);
             response.setSignature(base64Signature);
-            response.setHeaderValue("open-api-sign: " + base64Signature);
+            response.setHeaderValue("signature: " + base64Signature);
             return response;
         } catch (Exception e) {
             log.warn("Signature generation failed: {}", e.getMessage());

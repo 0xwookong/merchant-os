@@ -8,6 +8,6 @@ public class SignGenerateResponse {
     private String signatureString;
     /** Base64-encoded RSA signature */
     private String signature;
-    /** Ready-to-use header value: open-api-sign: {signature} */
+    /** Ready-to-use header value: signature: {signature} */
     private String headerValue;
 }

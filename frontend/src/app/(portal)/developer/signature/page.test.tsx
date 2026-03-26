@@ -15,7 +15,7 @@ vi.mock("@/services/signService", () => ({
     generate: vi.fn(() => Promise.resolve({
       signatureString: "appId=demo&timestamp=123",
       signature: "abc123==",
-      headerValue: "open-api-sign: abc123==",
+      headerValue: "signature: abc123==",
     })),
     verify: vi.fn(() => Promise.resolve({ valid: true, signatureString: "appId=demo&timestamp=123" })),
     encrypt: vi.fn(() => Promise.resolve({ ciphertext: "encrypted==" })),

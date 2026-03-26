@@ -187,7 +187,7 @@ public class DocEngineService {
         }
 
         sb.append("### Authentication\n");
-        sb.append("Required headers: `open-api-appid`, `open-api-timestamp`, `open-api-sign`\n");
+        sb.append("Required headers: `appId`, `timestamp`, `signature`\n");
         sb.append("Signature: `SHA256withRSA(appId=[appId]&timestamp=[timestamp])`\n\n");
 
         sb.append("### Usage Hint\n");

@@ -105,7 +105,7 @@ public class McpToolService {
         String appId = str(args, "appId", "");
         if (appId.isBlank()) return McpToolCallResponse.fail("appId is required.");
 
-        String timestamp = String.valueOf(Instant.now().getEpochSecond());
+        String timestamp = String.valueOf(Instant.now().toEpochMilli());
         String signStr = "appId=" + appId + "&timestamp=" + timestamp;
 
         // Generate a demo signature using a random key pair
@@ -153,7 +153,7 @@ public class McpToolService {
                         Map.of("step", 4, "action", "Create an order with the quote", "tool", "oslpay_create_order"),
                         Map.of("step", 5, "action", "Monitor order status", "tool", "oslpay_query_order")
                 ),
-                "signatureFormat", "appId=[appId]&timestamp=[unix_timestamp]",
+                "signatureFormat", "appId=[appId]&timestamp=[unix_timestamp_ms]",
                 "signatureAlgorithm", "RSA SHA256withRSA (PKCS#8 PEM key)",
                 "sandboxBaseUrl", "https://openapitest.osl-pay.com",
                 "documentation", "/developer/docs"

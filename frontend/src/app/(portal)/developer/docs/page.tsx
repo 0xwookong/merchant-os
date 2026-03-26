@@ -387,7 +387,7 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
     setResponse(null);
     setSigned(false);
 
-    const timestamp = String(Math.floor(Date.now() / 1000));
+    const timestamp = String(Date.now());
     const url = `${SANDBOX_BASE}${endpoint.path}`;
     const hasBody = endpoint.method === "POST" || endpoint.method === "PUT" || endpoint.method === "PATCH";
 
@@ -403,9 +403,9 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
         url,
         headers: {
           "Content-Type": "application/json",
-          "open-api-appid": appId,
-          "open-api-timestamp": timestamp,
-          "open-api-sign": signature,
+          "appId": appId,
+          "timestamp": timestamp,
+          "signature": signature,
         },
         body: hasBody ? bodyText : undefined,
       });
@@ -560,9 +560,9 @@ function generateCurl(ep: EndpointDetail, url: string, body: string | null, hasB
   const lines = [
     `curl -X ${ep.method} '${url}' \\`,
     `  -H 'Content-Type: application/json' \\`,
-    `  -H 'open-api-appid: YOUR_APP_ID' \\`,
-    `  -H 'open-api-timestamp: UNIX_TIMESTAMP' \\`,
-    `  -H 'open-api-sign: YOUR_SIGNATURE'`,
+    `  -H 'appId: YOUR_APP_ID' \\`,
+    `  -H 'timestamp: UNIX_TIMESTAMP_MS' \\`,
+    `  -H 'signature: YOUR_SIGNATURE'`,
   ];
   if (hasBody && body) {
     lines[lines.length - 1] += " \\";
@@ -581,7 +581,7 @@ const PRIVATE_KEY = \`-----BEGIN PRIVATE KEY-----
 YOUR_PRIVATE_KEY_HERE
 -----END PRIVATE KEY-----\`;
 
-const timestamp = Math.floor(Date.now() / 1000).toString();
+const timestamp = Date.now().toString();
 const signStr = \`appId=\${APP_ID}&timestamp=\${timestamp}\`;
 const sign = crypto.sign("sha256", Buffer.from(signStr), {
   key: PRIVATE_KEY,
@@ -592,9 +592,9 @@ const response = await fetch("${url}", {
   method: "${ep.method}",
   headers: {
     "Content-Type": "application/json",
-    "open-api-appid": APP_ID,
-    "open-api-timestamp": timestamp,
-    "open-api-sign": sign,
+    "appId": APP_ID,
+    "timestamp": timestamp,
+    "signature": sign,
   },${hasBody && body ? `\n  body: JSON.stringify(${body}),` : ""}
 });
 
@@ -614,7 +614,7 @@ PRIVATE_KEY_PEM = """-----BEGIN PRIVATE KEY-----
 YOUR_PRIVATE_KEY_HERE
 -----END PRIVATE KEY-----"""
 
-timestamp = str(int(time.time()))
+timestamp = str(int(time.time() * 1000))
 sign_str = f"appId={APP_ID}&timestamp={timestamp}"
 
 private_key = serialization.load_pem_private_key(PRIVATE_KEY_PEM.encode(), password=None)
@@ -623,9 +623,9 @@ sign = base64.b64encode(signature).decode()
 
 headers = {
     "Content-Type": "application/json",
-    "open-api-appid": APP_ID,
-    "open-api-timestamp": timestamp,
-    "open-api-sign": sign,
+    "appId": APP_ID,
+    "timestamp": timestamp,
+    "signature": sign,
 }
 ${hasBody && body
     ? `\ndata = ${body}\n\nresponse = requests.${ep.method.toLowerCase()}("${url}", headers=headers, json=data)`
@@ -643,7 +643,7 @@ import java.util.Base64;
 public class ApiExample {
     public static void main(String[] args) throws Exception {
         String appId = "YOUR_APP_ID";
-        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        String timestamp = String.valueOf(System.currentTimeMillis());
         String signStr = "appId=" + appId + "&timestamp=" + timestamp;
 
         // Load private key and sign
@@ -657,9 +657,9 @@ public class ApiExample {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("${url}"))
             .header("Content-Type", "application/json")
-            .header("open-api-appid", appId)
-            .header("open-api-timestamp", timestamp)
-            .header("open-api-sign", "YOUR_SIGNATURE")
+            .header("appId", appId)
+            .header("timestamp", timestamp)
+            .header("signature", "YOUR_SIGNATURE")
             .method("${ep.method}", ${hasBody && body
               ? `HttpRequest.BodyPublishers.ofString("""\n${body.split("\n").map(l => "                " + l).join("\n")}\n                """)`
               : "HttpRequest.BodyPublishers.noBody()"})
@@ -690,7 +690,7 @@ import (
 
 func main() {
 \tappID := "YOUR_APP_ID"
-\ttimestamp := fmt.Sprintf("%d", time.Now().Unix())
+\ttimestamp := fmt.Sprintf("%d", time.Now().UnixMilli())
 \tsignStr := fmt.Sprintf("appId=%s&timestamp=%s", appID, timestamp)
 
 \t// Sign with RSA SHA256
@@ -703,9 +703,9 @@ ${hasBody && body
 \treq, _ := http.NewRequest("${ep.method}", "${url}", body)`
     : `\treq, _ := http.NewRequest("${ep.method}", "${url}", nil)`}
 \treq.Header.Set("Content-Type", "application/json")
-\treq.Header.Set("open-api-appid", appID)
-\treq.Header.Set("open-api-timestamp", timestamp)
-\treq.Header.Set("open-api-sign", "YOUR_SIGNATURE")
+\treq.Header.Set("appId", appID)
+\treq.Header.Set("timestamp", timestamp)
+\treq.Header.Set("signature", "YOUR_SIGNATURE")
 
 \tresp, _ := http.DefaultClient.Do(req)
 \tdefer resp.Body.Close()
@@ -726,7 +726,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app_id = "YOUR_APP_ID";
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
-        .as_secs()
+        .as_millis()
         .to_string();
     let sign_str = format!("appId={}&timestamp={}", app_id, timestamp);
     // let sign = rsa_sha256_sign(&sign_str, &private_key);
@@ -735,9 +735,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let response = client
         .${ep.method.toLowerCase()}("${url}")
         .header("Content-Type", "application/json")
-        .header("open-api-appid", app_id)
-        .header("open-api-timestamp", &timestamp)
-        .header("open-api-sign", "YOUR_SIGNATURE")${hasBody && body ? `\n        .body(r#"${body}"#.to_string())` : ""}
+        .header("appId", app_id)
+        .header("timestamp", &timestamp)
+        .header("signature", "YOUR_SIGNATURE")${hasBody && body ? `\n        .body(r#"${body}"#.to_string())` : ""}
         .send()
         .await?;
 

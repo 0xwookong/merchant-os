@@ -607,21 +607,21 @@ paths:
 components:
   parameters:
     AppId:
-      name: open-api-appid
+      name: appId
       in: header
       required: true
       schema:
         type: string
       description: 商户 App ID
     Timestamp:
-      name: open-api-timestamp
+      name: timestamp
       in: header
       required: true
       schema:
         type: string
-      description: Unix 时间戳（秒）
+      description: Unix 时间戳（毫秒）
     Sign:
-      name: open-api-sign
+      name: signature
       in: header
       required: true
       schema:

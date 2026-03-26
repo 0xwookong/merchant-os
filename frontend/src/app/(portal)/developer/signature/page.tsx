@@ -22,7 +22,7 @@ export default function SignaturePage() {
 
   // Shared state for cross-tab data transfer
   const [genAppId, setGenAppId] = useState(DEMO_APP_ID);
-  const [genTimestamp, setGenTimestamp] = useState(() => String(Math.floor(Date.now() / 1000)));
+  const [genTimestamp, setGenTimestamp] = useState(() => String(Date.now()));
   const [genPrivateKey, setGenPrivateKey] = useState("");
   const [genResult, setGenResult] = useState<{ signatureString: string; signature: string; headerValue: string } | null>(null);
   const [genLoading, setGenLoading] = useState(false);
@@ -108,7 +108,7 @@ export default function SignaturePage() {
 
   const handleReset = () => {
     setGenAppId(DEMO_APP_ID);
-    setGenTimestamp(String(Math.floor(Date.now() / 1000)));
+    setGenTimestamp(String(Date.now()));
     setGenPrivateKey("");
     setGenResult(null);
     setGenError("");
