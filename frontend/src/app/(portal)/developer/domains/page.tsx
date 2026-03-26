@@ -15,8 +15,25 @@ import { VerifyActionDialog, type VerifyData } from "@/components/ui/verify-acti
 import { Toast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
 
+function validateDomain(value: string, existing: DomainEntry[], t: (key: string) => string): string | null {
+  const trimmed = value.trim();
+  if (!/^https?:\/\//i.test(trimmed)) return t("domains.error.protocol");
+  if (trimmed.includes("*")) return t("domains.error.wildcard");
+  try {
+    const url = new URL(trimmed);
+    if (!url.hostname || url.hostname.includes(" ")) return t("domains.error.invalid");
+  } catch {
+    return t("domains.error.invalid");
+  }
+  const origin = trimmed.replace(/\/+$/, "").toLowerCase();
+  if (existing.some((d) => d.domain.replace(/\/+$/, "").toLowerCase() === origin)) {
+    return t("domains.error.duplicate");
+  }
+  return null;
+}
+
 export default function DomainsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [domains, setDomains] = useState<DomainEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [newDomain, setNewDomain] = useState("");
@@ -47,6 +64,11 @@ export default function DomainsPage() {
 
   const handleAddClick = () => {
     if (!newDomain.trim()) return;
+    const validationError = validateDomain(newDomain, domains, t);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setError("");
     setVerifyAction("add");
     setRemovingDomain(null);
@@ -125,7 +147,7 @@ export default function DomainsPage() {
                 <span className="text-sm font-mono text-[var(--gray-900)] truncate">{d.domain}</span>
               </div>
               <div className="flex items-center gap-4 shrink-0">
-                <span className="text-xs text-[var(--gray-400)]">{new Date(d.createdAt).toLocaleString("zh-CN")}</span>
+                <span className="text-xs text-[var(--gray-400)]">{new Date(d.createdAt).toLocaleString(locale === "zh" ? "zh-CN" : "en-US")}</span>
                 <Tooltip content={t("domains.remove")}>
                   <button onClick={() => handleRemoveClick(d)} aria-label={t("domains.remove")}
                     className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-[var(--gray-400)] hover:text-red-600">

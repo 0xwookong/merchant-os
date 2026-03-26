@@ -7,6 +7,7 @@ import {
   ClipboardDocumentListIcon,
   XMarkIcon,
   ArrowPathIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
 const METHOD_COLORS: Record<string, string> = {
@@ -33,6 +34,9 @@ export default function LogsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState<ApiLogEntry | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [filterPath, setFilterPath] = useState("");
+  const [filterMethod, setFilterMethod] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   const fetchLogs = useCallback(() => {
     logService.getLatest()
@@ -54,6 +58,17 @@ export default function LogsPage() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  const METHODS = ["GET", "POST", "PUT", "DELETE"];
+
+  const filteredLogs = logs.filter((log) => {
+    if (filterPath && !log.path.toLowerCase().includes(filterPath.toLowerCase())) return false;
+    if (filterMethod && log.method !== filterMethod) return false;
+    if (filterStatus === "2xx" && (log.statusCode < 200 || log.statusCode >= 300)) return false;
+    if (filterStatus === "4xx" && (log.statusCode < 400 || log.statusCode >= 500)) return false;
+    if (filterStatus === "5xx" && log.statusCode < 500) return false;
+    return true;
+  });
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -68,12 +83,36 @@ export default function LogsPage() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-48">
+          <MagnifyingGlassIcon className="w-4 h-4 text-[var(--gray-400)] absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text" value={filterPath} onChange={(e) => setFilterPath(e.target.value)}
+            placeholder={t("logs.filter.search")}
+            className="w-full border border-[var(--gray-300)] rounded-lg pl-9 pr-3 py-2 text-sm font-mono placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <select value={filterMethod} onChange={(e) => setFilterMethod(e.target.value)}
+          className="border border-[var(--gray-300)] rounded-lg px-3 py-2 text-sm text-[var(--gray-700)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">{t("logs.filter.allMethods")}</option>
+          {METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+          className="border border-[var(--gray-300)] rounded-lg px-3 py-2 text-sm text-[var(--gray-700)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">{t("logs.filter.allStatus")}</option>
+          <option value="2xx">{t("logs.filter.2xx")}</option>
+          <option value="4xx">{t("logs.filter.4xx")}</option>
+          <option value="5xx">{t("logs.filter.5xx")}</option>
+        </select>
+      </div>
+
       {/* Log table */}
       {loading ? (
         <div className="bg-white rounded-xl border border-[var(--gray-200)] p-8 animate-pulse">
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-10 bg-[var(--gray-100)] rounded" />)}</div>
         </div>
-      ) : logs.length === 0 ? (
+      ) : filteredLogs.length === 0 ? (
         <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-12 text-center">
           <ClipboardDocumentListIcon className="w-10 h-10 text-[var(--gray-300)] mx-auto mb-3" />
           <p className="text-sm text-[var(--gray-500)]">{t("logs.empty")}</p>
@@ -91,7 +130,7 @@ export default function LogsPage() {
               </tr>
             </thead>
             <tbody>
-              {logs.map((log) => (
+              {filteredLogs.map((log) => (
                 <tr key={log.id} onClick={() => setSelectedLog(log)}
                   className="border-b border-[var(--gray-50)] hover:bg-[var(--gray-50)] cursor-pointer transition-colors">
                   <td className="py-3 px-5">

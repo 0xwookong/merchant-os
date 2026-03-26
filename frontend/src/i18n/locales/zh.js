@@ -521,6 +521,10 @@ const zh = {
   "domains.verify.confirm": "确认添加",
   "domains.add.success": "域名添加成功",
   "domains.remove.success": "域名移除成功",
+  "domains.error.protocol": "域名必须以 http:// 或 https:// 开头",
+  "domains.error.wildcard": "不支持通配符域名",
+  "domains.error.invalid": "域名格式无效",
+  "domains.error.duplicate": "该域名已在白名单中",
 
   // logs
   "logs.title": "API 请求日志",
@@ -531,6 +535,12 @@ const zh = {
   "logs.detail.request": "Request Body",
   "logs.detail.response": "Response Body",
   "logs.detail.close": "关闭",
+  "logs.filter.search": "按路径筛选...",
+  "logs.filter.allMethods": "全部方法",
+  "logs.filter.allStatus": "全部状态",
+  "logs.filter.2xx": "2xx 成功",
+  "logs.filter.4xx": "4xx 客户端错误",
+  "logs.filter.5xx": "5xx 服务端错误",
 
   // members
   "members.title": "成员与权限",

@@ -317,7 +317,7 @@ function CodeSamples({ endpoint }: { endpoint: EndpointDetail }) {
       <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">Code Samples</h3>
       <div className="rounded-xl overflow-hidden border border-[var(--gray-700)] bg-[var(--gray-900)]">
         {/* Language tabs bar */}
-        <div className="flex items-center justify-between bg-[#1e1e2e] px-1 py-1 border-b border-[var(--gray-700)]">
+        <div className="flex items-center justify-between bg-[var(--gray-900)] px-1 py-1 border-b border-[var(--gray-700)]">
           <div className="flex">
             {LANGUAGES.map((l) => (
               <button key={l.key} onClick={() => setLang(l.key)}
@@ -468,7 +468,7 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
         {/* Response */}
         {response && (
           <div className="rounded-xl overflow-hidden border border-[var(--gray-700)] bg-[var(--gray-900)]">
-            <div className="flex items-center gap-4 px-4 py-2 bg-[#1e1e2e] border-b border-[var(--gray-700)]">
+            <div className="flex items-center gap-4 px-4 py-2 bg-[var(--gray-900)] border-b border-[var(--gray-700)]">
               <span className="text-xs text-gray-400">{t("docs.tryIt.response")}</span>
               <span className={`text-xs font-mono font-semibold ${response.statusCode < 400 ? "text-green-400" : "text-red-400"}`}>
                 {response.statusCode}

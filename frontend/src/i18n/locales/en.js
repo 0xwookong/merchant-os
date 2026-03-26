@@ -521,6 +521,10 @@ const en = {
   "domains.verify.confirm": "Confirm Add",
   "domains.add.success": "Domain added successfully",
   "domains.remove.success": "Domain removed successfully",
+  "domains.error.protocol": "Domain must start with http:// or https://",
+  "domains.error.wildcard": "Wildcard domains are not supported",
+  "domains.error.invalid": "Invalid domain format",
+  "domains.error.duplicate": "This domain is already in the whitelist",
 
   // logs
   "logs.title": "API Request Logs",
@@ -531,6 +535,12 @@ const en = {
   "logs.detail.request": "Request Body",
   "logs.detail.response": "Response Body",
   "logs.detail.close": "Close",
+  "logs.filter.search": "Filter by path...",
+  "logs.filter.allMethods": "All Methods",
+  "logs.filter.allStatus": "All Status",
+  "logs.filter.2xx": "2xx Success",
+  "logs.filter.4xx": "4xx Client Error",
+  "logs.filter.5xx": "5xx Server Error",
 
   // members
   "members.title": "Members & Permissions",
