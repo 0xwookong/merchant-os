@@ -10,6 +10,14 @@ vi.mock("@/providers/language-provider", () => ({
   }),
 }));
 
+vi.mock("@/providers/environment-provider", () => ({
+  useEnvironment: () => ({ environment: "sandbox", isSandbox: true, toggleEnvironment: vi.fn() }),
+}));
+
+vi.mock("@/hooks/useApplicationStatus", () => ({
+  useApplicationStatus: () => ({ applicationStatus: null, progress: null, onboardingComplete: false, refreshStatus: vi.fn() }),
+}));
+
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ComposedChart: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

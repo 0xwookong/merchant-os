@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   dashboardService,
   type MetricCard as MetricCardType,
@@ -8,6 +9,8 @@ import {
   type PaymentMethodItem,
 } from "@/services/dashboardService";
 import { useI18n } from "@/providers/language-provider";
+import { useEnvironment } from "@/providers/environment-provider";
+import { useApplicationStatus } from "@/hooks/useApplicationStatus";
 import {
   BanknotesIcon,
   CheckBadgeIcon,
@@ -15,6 +18,7 @@ import {
   UsersIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
+  RocketLaunchIcon,
 } from "@heroicons/react/24/outline";
 import TrendChart from "./_components/trend-chart";
 import PaymentMethodDistribution from "./_components/payment-method-distribution";
@@ -30,11 +34,16 @@ const METRIC_ICONS: Record<string, React.ReactNode> = {
 
 export default function DashboardPage() {
   const { t } = useI18n();
+  const { isSandbox } = useEnvironment();
+  const { applicationStatus } = useApplicationStatus();
   const [range, setRange] = useState<Range>("7d");
   const [metrics, setMetrics] = useState<MetricCardType[]>([]);
   const [trendPoints, setTrendPoints] = useState<TrendPoint[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isApproved = applicationStatus === "APPROVED";
+  const showNotApproved = !isSandbox && !isApproved;
 
   const RANGE_OPTIONS: { value: Range; label: string }[] = [
     { value: "today", label: t("dashboard.range.today") },
@@ -43,6 +52,7 @@ export default function DashboardPage() {
   ];
 
   const fetchData = useCallback((r: string) => {
+    if (showNotApproved) return;
     setLoading(true);
     Promise.all([
       dashboardService.getMetrics(r),
@@ -56,11 +66,31 @@ export default function DashboardPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [showNotApproved]);
 
   useEffect(() => {
     fetchData(range);
   }, [range, fetchData]);
+
+  if (showNotApproved) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--gray-900)]">{t("dashboard.title")}</h1>
+          <p className="text-sm text-[var(--gray-500)] mt-1">{t("dashboard.subtitle")}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm py-20 text-center">
+          <RocketLaunchIcon className="w-10 h-10 mx-auto mb-3 text-[var(--gray-300)]" />
+          <p className="text-sm font-medium text-[var(--gray-700)]">{t("dashboard.notApproved")}</p>
+          <p className="text-xs text-[var(--gray-400)] mt-1 max-w-sm mx-auto">{t("dashboard.notApprovedHint")}</p>
+          <Link href="/organization/application"
+            className="inline-block mt-4 px-5 py-2.5 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-colors">
+            {t("dashboard.goOnboarding")}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

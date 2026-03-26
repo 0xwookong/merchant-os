@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { orderService, type OrderListItem } from "@/services/orderService";
 import { useI18n } from "@/providers/language-provider";
+import { useEnvironment } from "@/providers/environment-provider";
+import { useApplicationStatus } from "@/hooks/useApplicationStatus";
 import OrderDetailDialog from "@/components/dashboard/order-detail-dialog";
 import {
   InboxIcon,
   ArrowDownTrayIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  RocketLaunchIcon,
 } from "@heroicons/react/24/outline";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -17,6 +21,8 @@ const SELECT_CLASS = "border border-[var(--gray-300)] rounded-lg pl-3 pr-8 py-2 
 
 export default function OrdersPage() {
   const { t } = useI18n();
+  const { isSandbox } = useEnvironment();
+  const { applicationStatus } = useApplicationStatus();
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -28,6 +34,9 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
+  const isApproved = applicationStatus === "APPROVED";
+  const showNotApproved = !isSandbox && !isApproved;
+
   // Date range limits: max 30 days back from today
   const today = new Date().toISOString().slice(0, 10);
   const minDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -35,6 +44,7 @@ export default function OrdersPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const fetchOrders = useCallback(() => {
+    if (showNotApproved) return;
     setLoading(true);
     orderService.list({
       status: status || undefined,
@@ -47,7 +57,7 @@ export default function OrdersPage() {
       .then((res) => { setOrders(res.list); setTotal(res.total); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [status, payment, startDate, endDate, page, pageSize]);
+  }, [status, payment, startDate, endDate, page, pageSize, showNotApproved]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
@@ -82,6 +92,26 @@ export default function OrdersPage() {
   const goToPage = (p: number) => {
     setPage(Math.max(1, Math.min(p, totalPages)));
   };
+
+  if (showNotApproved) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--gray-900)]">{t("orders.title")}</h1>
+          <p className="text-sm text-[var(--gray-500)] mt-1">{t("orders.subtitle")}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm py-20 text-center">
+          <RocketLaunchIcon className="w-10 h-10 mx-auto mb-3 text-[var(--gray-300)]" />
+          <p className="text-sm font-medium text-[var(--gray-700)]">{t("orders.notApproved")}</p>
+          <p className="text-xs text-[var(--gray-400)] mt-1 max-w-sm mx-auto">{t("orders.notApprovedHint")}</p>
+          <Link href="/organization/application"
+            className="inline-block mt-4 px-5 py-2.5 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-colors">
+            {t("orders.goOnboarding")}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
