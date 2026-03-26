@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { dashboardService, type MetricCard as MetricCardType } from "@/services/dashboardService";
+import { useCallback, useEffect, useState } from "react";
+import {
+  dashboardService,
+  type MetricCard as MetricCardType,
+  type TrendPoint,
+  type PaymentMethodItem,
+} from "@/services/dashboardService";
 import { useI18n } from "@/providers/language-provider";
 import {
   BanknotesIcon,
@@ -11,6 +16,8 @@ import {
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
 } from "@heroicons/react/24/outline";
+import TrendChart from "./_components/trend-chart";
+import PaymentMethodDistribution from "./_components/payment-method-distribution";
 
 type Range = "today" | "7d" | "30d";
 
@@ -25,6 +32,8 @@ export default function DashboardPage() {
   const { t } = useI18n();
   const [range, setRange] = useState<Range>("7d");
   const [metrics, setMetrics] = useState<MetricCardType[]>([]);
+  const [trendPoints, setTrendPoints] = useState<TrendPoint[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const RANGE_OPTIONS: { value: Range; label: string }[] = [
@@ -33,13 +42,25 @@ export default function DashboardPage() {
     { value: "30d", label: t("dashboard.range.30d") },
   ];
 
-  useEffect(() => {
+  const fetchData = useCallback((r: string) => {
     setLoading(true);
-    dashboardService.getMetrics(range)
-      .then((res) => setMetrics(res.metrics))
+    Promise.all([
+      dashboardService.getMetrics(r),
+      dashboardService.getTrend(r),
+      dashboardService.getPaymentMethods(r),
+    ])
+      .then(([metricsRes, trendRes, pmRes]) => {
+        setMetrics(metricsRes.metrics);
+        setTrendPoints(trendRes.points);
+        setPaymentMethods(pmRes.methods);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [range]);
+  }, []);
+
+  useEffect(() => {
+    fetchData(range);
+  }, [range, fetchData]);
 
   return (
     <div className="space-y-8">
@@ -80,15 +101,21 @@ export default function DashboardPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {metrics.map((metric) => (
-            <MetricCard key={metric.key} metric={metric} t={t} />
+            <MetricCardComponent key={metric.key} metric={metric} t={t} />
           ))}
         </div>
       )}
+
+      {/* Trend Chart */}
+      <TrendChart points={trendPoints} loading={loading} t={t} />
+
+      {/* Payment Method Distribution */}
+      <PaymentMethodDistribution methods={paymentMethods} loading={loading} t={t} />
     </div>
   );
 }
 
-function MetricCard({ metric, t }: { metric: MetricCardType; t: (key: string) => string }) {
+function MetricCardComponent({ metric, t }: { metric: MetricCardType; t: (key: string) => string }) {
   const isUp = metric.changeRate > 0;
   const isDown = metric.changeRate < 0;
 

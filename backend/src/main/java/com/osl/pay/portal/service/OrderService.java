@@ -7,7 +7,8 @@ import com.osl.pay.portal.model.dto.OrderListResponse;
 public interface OrderService {
 
     PageResult<OrderListResponse> listOrders(Long merchantId, String status,
-                                              String paymentMethod, int page, int pageSize);
+                                              String paymentMethod, String startDate,
+                                              String endDate, int page, int pageSize);
 
     OrderDetailResponse getDetail(Long merchantId, Long orderId);
 }

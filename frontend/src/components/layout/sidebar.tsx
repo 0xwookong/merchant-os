@@ -140,7 +140,7 @@ export default function Sidebar() {
                     isExpanded={expandedKeys.has(item.key)}
                     onToggle={() => toggleExpand(item.key)}
                     isActive={isActive}
-                    isDisabled={item.key === "transactions" && !applicationApproved}
+                    isDisabled={item.key === "orders" && !applicationApproved}
                     disabledTooltip={t("nav.kybRequired")}
                   />
                 ))}

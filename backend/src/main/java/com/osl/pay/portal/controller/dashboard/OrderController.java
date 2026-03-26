@@ -7,9 +7,11 @@ import com.osl.pay.portal.model.dto.OrderListResponse;
 import com.osl.pay.portal.security.AuthUserDetails;
 import com.osl.pay.portal.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
@@ -22,10 +24,14 @@ public class OrderController {
             @AuthenticationPrincipal AuthUserDetails user,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String paymentMethod,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
+        log.info("GET /orders merchantId={} status={} payment={} date={}/{} page={} size={}",
+                user.getMerchantId(), status, paymentMethod, startDate, endDate, page, pageSize);
         return Result.ok(orderService.listOrders(
-                user.getMerchantId(), status, paymentMethod, page, pageSize));
+                user.getMerchantId(), status, paymentMethod, startDate, endDate, page, pageSize));
     }
 
     @GetMapping("/{id}")

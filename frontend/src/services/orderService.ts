@@ -23,6 +23,8 @@ interface OrderListPage {
 interface OrderListParams {
   status?: string;
   paymentMethod?: string;
+  startDate?: string;
+  endDate?: string;
   page?: string;
   pageSize?: string;
 }
@@ -50,6 +52,8 @@ export const orderService = {
     const query: Record<string, string> = {};
     if (params.status) query.status = params.status;
     if (params.paymentMethod) query.paymentMethod = params.paymentMethod;
+    if (params.startDate) query.startDate = params.startDate;
+    if (params.endDate) query.endDate = params.endDate;
     query.page = params.page || "1";
     query.pageSize = params.pageSize || "20";
     return api.get<OrderListPage>("/api/v1/orders", query);

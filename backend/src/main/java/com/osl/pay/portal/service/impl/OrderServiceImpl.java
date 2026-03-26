@@ -10,14 +10,22 @@ import com.osl.pay.portal.model.entity.Order;
 import com.osl.pay.portal.repository.OrderMapper;
 import com.osl.pay.portal.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+
+    /** Orders older than 30 days are not queryable via portal; contact support for bulk export. */
+    private static final int DATA_WINDOW_DAYS = 30;
 
     private final OrderMapper orderMapper;
 
@@ -28,12 +36,37 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public PageResult<OrderListResponse> listOrders(Long merchantId, String status,
-                                                     String paymentMethod, int page, int pageSize) {
+                                                     String paymentMethod, String startDate,
+                                                     String endDate, int page, int pageSize) {
         if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+        if (pageSize < 1 || pageSize > 150) pageSize = 20;
+
+        // Hard floor: never older than DATA_WINDOW_DAYS
+        LocalDateTime hardEarliest = LocalDateTime.now().minusDays(DATA_WINDOW_DAYS);
+
+        // Parse optional date range from client (yyyy-MM-dd), clamp to hard floor
+        LocalDateTime rangeStart = hardEarliest;
+        LocalDateTime rangeEnd = LocalDateTime.now();
+        try {
+            if (startDate != null && !startDate.isBlank()) {
+                LocalDateTime parsed = LocalDate.parse(startDate).atStartOfDay();
+                rangeStart = parsed.isBefore(hardEarliest) ? hardEarliest : parsed;
+            }
+            if (endDate != null && !endDate.isBlank()) {
+                LocalDateTime parsed = LocalDate.parse(endDate).atTime(LocalTime.MAX);
+                rangeEnd = parsed.isAfter(LocalDateTime.now()) ? LocalDateTime.now() : parsed;
+            }
+        } catch (Exception e) {
+            log.warn("Invalid date params startDate={} endDate={}, using defaults", startDate, endDate);
+        }
+
+        log.info("listOrders merchantId={} status={} payment={} range=[{}, {}] page={} pageSize={}",
+                merchantId, status, paymentMethod, rangeStart, rangeEnd, page, pageSize);
 
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>()
                 .eq(Order::getMerchantId, merchantId)
+                .ge(Order::getCreatedAt, rangeStart)
+                .le(Order::getCreatedAt, rangeEnd)
                 .orderByDesc(Order::getCreatedAt);
 
         if (status != null && VALID_STATUSES.contains(status)) {

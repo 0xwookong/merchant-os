@@ -134,8 +134,7 @@ frontend/src/app/
 ├── (portal)/                     # 主平台（顶部栏 + 侧边栏 + 内容区）
 │   ├── layout.tsx                # 布局框架
 │   ├── dashboard/page.tsx        # 仪表盘（指标卡片）
-│   ├── transactions/             # 交易中心
-│   │   └── orders/page.tsx       # 订单管理
+│   ├── orders/page.tsx            # 订单（只读查询 + 导出）
 │   ├── developer/                # 开发者工具
 │   │   ├── docs/page.tsx         # API 文档
 │   │   ├── credentials/page.tsx  # API 凭证

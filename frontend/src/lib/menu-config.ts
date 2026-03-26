@@ -39,20 +39,12 @@ export const MENU_CONFIG: MenuItem[] = [
     section: "main",
   },
   {
-    key: "transactions",
-    labelKey: "nav.transactions",
-    icon: "BanknotesIcon",
+    key: "orders",
+    labelKey: "nav.orders",
+    icon: "DocumentTextIcon",
+    path: "/orders",
     roles: ["ADMIN", "BUSINESS"],
     section: "main",
-    children: [
-      {
-        key: "orders",
-        labelKey: "nav.transactions.orders",
-        icon: "ShoppingCartIcon",
-        path: "/transactions/orders",
-        roles: ["ADMIN", "BUSINESS"],
-      },
-    ],
   },
   {
     key: "developer",
