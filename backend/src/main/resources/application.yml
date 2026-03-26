@@ -53,8 +53,10 @@ mybatis-plus:
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: ${SWAGGER_ENABLED:true}
   swagger-ui:
     path: /swagger-ui.html
+    enabled: ${SWAGGER_ENABLED:true}
 
 # OSLPay Environment Endpoints
 oslpay:

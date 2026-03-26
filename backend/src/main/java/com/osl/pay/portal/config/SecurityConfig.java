@@ -46,6 +46,7 @@ public class SecurityConfig {
                 // Auth endpoints that are public
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/mcp/**").permitAll()
+                // Swagger — disable via SWAGGER_ENABLED=false in production
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()
             )

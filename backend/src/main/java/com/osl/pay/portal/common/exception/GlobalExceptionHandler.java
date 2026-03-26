@@ -63,7 +63,8 @@ public class GlobalExceptionHandler {
             case 403 -> HttpStatus.FORBIDDEN;
             case 404 -> HttpStatus.NOT_FOUND;
             case 429 -> HttpStatus.TOO_MANY_REQUESTS;
-            default -> HttpStatus.OK; // Fallback for legacy codes
+            case 500 -> HttpStatus.INTERNAL_SERVER_ERROR;
+            default -> HttpStatus.BAD_REQUEST; // Unmapped business errors default to 400
         };
     }
 }
