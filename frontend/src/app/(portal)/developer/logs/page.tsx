@@ -9,6 +9,7 @@ import {
   ArrowPathIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import { Select } from "@/components/ui/select";
 
 const METHOD_COLORS: Record<string, string> = {
   GET: "bg-green-100 text-green-700",
@@ -93,18 +94,16 @@ export default function LogsPage() {
             className="w-full border border-[var(--gray-300)] rounded-lg pl-9 pr-3 py-2 text-sm font-mono placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-        <select value={filterMethod} onChange={(e) => setFilterMethod(e.target.value)}
-          className="border border-[var(--gray-300)] rounded-lg px-3 py-2 text-sm text-[var(--gray-700)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <Select value={filterMethod} onChange={(e) => setFilterMethod(e.target.value)}>
           <option value="">{t("logs.filter.allMethods")}</option>
           {METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-        </select>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-          className="border border-[var(--gray-300)] rounded-lg px-3 py-2 text-sm text-[var(--gray-700)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </Select>
+        <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
           <option value="">{t("logs.filter.allStatus")}</option>
           <option value="2xx">{t("logs.filter.2xx")}</option>
           <option value="4xx">{t("logs.filter.4xx")}</option>
           <option value="5xx">{t("logs.filter.5xx")}</option>
-        </select>
+        </Select>
       </div>
 
       {/* Log table */}

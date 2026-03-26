@@ -5,6 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useI18n } from "@/providers/language-provider";
 import { useAuth } from "@/providers/auth-provider";
 import { memberService, type MemberInfo } from "@/services/memberService";
+import { Select } from "@/components/ui/select";
 import { securityService } from "@/services/securityService";
 import {
   PlusIcon,
@@ -194,13 +195,12 @@ export default function MembersPage() {
                 </label>
                 <div className="relative">
                   <ShieldCheckIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--gray-400)]" />
-                  <select value={role} onChange={(e) => setRole(e.target.value)}
-                    className="w-full appearance-none border border-[var(--gray-300)] rounded-lg pl-9 pr-9 py-2.5 text-sm text-[var(--gray-900)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <Select value={role} onChange={(e) => setRole(e.target.value)}
+                    className="w-full pl-9 py-2.5 text-[var(--gray-900)]">
                     <option value="ADMIN">{t("members.role.ADMIN")}</option>
                     <option value="BUSINESS">{t("members.role.BUSINESS")}</option>
                     <option value="TECH">{t("members.role.TECH")}</option>
-                  </select>
-                  <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--gray-400)] pointer-events-none" />
+                  </Select>
                 </div>
               </div>
             </div>

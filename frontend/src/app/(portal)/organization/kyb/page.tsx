@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { kybService, type KybSubmitRequest } from "@/services/kybService";
 import { ApiError } from "@/lib/api";
 import { useI18n } from "@/providers/language-provider";
+import { Select } from "@/components/ui/select";
 import {
   BuildingOffice2Icon,
   UserIcon,
@@ -282,10 +283,9 @@ function SelectField({ label, value, onChange, options }: { label: string; value
   return (
     <div>
       <label className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-[var(--gray-300)] rounded-lg px-4 py-3 text-sm text-[var(--gray-900)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <Select value={value} onChange={(e) => onChange(e.target.value)} className="w-full py-3 text-[var(--gray-900)]">
         {options.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-      </select>
+      </Select>
     </div>
   );
 }

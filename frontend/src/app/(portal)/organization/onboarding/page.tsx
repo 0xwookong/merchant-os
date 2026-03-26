@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { onboardingService, type OnboardingSaveDraftRequest } from "@/services/onboardingService";
 import { ApiError } from "@/lib/api";
 import { useI18n } from "@/providers/language-provider";
+import { Select as SelectBase } from "@/components/ui/select";
 import {
   BuildingOffice2Icon,
   BriefcaseIcon,
@@ -372,10 +373,9 @@ function Select({ label, value, onChange, options }: { label: string; value: str
   return (
     <div>
       <label className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-[var(--gray-300)] rounded-lg px-4 py-3 text-sm text-[var(--gray-900)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <SelectBase value={value} onChange={(e) => onChange(e.target.value)} className="w-full py-3 text-[var(--gray-900)]">
         {options.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-      </select>
+      </SelectBase>
     </div>
   );
 }
@@ -430,15 +430,11 @@ function PhoneField({ label, value, onChange, phonePlaceholder }: { label: strin
     <div>
       <label className="block text-sm font-medium text-[var(--gray-700)] mb-1.5">{label}</label>
       <div className="flex gap-2">
-        <select
-          value={code}
-          onChange={(e) => handleCodeChange(e.target.value)}
-          className="w-28 border border-[var(--gray-300)] rounded-lg px-3 py-3 text-sm text-[var(--gray-900)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
+        <SelectBase value={code} onChange={(e) => handleCodeChange(e.target.value)} className="w-28 py-3 text-[var(--gray-900)]">
           {COUNTRY_CODES.map((c) => (
             <option key={c.value} value={c.value}>{c.label}</option>
           ))}
-        </select>
+        </SelectBase>
         <input
           type="tel"
           value={number}

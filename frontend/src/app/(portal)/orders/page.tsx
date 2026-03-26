@@ -14,10 +14,9 @@ import {
   ChevronRightIcon,
   RocketLaunchIcon,
 } from "@heroicons/react/24/outline";
+import { Select } from "@/components/ui/select";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
-
-const SELECT_CLASS = "border border-[var(--gray-300)] rounded-lg pl-3 pr-8 py-2 text-sm text-[var(--gray-700)] appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%236b7280%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.23%207.21a.75.75%200%20011.06.02L10%2011.168l3.71-3.938a.75.75%200%20111.08%201.04l-4.25%204.5a.75.75%200%2001-1.08%200l-4.25-4.5a.75.75%200%2001.02-1.06z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] bg-[length:20px] bg-[right_8px_center] bg-no-repeat";
 
 export default function OrdersPage() {
   const { t } = useI18n();
@@ -124,22 +123,20 @@ export default function OrdersPage() {
         {/* Filters */}
         <div className="px-6 py-4 border-b border-[var(--gray-100)] flex items-center justify-between flex-wrap gap-3">
           <div className="flex gap-3 items-center flex-wrap">
-            <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-              className={SELECT_CLASS}>
+            <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
               <option value="">{t("orders.filter.allStatus")}</option>
               <option value="CREATED">{t("orders.status.CREATED")}</option>
               <option value="PROCESSING">{t("orders.status.PROCESSING")}</option>
               <option value="SUCCESSED">{t("orders.status.SUCCESSED")}</option>
               <option value="COMPLETED">{t("orders.status.COMPLETED")}</option>
               <option value="FAILED">{t("orders.status.FAILED")}</option>
-            </select>
-            <select value={payment} onChange={(e) => { setPayment(e.target.value); setPage(1); }}
-              className={SELECT_CLASS}>
+            </Select>
+            <Select value={payment} onChange={(e) => { setPayment(e.target.value); setPage(1); }}>
               <option value="">{t("orders.filter.allPayment")}</option>
               <option value="CARD">{t("orders.payment.CARD")}</option>
               <option value="GOOGLEPAY">{t("orders.payment.GOOGLEPAY")}</option>
               <option value="APPLEPAY">{t("orders.payment.APPLEPAY")}</option>
-            </select>
+            </Select>
             <div className="flex items-center gap-1.5">
               <input
                 type="date"
@@ -222,15 +219,15 @@ export default function OrdersPage() {
               <span className="text-[var(--gray-500)]">{t("orders.total", { count: total })}</span>
               <div className="flex items-center gap-2">
                 <span className="text-[var(--gray-500)]">{t("orders.perPage")}</span>
-                <select
+                <Select
                   value={pageSize}
                   onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className={SELECT_CLASS + " py-1.5"}
+                  selectSize="sm"
                 >
                   {PAGE_SIZE_OPTIONS.map((size) => (
                     <option key={size} value={size}>{size}</option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
 
