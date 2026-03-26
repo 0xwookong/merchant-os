@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useI18n } from "@/providers/language-provider";
 import { useEnvironment } from "@/providers/environment-provider";
 import { docsService, type EndpointSummary, type EndpointDetail, type CategoryInfo } from "@/services/docsService";
+import { signService } from "@/services/signService";
 import {
   MagnifyingGlassIcon,
   ClipboardDocumentIcon,
@@ -362,6 +363,7 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
   const { t } = useI18n();
   const { isSandbox } = useEnvironment();
   const [appId, setAppId] = useState("YOUR_APP_ID");
+  const [privateKey, setPrivateKey] = useState("");
   const [bodyText, setBodyText] = useState(() => {
     const ex = getExampleBody(endpoint);
     return ex || "";
@@ -369,6 +371,7 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<{ statusCode: number; body: string; durationMs: number } | null>(null);
   const [error, setError] = useState("");
+  const [signed, setSigned] = useState(false);
 
   // Reset when endpoint changes
   useEffect(() => {
@@ -382,12 +385,19 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
     setLoading(true);
     setError("");
     setResponse(null);
+    setSigned(false);
 
     const timestamp = String(Math.floor(Date.now() / 1000));
     const url = `${SANDBOX_BASE}${endpoint.path}`;
     const hasBody = endpoint.method === "POST" || endpoint.method === "PUT" || endpoint.method === "PATCH";
 
     try {
+      let signature = "PLACEHOLDER_SIGN";
+      if (privateKey.trim()) {
+        const signResult = await signService.generate({ appId, timestamp, privateKey: privateKey.trim() });
+        signature = signResult.signature;
+        setSigned(true);
+      }
       const res = await docsService.proxy({
         method: endpoint.method,
         url,
@@ -395,7 +405,7 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
           "Content-Type": "application/json",
           "open-api-appid": appId,
           "open-api-timestamp": timestamp,
-          "open-api-sign": "PLACEHOLDER_SIGN",
+          "open-api-sign": signature,
         },
         body: hasBody ? bodyText : undefined,
       });
@@ -445,6 +455,14 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
             className="w-full border border-[var(--gray-300)] rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
         </div>
 
+        {/* Private Key (optional, for auto-signing) */}
+        <div>
+          <label className="block text-xs font-medium text-[var(--gray-600)] mb-1">{t("docs.tryIt.privateKey")}</label>
+          <textarea value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} rows={3}
+            placeholder={t("docs.tryIt.privateKey.placeholder")}
+            className="w-full border border-[var(--gray-300)] rounded-lg px-3 py-2 text-xs font-mono resize-y placeholder:text-[var(--gray-400)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+
         {/* Body */}
         {hasBody && (
           <div>
@@ -455,11 +473,19 @@ function TryItPanel({ endpoint }: { endpoint: EndpointDetail }) {
         )}
 
         {/* Send button */}
-        <button onClick={handleSend} disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
-          <PlayIcon className="w-4 h-4" />
-          {loading ? t("docs.tryIt.sending") : t("docs.tryIt.send")}
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={handleSend} disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary-black)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
+            <PlayIcon className="w-4 h-4" />
+            {loading ? t("docs.tryIt.sending") : t("docs.tryIt.send")}
+          </button>
+          {signed && (
+            <span className="flex items-center gap-1 text-xs text-green-600">
+              <CheckIcon className="w-3.5 h-3.5" />
+              {t("docs.tryIt.autoSigned")}
+            </span>
+          )}
+        </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700">{error}</div>

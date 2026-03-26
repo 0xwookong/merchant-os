@@ -461,6 +461,9 @@ const zh = {
   "docs.tryIt.appId": "App ID",
   "docs.tryIt.timestamp": "Timestamp (自动生成)",
   "docs.tryIt.sign": "Signature (需自行签名)",
+  "docs.tryIt.privateKey": "私钥（用于自动签名）",
+  "docs.tryIt.privateKey.placeholder": "粘贴 PKCS#8 PEM 格式私钥，发送请求时自动签名",
+  "docs.tryIt.autoSigned": "已自动签名",
 
   // webhooks
   "webhooks.title": "Webhook 管理",

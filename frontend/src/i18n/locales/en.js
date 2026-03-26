@@ -461,6 +461,9 @@ const en = {
   "docs.tryIt.appId": "App ID",
   "docs.tryIt.timestamp": "Timestamp (auto-generated)",
   "docs.tryIt.sign": "Signature (sign manually)",
+  "docs.tryIt.privateKey": "Private Key (for auto-signing)",
+  "docs.tryIt.privateKey.placeholder": "Paste your PKCS#8 PEM private key to auto-sign requests",
+  "docs.tryIt.autoSigned": "Auto-signed",
 
   // webhooks
   "webhooks.title": "Webhook Management",
