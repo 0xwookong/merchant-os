@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.osl.pay.portal.model.dto.RegisterRequest;
 import com.osl.pay.portal.model.entity.Merchant;
 import com.osl.pay.portal.model.entity.MerchantUser;
-import com.osl.pay.portal.model.enums.KybStatus;
+
 import com.osl.pay.portal.model.enums.MerchantStatus;
 import com.osl.pay.portal.model.enums.UserRole;
 import com.osl.pay.portal.model.enums.UserStatus;
@@ -12,9 +12,7 @@ import com.osl.pay.portal.repository.ApiCredentialMapper;
 import com.osl.pay.portal.repository.ApiRequestLogMapper;
 import com.osl.pay.portal.repository.AuditLogMapper;
 import com.osl.pay.portal.repository.DomainWhitelistMapper;
-import com.osl.pay.portal.repository.KybApplicationMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
-import com.osl.pay.portal.repository.OnboardingApplicationMapper;
 import com.osl.pay.portal.repository.OrderMapper;
 import com.osl.pay.portal.repository.MerchantUserMapper;
 import com.osl.pay.portal.repository.WebhookConfigMapper;
@@ -51,8 +49,6 @@ class AuthRegisterApiTest {
     @Autowired private ApiRequestLogMapper apiRequestLogMapper;
     @Autowired private WebhookLogMapper webhookLogMapper;
     @Autowired private DomainWhitelistMapper domainWhitelistMapper;
-    @Autowired private KybApplicationMapper kybApplicationMapper;
-    @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private MerchantApplicationMapper merchantApplicationMapper;
     @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
@@ -64,8 +60,6 @@ class AuthRegisterApiTest {
         apiRequestLogMapper.delete(null);
         webhookLogMapper.delete(null);
         domainWhitelistMapper.delete(null);
-        kybApplicationMapper.delete(null);
-        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
@@ -111,7 +105,6 @@ class AuthRegisterApiTest {
             Merchant merchant = merchantMapper.selectList(null).get(0);
             assertThat(merchant.getCompanyName()).isEqualTo("Test Corp Ltd");
             assertThat(merchant.getStatus()).isEqualTo(MerchantStatus.ACTIVE);
-            assertThat(merchant.getKybStatus()).isEqualTo(KybStatus.NOT_STARTED);
 
             // 验证数据库：用户记录
             MerchantUser user = merchantUserMapper.selectList(null).get(0);

@@ -30,8 +30,6 @@ class LogApiTest {
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
     @Autowired private OrderMapper orderMapper;
-    @Autowired private KybApplicationMapper kybApplicationMapper;
-    @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private WebhookLogMapper webhookLogMapper;
@@ -51,8 +49,6 @@ class LogApiTest {
         apiRequestLogMapper.delete(null);
         webhookLogMapper.delete(null);
         domainWhitelistMapper.delete(null);
-        kybApplicationMapper.delete(null);
-        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
@@ -115,18 +111,21 @@ class LogApiTest {
         mockMvc.perform(get("/api/v1/logs")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(10));
+                .andExpect(jsonPath("$.data.list").isArray())
+                .andExpect(jsonPath("$.data.list.length()").value(12))
+                .andExpect(jsonPath("$.data.total").value(12))
+                .andExpect(jsonPath("$.data.page").value(1));
     }
 
     @Test
-    @DisplayName("空列表 → 200，返回空数组")
+    @DisplayName("空列表 → 200，返回空分页结果")
     void should_returnEmptyList() throws Exception {
         mockMvc.perform(get("/api/v1/logs")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(0));
+                .andExpect(jsonPath("$.data.list").isArray())
+                .andExpect(jsonPath("$.data.list.length()").value(0))
+                .andExpect(jsonPath("$.data.total").value(0));
     }
 
     @Test

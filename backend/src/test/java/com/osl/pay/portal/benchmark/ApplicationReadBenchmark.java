@@ -44,8 +44,6 @@ class ApplicationReadBenchmark {
     @Autowired private MerchantApplicationMapper merchantApplicationMapper;
     @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private OrderMapper orderMapper;
-    @Autowired private KybApplicationMapper kybApplicationMapper;
-    @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private ApiRequestLogMapper apiRequestLogMapper;
@@ -78,8 +76,6 @@ class ApplicationReadBenchmark {
         domainWhitelistMapper.delete(null);
         applicationDocumentMapper.delete(null);
         merchantApplicationMapper.delete(null);
-        kybApplicationMapper.delete(null);
-        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);

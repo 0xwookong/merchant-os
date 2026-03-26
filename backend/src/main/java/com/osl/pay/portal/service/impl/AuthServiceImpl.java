@@ -94,7 +94,6 @@ public class AuthServiceImpl implements AuthService {
         Merchant merchant = new Merchant();
         merchant.setCompanyName(companyName);
         merchant.setStatus(MerchantStatus.ACTIVE);
-        merchant.setKybStatus(KybStatus.NOT_STARTED);
         merchantMapper.insert(merchant);
 
         // Default contact name to email prefix if not provided

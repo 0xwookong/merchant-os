@@ -36,8 +36,6 @@ class MerchantApplicationApiTest {
     @Autowired private MerchantMapper merchantMapper;
     @Autowired private OrderMapper orderMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
-    @Autowired private OnboardingApplicationMapper onboardingMapper;
-    @Autowired private KybApplicationMapper kybApplicationMapper;
     @Autowired private MerchantApplicationMapper merchantApplicationMapper;
     @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private AuditLogMapper auditLogMapper;
@@ -57,8 +55,6 @@ class MerchantApplicationApiTest {
         domainWhitelistMapper.delete(null);
         applicationDocumentMapper.delete(null);
         merchantApplicationMapper.delete(null);
-        kybApplicationMapper.delete(null);
-        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);

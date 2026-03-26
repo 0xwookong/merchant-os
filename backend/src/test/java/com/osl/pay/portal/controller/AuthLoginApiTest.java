@@ -9,9 +9,7 @@ import com.osl.pay.portal.repository.ApiCredentialMapper;
 import com.osl.pay.portal.repository.ApiRequestLogMapper;
 import com.osl.pay.portal.repository.AuditLogMapper;
 import com.osl.pay.portal.repository.DomainWhitelistMapper;
-import com.osl.pay.portal.repository.KybApplicationMapper;
 import com.osl.pay.portal.repository.MerchantMapper;
-import com.osl.pay.portal.repository.OnboardingApplicationMapper;
 import com.osl.pay.portal.repository.OrderMapper;
 import com.osl.pay.portal.repository.MerchantUserMapper;
 import com.osl.pay.portal.repository.WebhookConfigMapper;
@@ -51,8 +49,6 @@ class AuthLoginApiTest {
     @Autowired private ApiRequestLogMapper apiRequestLogMapper;
     @Autowired private WebhookLogMapper webhookLogMapper;
     @Autowired private DomainWhitelistMapper domainWhitelistMapper;
-    @Autowired private KybApplicationMapper kybApplicationMapper;
-    @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private MerchantApplicationMapper merchantApplicationMapper;
     @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
@@ -65,8 +61,6 @@ class AuthLoginApiTest {
         apiRequestLogMapper.delete(null);
         webhookLogMapper.delete(null);
         domainWhitelistMapper.delete(null);
-        kybApplicationMapper.delete(null);
-        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
@@ -176,7 +170,6 @@ class AuthLoginApiTest {
             Merchant corpB = new Merchant();
             corpB.setCompanyName("Corp B");
             corpB.setStatus(MerchantStatus.ACTIVE);
-            corpB.setKybStatus(KybStatus.NOT_STARTED);
             merchantMapper.insert(corpB);
             createUserInMerchant(corpB.getId(), "shared@test.com");
 
@@ -197,7 +190,6 @@ class AuthLoginApiTest {
             Merchant corpB = new Merchant();
             corpB.setCompanyName("Corp B");
             corpB.setStatus(MerchantStatus.ACTIVE);
-            corpB.setKybStatus(KybStatus.NOT_STARTED);
             merchantMapper.insert(corpB);
             createUserInMerchant(corpB.getId(), "shared@test.com");
 

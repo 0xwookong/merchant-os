@@ -36,8 +36,6 @@ class OrderApiTest {
     @Autowired private ApiRequestLogMapper apiRequestLogMapper;
     @Autowired private WebhookLogMapper webhookLogMapper;
     @Autowired private DomainWhitelistMapper domainWhitelistMapper;
-    @Autowired private KybApplicationMapper kybApplicationMapper;
-    @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private WebhookConfigMapper webhookConfigMapper;
     @Autowired private MerchantApplicationMapper merchantApplicationMapper;
     @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
@@ -51,8 +49,6 @@ class OrderApiTest {
         apiRequestLogMapper.delete(null);
         webhookLogMapper.delete(null);
         domainWhitelistMapper.delete(null);
-        kybApplicationMapper.delete(null);
-        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);
@@ -110,6 +106,7 @@ class OrderApiTest {
         order.setFiatCurrency(currency);
         order.setPaymentMethod(paymentMethod);
         order.setStatus(status);
+        order.setCreatedAt(java.time.LocalDateTime.now());
         orderMapper.insert(order);
     }
 

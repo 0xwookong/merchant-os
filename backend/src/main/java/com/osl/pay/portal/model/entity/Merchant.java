@@ -1,7 +1,6 @@
 package com.osl.pay.portal.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.osl.pay.portal.model.enums.KybStatus;
 import com.osl.pay.portal.model.enums.MerchantStatus;
 import lombok.Data;
 
@@ -17,8 +16,6 @@ public class Merchant {
     private String companyName;
 
     private MerchantStatus status;
-
-    private KybStatus kybStatus;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

@@ -32,8 +32,6 @@ class DocsApiTest {
     @Autowired private MerchantUserMapper merchantUserMapper;
     @Autowired private MerchantMapper merchantMapper;
     @Autowired private OrderMapper orderMapper;
-    @Autowired private KybApplicationMapper kybApplicationMapper;
-    @Autowired private OnboardingApplicationMapper onboardingMapper;
     @Autowired private ApiCredentialMapper apiCredentialMapper;
     @Autowired private AuditLogMapper auditLogMapper;
     @Autowired private ApiRequestLogMapper apiRequestLogMapper;
@@ -52,8 +50,6 @@ class DocsApiTest {
         apiRequestLogMapper.delete(null);
         webhookLogMapper.delete(null);
         domainWhitelistMapper.delete(null);
-        kybApplicationMapper.delete(null);
-        onboardingMapper.delete(null);
         webhookConfigMapper.delete(null);
         apiCredentialMapper.delete(null);
         orderMapper.delete(null);

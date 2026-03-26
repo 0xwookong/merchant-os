@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS t_merchant (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     company_name VARCHAR(200) NOT NULL,
     status ENUM('ACTIVE','SUSPENDED','DISABLED') NOT NULL DEFAULT 'ACTIVE',
-    kyb_status ENUM('NOT_STARTED','PENDING','APPROVED','REJECTED','NEED_MORE_INFO') NOT NULL DEFAULT 'NOT_STARTED',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_company_name (company_name)
@@ -41,27 +40,6 @@ CREATE TABLE IF NOT EXISTS t_merchant_user (
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- KYB application table (Know Your Business)
-CREATE TABLE IF NOT EXISTS t_kyb_application (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    merchant_id BIGINT NOT NULL,
-    company_reg_country VARCHAR(100) NOT NULL COMMENT '公司注册地',
-    company_reg_number VARCHAR(100) NOT NULL COMMENT '公司注册号',
-    business_license_no VARCHAR(100) NOT NULL COMMENT '营业执照号',
-    company_type VARCHAR(50) NOT NULL COMMENT 'LIMITED/PARTNERSHIP/SOLE_PROPRIETORSHIP/OTHER',
-    legal_rep_name VARCHAR(100) NOT NULL COMMENT '法人姓名',
-    legal_rep_nationality VARCHAR(100) NOT NULL COMMENT '法人国籍',
-    legal_rep_id_type VARCHAR(50) NOT NULL COMMENT 'ID_CARD/PASSPORT/OTHER',
-    legal_rep_id_number VARCHAR(100) NOT NULL COMMENT '证件号码',
-    legal_rep_share_pct DECIMAL(5,2) COMMENT '持股比例',
-    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/APPROVED/REJECTED/NEED_MORE_INFO',
-    reject_reason VARCHAR(500),
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_merchant_id (merchant_id),
-    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Order table (payment orders)
 CREATE TABLE IF NOT EXISTS t_order (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -84,29 +62,6 @@ CREATE TABLE IF NOT EXISTS t_order (
     INDEX idx_merchant_id (merchant_id),
     INDEX idx_status (status),
     INDEX idx_created_at (created_at),
-    FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Onboarding application table (merchant onboarding)
-CREATE TABLE IF NOT EXISTS t_onboarding_application (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    merchant_id BIGINT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT 'DRAFT/SUBMITTED/UNDER_REVIEW/APPROVED/REJECTED',
-    current_step INT NOT NULL DEFAULT 1,
-    company_name VARCHAR(200),
-    company_address VARCHAR(500),
-    contact_name VARCHAR(100),
-    contact_phone VARCHAR(50),
-    contact_email VARCHAR(200),
-    business_type VARCHAR(50),
-    monthly_volume VARCHAR(50),
-    supported_fiat VARCHAR(200) COMMENT 'comma separated',
-    supported_crypto VARCHAR(200) COMMENT 'comma separated',
-    business_desc VARCHAR(2000),
-    reject_reason VARCHAR(500),
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_merchant_id (merchant_id),
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -255,7 +210,7 @@ INSERT INTO t_email_template (code, locale, subject, body_html, description) VAL
 <p style="color:#9ca3af;font-size:13px;margin:0">验证码 5 分钟内有效。如果这不是您本人操作，请忽略此邮件。</p>',
 '敏感操作邮件验证码');
 
--- Unified merchant application table (replaces t_kyb_application + t_onboarding_application)
+-- Merchant application table (KYB + onboarding unified)
 CREATE TABLE IF NOT EXISTS t_merchant_application (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     merchant_id BIGINT NOT NULL,
