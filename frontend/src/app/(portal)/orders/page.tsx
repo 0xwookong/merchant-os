@@ -195,14 +195,14 @@ export default function OrdersPage() {
                 {orders.map((order) => (
                   <tr key={order.id} onClick={() => setSelectedOrderId(order.id)} className="border-b border-[var(--gray-50)] hover:bg-[var(--gray-50)] cursor-pointer transition-colors">
                     <td className="py-4 px-6 font-mono text-[var(--gray-900)]">{order.orderNo}</td>
-                    <td className="py-4 px-6 text-[var(--gray-700)]">${order.fiatAmount} {order.fiatCurrency}</td>
+                    <td className="py-4 px-6 text-[var(--gray-700)]">{order.fiatAmount} {order.fiatCurrency}</td>
                     <td className="py-4 px-6 text-[var(--gray-700)]">
                       {order.cryptoAmount ? (
                         <div>
                           <span>{order.cryptoAmount} {order.cryptoCurrency}</span>
                           {order.cryptoNetwork && <span className="ml-1 text-xs text-[var(--gray-400)]">({order.cryptoNetwork})</span>}
                         </div>
-                      ) : "-"}
+                      ) : "—"}
                     </td>
                     <td className="py-4 px-6"><PaymentBadge method={order.paymentMethod} t={t} /></td>
                     <td className="py-4 px-6"><StatusBadge status={order.status} t={t} /></td>

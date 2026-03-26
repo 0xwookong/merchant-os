@@ -58,7 +58,7 @@ export default function PaymentMethodDistribution({ methods, loading, t }: Props
         {/* Donut Chart */}
         <div className="md:col-span-2 flex items-center justify-center">
           <div className="relative w-48 h-48">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
                   data={methods}

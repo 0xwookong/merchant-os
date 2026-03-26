@@ -2,15 +2,9 @@
 
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { XMarkIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { orderService, type OrderDetail } from "@/services/orderService";
-
-const STATUS_LABELS: Record<string, string> = {
-  CREATED: "已创建", PROCESSING: "处理中", SUCCESSED: "支付成功", COMPLETED: "已完成", FAILED: "失败",
-};
-const PAYMENT_LABELS: Record<string, string> = {
-  CARD: "银行卡", GOOGLEPAY: "Google Pay", APPLEPAY: "Apple Pay",
-};
+import { useI18n } from "@/providers/language-provider";
 
 interface Props {
   orderId: number | null;
@@ -18,6 +12,7 @@ interface Props {
 }
 
 export default function OrderDetailDialog({ orderId, onClose }: Props) {
+  const { t } = useI18n();
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -40,10 +35,10 @@ export default function OrderDetailDialog({ orderId, onClose }: Props) {
         >
           <div className="flex items-center justify-between p-6 border-b border-[var(--gray-100)]">
             <Dialog.Title className="text-lg font-semibold text-[var(--gray-900)]">
-              订单详情
+              {t("orderDetail.title")}
             </Dialog.Title>
             <Dialog.Close asChild>
-              <button className="p-1 rounded hover:bg-[var(--gray-100)]" aria-label="关闭">
+              <button className="p-1 rounded hover:bg-[var(--gray-100)]" aria-label={t("common.close")}>
                 <XMarkIcon className="w-5 h-5 text-[var(--gray-500)]" />
               </button>
             </Dialog.Close>
@@ -56,41 +51,41 @@ export default function OrderDetailDialog({ orderId, onClose }: Props) {
           ) : detail ? (
             <div className="p-6 space-y-6">
               {/* Basic info */}
-              <Section title="基本信息">
+              <Section title={t("orderDetail.section.basic")}>
                 <InfoGrid>
-                  <Info label="订单号" value={detail.orderNo} mono />
-                  <Info label="状态" value={STATUS_LABELS[detail.status] || detail.status} />
-                  <Info label="支付方式" value={PAYMENT_LABELS[detail.paymentMethod] || detail.paymentMethod} />
-                  <Info label="创建时间" value={new Date(detail.createdAt).toLocaleString("zh-CN")} />
+                  <Info label={t("orderDetail.orderNo")} value={detail.orderNo} mono />
+                  <Info label={t("orderDetail.status")} value={t(`orders.status.${detail.status}`)} />
+                  <Info label={t("orderDetail.paymentMethod")} value={t(`orders.payment.${detail.paymentMethod}`)} />
+                  <Info label={t("orderDetail.createdAt")} value={new Date(detail.createdAt).toLocaleString()} />
                 </InfoGrid>
               </Section>
 
               {/* Fiat info */}
-              <Section title="法币信息">
+              <Section title={t("orderDetail.section.fiat")}>
                 <InfoGrid>
-                  <Info label="金额" value={`$${detail.fiatAmount}`} />
-                  <Info label="币种" value={detail.fiatCurrency} />
+                  <Info label={t("orderDetail.fiatAmount")} value={`${detail.fiatAmount} ${detail.fiatCurrency}`} />
+                  <Info label={t("orderDetail.fiatCurrency")} value={detail.fiatCurrency} />
                 </InfoGrid>
               </Section>
 
               {/* Crypto info */}
               {detail.cryptoAmount && (
-                <Section title="加密货币信息">
+                <Section title={t("orderDetail.section.crypto")}>
                   <InfoGrid>
-                    <Info label="数量" value={`${detail.cryptoAmount} ${detail.cryptoCurrency}`} />
-                    <Info label="网络" value={detail.cryptoNetwork} />
-                    <Info label="目标地址" value={detail.walletAddress} mono />
+                    <Info label={t("orderDetail.cryptoAmount")} value={`${detail.cryptoAmount} ${detail.cryptoCurrency}`} />
+                    <Info label={t("orderDetail.cryptoNetwork")} value={detail.cryptoNetwork} />
+                    <Info label={t("orderDetail.walletAddress")} value={detail.walletAddress} mono />
                   </InfoGrid>
                 </Section>
               )}
 
               {/* On-chain info */}
               {detail.txHash && (
-                <Section title="链上信息">
+                <Section title={t("orderDetail.section.onchain")}>
                   <InfoGrid>
-                    <Info label="交易哈希" value={detail.txHash} mono />
-                    <Info label="区块高度" value={detail.blockHeight?.toLocaleString()} />
-                    <Info label="确认数" value={detail.confirmations?.toString()} />
+                    <Info label={t("orderDetail.txHash")} value={detail.txHash} mono />
+                    <Info label={t("orderDetail.blockHeight")} value={detail.blockHeight?.toLocaleString()} />
+                    <Info label={t("orderDetail.confirmations")} value={detail.confirmations?.toString()} />
                   </InfoGrid>
                 </Section>
               )}
@@ -120,7 +115,7 @@ function Info({ label, value, mono }: { label: string; value?: string | null; mo
     <div>
       <dt className="text-xs text-[var(--gray-500)]">{label}</dt>
       <dd className={`text-sm text-[var(--gray-900)] mt-0.5 break-all ${mono ? "font-mono" : ""}`}>
-        {value || "-"}
+        {value || "—"}
       </dd>
     </div>
   );

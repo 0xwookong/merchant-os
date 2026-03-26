@@ -152,7 +152,7 @@ function MetricCardComponent({ metric, t }: { metric: MetricCardType; t: (key: s
   return (
     <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-6 hover:shadow-md transition-all cursor-default">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium text-[var(--gray-500)]">{metric.label}</span>
+        <span className="text-sm font-medium text-[var(--gray-500)]">{t(`dashboard.metric.${metric.key}`)}</span>
         <div className="text-[var(--gray-400)]">
           {METRIC_ICONS[metric.key]}
         </div>
@@ -162,7 +162,7 @@ function MetricCardComponent({ metric, t }: { metric: MetricCardType; t: (key: s
           {metric.key === "totalAmount" && "$"}{metric.value}
         </span>
         {metric.unit && metric.key !== "totalAmount" && (
-          <span className="text-sm text-[var(--gray-500)] mb-0.5">{metric.unit}</span>
+          <span className="text-sm text-[var(--gray-500)] mb-0.5">{t(`dashboard.metric.unit.${metric.key}`)}</span>
         )}
       </div>
       <div className="mt-2 flex items-center gap-1">

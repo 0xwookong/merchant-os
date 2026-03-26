@@ -55,7 +55,7 @@ export default function TrendChart({ points, loading, t }: Props) {
     <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-6">
       <h2 className="text-lg font-semibold text-[var(--gray-900)] mb-6">{t("dashboard.trend.title")}</h2>
       <div className="h-[320px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <ComposedChart data={points} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <defs>
               <linearGradient id="amountGradient" x1="0" y1="0" x2="0" y2="1">
