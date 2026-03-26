@@ -13,8 +13,10 @@ import {
   BellAlertIcon,
   ExclamationTriangleIcon,
   ClockIcon,
-  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
+import { Tooltip } from "@/components/ui/tooltip";
+import { VerifyActionDialog, type VerifyData } from "@/components/ui/verify-action-dialog";
+import { Toast } from "@/components/ui/toast";
 
 export default function WebhooksPage() {
   const { t } = useI18n();
@@ -46,6 +48,8 @@ export default function WebhooksPage() {
   const [expandedLogs, setExpandedLogs] = useState<number | null>(null);
   const [logs, setLogs] = useState<WebhookLogEntry[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [deletingConfig, setDeletingConfig] = useState<WebhookConfig | null>(null);
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const fetchConfigs = useCallback(() => {
     setLoading(true);
@@ -56,6 +60,12 @@ export default function WebhooksPage() {
   }, []);
 
   useEffect(() => { fetchConfigs(); }, [fetchConfigs]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -79,8 +89,10 @@ export default function WebhooksPage() {
     try {
       if (editingId) {
         await webhookService.update(editingId, { url: formUrl, events: formEvents });
+        setToast({ type: "success", message: t("webhooks.update.success") });
       } else {
         await webhookService.create({ url: formUrl, events: formEvents });
+        setToast({ type: "success", message: t("webhooks.create.success") });
       }
       setShowForm(false);
       fetchConfigs();
@@ -91,9 +103,9 @@ export default function WebhooksPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t("webhooks.delete.confirm"))) return;
-    await webhookService.remove(id);
+  const handleDeleted = () => {
+    setDeletingConfig(null);
+    setToast({ type: "success", message: t("webhooks.delete.success") });
     fetchConfigs();
   };
 
@@ -102,8 +114,11 @@ export default function WebhooksPage() {
     try {
       const msg = await webhookService.testPush(id);
       setTestResult({ id, msg });
+      setToast({ type: "success", message: t("webhooks.test.success") });
     } catch (err: unknown) {
-      setTestResult({ id, msg: err instanceof Error ? err.message : t("common.failed") });
+      const msg = err instanceof Error ? err.message : t("common.failed");
+      setTestResult({ id, msg });
+      setToast({ type: "error", message: t("webhooks.test.failed") });
     }
   };
 
@@ -235,22 +250,29 @@ export default function WebhooksPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button onClick={() => toggleLogs(config.id)} title={t("webhooks.pushLogs")}
-                    className={`p-2 rounded-lg hover:bg-[var(--gray-100)] transition-colors ${expandedLogs === config.id ? "text-blue-600" : "text-[var(--gray-500)]"}`}>
-                    <ClockIcon className="w-4 h-4" />
+                  <button onClick={() => toggleLogs(config.id)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${expandedLogs === config.id ? "bg-blue-50 text-blue-600" : "text-[var(--gray-500)] hover:bg-[var(--gray-100)]"}`}>
+                    <ClockIcon className="w-3.5 h-3.5" />
+                    {t("webhooks.pushLogs")}
                   </button>
-                  <button onClick={() => handleTest(config.id)} title={t("webhooks.test")}
-                    className="p-2 rounded-lg hover:bg-[var(--gray-100)] transition-colors text-[var(--gray-500)]">
-                    <BoltIcon className="w-4 h-4" />
+                  <button onClick={() => handleTest(config.id)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--gray-500)] hover:bg-[var(--gray-100)] transition-colors">
+                    <BoltIcon className="w-3.5 h-3.5" />
+                    {t("webhooks.test")}
                   </button>
-                  <button onClick={() => openEdit(config)} title={t("webhooks.edit")}
-                    className="p-2 rounded-lg hover:bg-[var(--gray-100)] transition-colors text-[var(--gray-500)]">
-                    <PencilSquareIcon className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => handleDelete(config.id)} title={t("webhooks.delete")}
-                    className="p-2 rounded-lg hover:bg-red-50 transition-colors text-[var(--gray-400)] hover:text-red-600">
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
+                  <div className="w-px h-5 bg-[var(--gray-200)] mx-1" />
+                  <Tooltip content={t("webhooks.edit")}>
+                    <button onClick={() => openEdit(config)} aria-label={t("webhooks.edit")}
+                      className="p-2 rounded-lg hover:bg-[var(--gray-100)] transition-colors text-[var(--gray-500)]">
+                      <PencilSquareIcon className="w-4 h-4" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={t("webhooks.delete")}>
+                    <button onClick={() => setDeletingConfig(config)} aria-label={t("webhooks.delete")}
+                      className="p-2 rounded-lg hover:bg-red-50 transition-colors text-[var(--gray-400)] hover:text-red-600">
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
 
@@ -284,6 +306,37 @@ export default function WebhooksPage() {
           ))}
         </div>
       )}
+
+      {/* Delete Verification Dialog */}
+      <VerifyActionDialog
+        open={!!deletingConfig}
+        onClose={() => setDeletingConfig(null)}
+        onSubmit={async (verifyData: VerifyData) => {
+          if (!deletingConfig) return;
+          await webhookService.remove(deletingConfig.id, verifyData);
+          handleDeleted();
+        }}
+        title={t("webhooks.delete.title")}
+        description={t("webhooks.delete.desc")}
+        confirmLabel={t("webhooks.delete.confirm")}
+        icon={<ExclamationTriangleIcon className="w-6 h-6 text-red-600" />}
+        iconBg="bg-red-100"
+        confirmClass="bg-red-600 hover:bg-red-700"
+      >
+        {deletingConfig && (
+          <div className="bg-[var(--gray-50)] rounded-lg px-4 py-3 space-y-2">
+            <div className="text-xs font-mono text-[var(--gray-700)] truncate">{deletingConfig.url}</div>
+            <div className="flex flex-wrap gap-1">
+              {deletingConfig.events.map((ev) => (
+                <span key={ev} className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">{ev}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </VerifyActionDialog>
+
+      {/* Toast */}
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
     </div>
   );
 }

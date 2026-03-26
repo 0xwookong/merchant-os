@@ -26,6 +26,11 @@ export interface WebhookLogEntry {
   createdAt: string;
 }
 
+export interface VerifyParams {
+  otpCode?: string;
+  emailCode?: string;
+}
+
 export const webhookService = {
   list(): Promise<WebhookConfig[]> {
     return api.get<WebhookConfig[]>("/api/v1/webhooks");
@@ -36,8 +41,8 @@ export const webhookService = {
   update(id: number, data: WebhookCreateRequest): Promise<WebhookConfig> {
     return api.put<WebhookConfig>(`/api/v1/webhooks/${id}`, data);
   },
-  remove(id: number): Promise<string> {
-    return api.delete<string>(`/api/v1/webhooks/${id}`);
+  remove(id: number, verify: VerifyParams): Promise<string> {
+    return api.post<string>(`/api/v1/webhooks/${id}/remove`, verify);
   },
   testPush(id: number): Promise<string> {
     return api.post<string>(`/api/v1/webhooks/${id}/test`);

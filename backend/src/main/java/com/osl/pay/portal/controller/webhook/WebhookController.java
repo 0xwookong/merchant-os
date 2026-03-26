@@ -3,8 +3,10 @@ package com.osl.pay.portal.controller.webhook;
 import com.osl.pay.portal.common.result.Result;
 import com.osl.pay.portal.model.dto.WebhookCreateRequest;
 import com.osl.pay.portal.model.dto.WebhookLogResponse;
+import com.osl.pay.portal.model.dto.WebhookRemoveRequest;
 import com.osl.pay.portal.model.dto.WebhookResponse;
 import com.osl.pay.portal.security.AuthUserDetails;
+import com.osl.pay.portal.service.ActionVerificationService;
 import com.osl.pay.portal.service.WebhookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.List;
 public class WebhookController {
 
     private final WebhookService webhookService;
+    private final ActionVerificationService actionVerification;
 
     @GetMapping
     public Result<List<WebhookResponse>> list(@AuthenticationPrincipal AuthUserDetails user) {
@@ -41,6 +44,15 @@ public class WebhookController {
     @DeleteMapping("/{id}")
     public Result<String> delete(@AuthenticationPrincipal AuthUserDetails user,
                                  @PathVariable Long id) {
+        webhookService.delete(user.getMerchantId(), id);
+        return Result.ok("已删除");
+    }
+
+    @PostMapping("/{id}/remove")
+    public Result<String> remove(@AuthenticationPrincipal AuthUserDetails user,
+                                 @PathVariable Long id,
+                                 @Valid @RequestBody WebhookRemoveRequest request) {
+        actionVerification.verify(user.getUserId(), request.getOtpCode(), request.getEmailCode());
         webhookService.delete(user.getMerchantId(), id);
         return Result.ok("已删除");
     }
