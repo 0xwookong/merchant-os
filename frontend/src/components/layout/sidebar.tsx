@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { useI18n } from "@/providers/language-provider";
 import { filterMenuByRole, MENU_CONFIG, type MenuItem } from "@/lib/menu-config";
-import { useApplicationStatus } from "@/hooks/useApplicationStatus";
+
 import {
   RocketLaunchIcon,
   ChartBarIcon,
@@ -58,7 +58,6 @@ export default function Sidebar() {
   const { t } = useI18n();
   const pathname = usePathname();
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
-  const { applicationStatus, onboardingComplete } = useApplicationStatus();
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -79,8 +78,6 @@ export default function Sidebar() {
   };
 
   const menuItems = user ? filterMenuByRole(MENU_CONFIG, user.role) : [];
-
-  const applicationApproved = applicationStatus === "APPROVED";
 
   useEffect(() => {
     for (const item of menuItems) {
