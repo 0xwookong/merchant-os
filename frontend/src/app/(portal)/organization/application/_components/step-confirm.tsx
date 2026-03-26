@@ -180,7 +180,7 @@ function SignatureBlock({ title, sig, onChange, confirmLabel, t }: {
   title: string; sig: SignatureInfo; onChange: (s: SignatureInfo) => void;
   confirmLabel: string; t: (k: string) => string;
 }) {
-  const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+  const displayDate = sig.signedAt || new Date().toISOString().slice(0, 19).replace("T", " ");
   return (
     <div className="border border-[var(--gray-200)] rounded-lg p-5 space-y-4">
       <h4 className="text-sm font-semibold text-[var(--gray-900)]">{title}</h4>
@@ -191,12 +191,15 @@ function SignatureBlock({ title, sig, onChange, confirmLabel, t }: {
         <div className="flex items-end">
           <div>
             <span className="text-xs text-[var(--gray-500)]">{t("app.sign.date")}</span>
-            <p className="text-sm text-[var(--gray-900)] mt-0.5">{now}</p>
+            <p className="text-sm text-[var(--gray-900)] mt-0.5">{displayDate}</p>
           </div>
         </div>
       </div>
       <label className="flex items-start gap-3 cursor-pointer pt-2 border-t border-[var(--gray-100)]">
-        <input type="checkbox" checked={sig.confirmed} onChange={(e) => onChange({ ...sig, confirmed: e.target.checked, signedAt: e.target.checked ? now : undefined })}
+        <input type="checkbox" checked={sig.confirmed} onChange={(e) => {
+          const signedAt = e.target.checked ? new Date().toISOString().slice(0, 19).replace("T", " ") : undefined;
+          onChange({ ...sig, confirmed: e.target.checked, signedAt });
+        }}
           className="mt-0.5 h-4 w-4 rounded border-[var(--gray-300)] text-[var(--primary-black)] focus:ring-blue-500" />
         <span className="text-sm text-[var(--gray-700)]">{confirmLabel}</span>
       </label>

@@ -1,7 +1,10 @@
 package com.osl.pay.portal.controller.merchant;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.osl.pay.portal.common.result.Result;
 import com.osl.pay.portal.model.dto.*;
+import com.osl.pay.portal.model.entity.ApplicationStatusHistory;
+import com.osl.pay.portal.repository.ApplicationStatusHistoryMapper;
 import com.osl.pay.portal.security.AuthUserDetails;
 import com.osl.pay.portal.service.MerchantApplicationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +24,7 @@ import java.util.List;
 public class MerchantApplicationController {
 
     private final MerchantApplicationService applicationService;
+    private final ApplicationStatusHistoryMapper statusHistoryMapper;
 
     @GetMapping("/current")
     public Result<ApplicationResponse> getCurrent(@AuthenticationPrincipal AuthUserDetails user) {
@@ -74,4 +78,17 @@ public class MerchantApplicationController {
     public Result<List<DocumentResponse>> listDocuments(@AuthenticationPrincipal AuthUserDetails user) {
         return Result.ok(applicationService.listDocuments(user.getMerchantId()));
     }
+
+    /**
+     * Get application status change history for timeline display.
+     */
+    @GetMapping("/history")
+    public Result<List<ApplicationStatusHistory>> getHistory(@AuthenticationPrincipal AuthUserDetails user) {
+        List<ApplicationStatusHistory> history = statusHistoryMapper.selectList(
+                new LambdaQueryWrapper<ApplicationStatusHistory>()
+                        .eq(ApplicationStatusHistory::getMerchantId, user.getMerchantId())
+                        .orderByAsc(ApplicationStatusHistory::getCreatedAt));
+        return Result.ok(history);
+    }
+
 }

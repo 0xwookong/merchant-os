@@ -64,6 +64,8 @@ oslpay:
   mcp:
     production-url: https://mcp.osl-pay.com/sse
     sandbox-url: https://mcptest.osl-pay.com/sse
+  internal:
+    api-key: ${INTERNAL_API_KEY:oslpay-internal-key-dev-only-change-in-production}
 
 # JWT
 jwt:

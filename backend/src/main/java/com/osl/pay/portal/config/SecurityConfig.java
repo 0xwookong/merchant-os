@@ -22,6 +22,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RateLimitFilter rateLimitFilter;
+    private final com.osl.pay.portal.security.InternalApiKeyFilter internalApiKeyFilter;
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
@@ -38,6 +39,8 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/health").permitAll()
+                // Internal API (ops backend) — authenticated by API key filter, skip JWT
+                .requestMatchers("/api/internal/**").permitAll()
                 // Auth endpoints that require authentication
                 .requestMatchers("/api/v1/auth/change-password").authenticated()
                 // Auth endpoints that are public
@@ -46,6 +49,8 @@ public class SecurityConfig {
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()
             )
+            // Internal API key filter runs before everything for /api/internal/** paths
+            .addFilterBefore(internalApiKeyFilter, UsernamePasswordAuthenticationFilter.class)
             // Rate limiting first, then JWT auth
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/providers/language-provider";
 import { applicationService } from "@/services/applicationService";
-import type { ApplicationSaveDraftRequest, ApplicationResponse, PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo, LicenceInfo, SignatureInfo } from "@/services/applicationService";
+import type { ApplicationSaveDraftRequest, ApplicationResponse, PersonInfo, UboInfo, DirectorInfo, AuthorizedPersonInfo, LicenceInfo, SignatureInfo, StatusHistoryItem } from "@/services/applicationService";
 import StepCompany from "./_components/step-company";
 import StepLegal from "./_components/step-legal";
 import StepBusiness from "./_components/step-business";
 import StepDocuments from "./_components/step-documents";
 import StepConfirm from "./_components/step-confirm";
 import { InfoRow } from "./_components/form-fields";
-import { CheckIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, ExclamationTriangleIcon, ClockIcon, DocumentCheckIcon, MagnifyingGlassIcon, XCircleIcon, InformationCircleIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
 const EMPTY_PERSON: PersonInfo = { name: "", nationality: "", idType: "", idNumber: "", placeOfBirth: "", dateOfBirth: "" };
 const EMPTY_UBO: UboInfo = { ...EMPTY_PERSON, residentialAddress: "", sharePercentage: 25 };
@@ -241,7 +242,7 @@ export default function ApplicationPage() {
 
   if (appStatus && !isEditable) {
     return (
-      <div className="max-w-3xl space-y-8">
+      <div className="space-y-8">
         <PageHeader t={t} status={appStatus} />
         <SubmittedView data={appData!} t={t} />
       </div>
@@ -353,21 +354,37 @@ function PageHeader({ t, status }: { t: (k: string) => string; status: string | 
 }
 
 function SubmittedView({ data, t }: { data: ApplicationResponse; t: (k: string) => string }) {
+  const [history, setHistory] = useState<StatusHistoryItem[]>([]);
+  const [timelineOpen, setTimelineOpen] = useState(false);
+
+  useEffect(() => {
+    applicationService.getHistory().then(setHistory).catch(() => {});
+  }, []);
+
+  const STATUS_META: Record<string, { icon: typeof ClockIcon; color: string; bgColor: string }> = {
+    DRAFT: { icon: DocumentCheckIcon, color: "text-[var(--gray-500)]", bgColor: "bg-[var(--gray-100)]" },
+    SUBMITTED: { icon: ClockIcon, color: "text-blue-600", bgColor: "bg-blue-100" },
+    UNDER_REVIEW: { icon: MagnifyingGlassIcon, color: "text-amber-600", bgColor: "bg-amber-100" },
+    NEED_MORE_INFO: { icon: InformationCircleIcon, color: "text-orange-600", bgColor: "bg-orange-100" },
+    REJECTED: { icon: XCircleIcon, color: "text-red-600", bgColor: "bg-red-100" },
+    APPROVED: { icon: CheckCircleIcon, color: "text-green-600", bgColor: "bg-green-100" },
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-[var(--gray-900)]">{t("app.timeline.title")}</h2>
-        <div className="space-y-3">
-          <TL done label={t("app.timeline.submitted")} date={data.submittedAt} />
-          <TL active={data.status === "SUBMITTED" || data.status === "UNDER_REVIEW"} done={data.status === "APPROVED"} label={t("app.timeline.reviewing")} />
-          <TL done={data.status === "APPROVED"} label={data.status === "APPROVED" ? t("app.timeline.approved") : t("app.timeline.result")} />
+      {/* Reviewing hint */}
+      {(data.status === "SUBMITTED" || data.status === "UNDER_REVIEW") && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-700">{t("app.timeline.hint")}</p>
         </div>
-        {(data.status === "SUBMITTED" || data.status === "UNDER_REVIEW") && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-            <p className="text-sm text-blue-700">{t("app.timeline.hint")}</p>
-          </div>
-        )}
-      </div>
+      )}
+
+      {/* Submitted Info */}
       <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm p-6 space-y-6">
         <h2 className="text-lg font-semibold text-[var(--gray-900)]">{t("app.submittedInfo")}</h2>
         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
@@ -381,16 +398,61 @@ function SubmittedView({ data, t }: { data: ApplicationResponse; t: (k: string) 
           <InfoRow label={t("app.field.contactEmail")} value={data.contactEmail} />
         </div>
       </div>
-    </div>
-  );
-}
 
-function TL({ done, active, label, date }: { done?: boolean; active?: boolean; label: string; date?: string | null }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className={`w-3 h-3 rounded-full shrink-0 ${done ? "bg-green-500" : active ? "bg-amber-400 animate-pulse" : "bg-[var(--gray-200)]"}`} />
-      <span className={`text-sm ${done || active ? "text-[var(--gray-900)]" : "text-[var(--gray-400)]"}`}>{label}</span>
-      {date && <span className="text-xs text-[var(--gray-400)] ml-auto">{date.slice(0, 10)}</span>}
+      {/* Timeline — collapsible, default collapsed */}
+      <div className="bg-white rounded-xl border border-[var(--gray-200)] shadow-sm">
+        <button
+          onClick={() => setTimelineOpen(!timelineOpen)}
+          className="w-full flex items-center justify-between p-6 text-left hover:bg-[var(--gray-50)] transition-colors rounded-xl"
+        >
+          <div className="flex items-center gap-2">
+            <ClockIcon className="w-5 h-5 text-[var(--gray-500)]" />
+            <h2 className="text-sm font-semibold text-[var(--gray-900)]">{t("app.timeline.title")}</h2>
+            <span className="text-xs text-[var(--gray-400)]">{history.length > 0 ? `${history.length} ${t("app.timeline.events")}` : ""}</span>
+          </div>
+          <ChevronDownIcon className={`w-5 h-5 text-[var(--gray-400)] transition-transform duration-200 ${timelineOpen ? "rotate-180" : ""}`} />
+        </button>
+
+        {timelineOpen && history.length > 0 && (
+          <div className="px-6 pb-6">
+            <div className="relative overflow-hidden">
+              {history.length > 1 && (
+                <div className="absolute left-[15px] top-[16px] bottom-0 w-0.5 bg-[var(--gray-200)]" />
+              )}
+
+              {history.map((item, i) => {
+                const meta = STATUS_META[item.toStatus] || STATUS_META.DRAFT;
+                const Icon = meta.icon;
+                const isLast = i === history.length - 1;
+
+                return (
+                  <div key={item.id} className={`flex gap-4 relative ${isLast ? "" : "mb-6"}`}>
+                    <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${meta.bgColor} ${meta.color}`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="pt-0.5 flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-[var(--gray-900)]">
+                          {t(`app.status.${item.toStatus}`)}
+                        </span>
+                        <span className="text-xs text-[var(--gray-400)]">{formatDate(item.createdAt)}</span>
+                      </div>
+                      {item.remark && (
+                        <p className="text-xs text-[var(--gray-500)] mt-1">{item.remark}</p>
+                      )}
+                      {item.operator && !item.operator.startsWith("system") && (
+                        <p className="text-[11px] text-[var(--gray-400)] mt-0.5">
+                          {item.operator.startsWith("reviewer:") ? item.operator.replace("reviewer:", "Reviewer: ") : item.operator}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

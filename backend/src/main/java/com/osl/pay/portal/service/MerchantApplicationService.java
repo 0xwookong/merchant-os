@@ -1,6 +1,8 @@
 package com.osl.pay.portal.service;
 
 import com.osl.pay.portal.model.dto.ApplicationResponse;
+import com.osl.pay.portal.model.dto.ApplicationReviewRequest;
+import com.osl.pay.portal.model.entity.MerchantApplication;
 import com.osl.pay.portal.model.dto.ApplicationSaveDraftRequest;
 import com.osl.pay.portal.model.dto.ApplicationSubmitRequest;
 import com.osl.pay.portal.model.dto.DocumentResponse;
@@ -30,4 +32,15 @@ public interface MerchantApplicationService {
                          HttpServletRequest httpRequest);
 
     List<DocumentResponse> listDocuments(Long merchantId);
+
+    /**
+     * Review an application (called by ops backend).
+     * Transitions: SUBMITTED → UNDER_REVIEW → APPROVED / REJECTED / NEED_MORE_INFO.
+     */
+    ApplicationResponse review(ApplicationReviewRequest request);
+
+    /**
+     * Convert entity to response DTO (used by internal API for list view).
+     */
+    ApplicationResponse toPublicResponse(MerchantApplication app);
 }

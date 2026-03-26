@@ -101,10 +101,22 @@ export interface ApplicationResponse {
   // Review
   rejectReason: string | null;
   needInfoDetails: string[] | null;
+  reviewedAt: string | null;
 
   submittedAt: string | null;
   createdAt: string | null;
   updatedAt: string | null;
+}
+
+export interface StatusHistoryItem {
+  id: number;
+  applicationId: number;
+  merchantId: number;
+  fromStatus: string | null;
+  toStatus: string;
+  remark: string | null;
+  operator: string | null;
+  createdAt: string;
 }
 
 // Save draft request (all fields optional for partial save)
@@ -222,5 +234,8 @@ export const applicationService = {
 
   listDocuments(signal?: AbortSignal): Promise<DocumentResponse[]> {
     return api.get<DocumentResponse[]>("/api/v1/application/documents", undefined, signal);
+  },
+  getHistory(): Promise<StatusHistoryItem[]> {
+    return api.get<StatusHistoryItem[]>("/api/v1/application/history");
   },
 };

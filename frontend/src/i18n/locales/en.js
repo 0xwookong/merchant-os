@@ -798,11 +798,16 @@ const en = {
   "app.rejected.title": "Your application was rejected",
 
   // Timeline
-  "app.timeline.title": "Review Progress",
+  "app.timeline.title": "Application Progress",
+  "app.timeline.created": "Application Created",
   "app.timeline.submitted": "Application Submitted",
   "app.timeline.reviewing": "Under Review",
   "app.timeline.approved": "Approved",
+  "app.timeline.rejected": "Rejected",
+  "app.timeline.needMoreInfo": "Additional Info Required",
   "app.timeline.result": "Review Result",
+  "app.timeline.inProgress": "In progress...",
+  "app.timeline.events": "events",
 
   // Sections
   "app.section.registration": "Company Registration",

@@ -312,6 +312,20 @@ CREATE TABLE IF NOT EXISTS t_application_document (
     FOREIGN KEY (application_id) REFERENCES t_merchant_application(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Application status history (tracks every status change for timeline)
+CREATE TABLE IF NOT EXISTS t_application_status_history (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    application_id BIGINT NOT NULL,
+    merchant_id BIGINT NOT NULL,
+    from_status VARCHAR(20),
+    to_status VARCHAR(20) NOT NULL,
+    remark VARCHAR(500) COMMENT 'Reviewer note or system message',
+    operator VARCHAR(100) COMMENT 'Who triggered: system/reviewer/merchant',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_app_id (application_id),
+    INDEX idx_merchant_id (merchant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Audit log table (security events)
 -- Note: rate limit events, login attempts, password resets all recorded here
 CREATE TABLE IF NOT EXISTS t_audit_log (

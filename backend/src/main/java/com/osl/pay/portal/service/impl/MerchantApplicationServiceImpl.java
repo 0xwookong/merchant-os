@@ -3,10 +3,13 @@ package com.osl.pay.portal.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.osl.pay.portal.common.audit.AuditService;
 import com.osl.pay.portal.common.exception.BizException;
+import com.osl.pay.portal.model.dto.ApplicationReviewRequest;
 import com.osl.pay.portal.model.dto.*;
 import com.osl.pay.portal.model.entity.ApplicationDocument;
+import com.osl.pay.portal.model.entity.ApplicationStatusHistory;
 import com.osl.pay.portal.model.entity.MerchantApplication;
 import com.osl.pay.portal.repository.ApplicationDocumentMapper;
+import com.osl.pay.portal.repository.ApplicationStatusHistoryMapper;
 import com.osl.pay.portal.repository.MerchantApplicationMapper;
 import com.osl.pay.portal.service.FileStorageService;
 import com.osl.pay.portal.service.MerchantApplicationService;
@@ -31,6 +34,7 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
 
     private final MerchantApplicationMapper applicationMapper;
     private final ApplicationDocumentMapper documentMapper;
+    private final ApplicationStatusHistoryMapper statusHistoryMapper;
     private final AuditService auditService;
     private final FileStorageService fileStorage;
 
@@ -86,6 +90,7 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
 
         if (isNew) {
             applicationMapper.insert(app);
+            recordHistory(app.getId(), merchantId, null, "DRAFT", "商户开始填写入驻申请", "system");
         } else {
             applicationMapper.updateById(app);
         }
@@ -130,6 +135,7 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         app.setSubmittedAt(LocalDateTime.now());
         applicationMapper.updateById(app);
 
+        recordHistory(app.getId(), merchantId, "DRAFT", "SUBMITTED", "商户提交入驻申请", "merchant");
         auditService.log("APPLICATION_SUBMITTED", userId, merchantId,
                 null, httpRequest, true, null);
         log.info("Application submitted: merchantId={}", merchantId);
@@ -160,12 +166,14 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         app.setTermsAccepted(true);
         validateSignatures(request);
         app.setSignatures(request.getSignatures());
+        String previousStatus = app.getStatus();
         app.setStatus("SUBMITTED");
         app.setSubmittedAt(LocalDateTime.now());
         app.setRejectReason(null);
         app.setNeedInfoDetails(null);
         applicationMapper.updateById(app);
 
+        recordHistory(app.getId(), merchantId, previousStatus, "SUBMITTED", "商户修改后重新提交申请", "merchant");
         auditService.log("APPLICATION_RESUBMITTED", userId, merchantId,
                 null, httpRequest, true, null);
         log.info("Application resubmitted: merchantId={}", merchantId);
@@ -473,12 +481,104 @@ public class MerchantApplicationServiceImpl implements MerchantApplicationServic
         app.setLicenceInfo(req.getLicenceInfo());
     }
 
+    // ─── review (ops backend) ───
+
+    @Override
+    @Transactional
+    public ApplicationResponse review(ApplicationReviewRequest request) {
+        if (request.getMerchantId() == null) {
+            throw new BizException(40000, "merchantId is required");
+        }
+
+        MerchantApplication app = findLatest(request.getMerchantId());
+        if (app == null) {
+            throw new BizException(40400, "Application not found");
+        }
+
+        String fromStatus = app.getStatus();
+        String action = request.getAction();
+        String reviewer = request.getReviewer() != null ? "reviewer:" + request.getReviewer() : "system";
+
+        // Validate state transitions
+        switch (action) {
+            case "UNDER_REVIEW" -> {
+                if (!"SUBMITTED".equals(fromStatus)) {
+                    throw new BizException(40000, "Only SUBMITTED applications can move to UNDER_REVIEW");
+                }
+                app.setStatus("UNDER_REVIEW");
+            }
+            case "APPROVED" -> {
+                if (!"UNDER_REVIEW".equals(fromStatus)) {
+                    throw new BizException(40000, "Only UNDER_REVIEW applications can be approved");
+                }
+                app.setStatus("APPROVED");
+                app.setReviewedAt(LocalDateTime.now());
+            }
+            case "REJECTED" -> {
+                if (!"UNDER_REVIEW".equals(fromStatus)) {
+                    throw new BizException(40000, "Only UNDER_REVIEW applications can be rejected");
+                }
+                if (request.getRejectReason() == null || request.getRejectReason().isBlank()) {
+                    throw new BizException(40000, "rejectReason is required for rejection");
+                }
+                app.setStatus("REJECTED");
+                app.setRejectReason(request.getRejectReason());
+                app.setReviewedAt(LocalDateTime.now());
+            }
+            case "NEED_MORE_INFO" -> {
+                if (!"UNDER_REVIEW".equals(fromStatus)) {
+                    throw new BizException(40000, "Only UNDER_REVIEW applications can request more info");
+                }
+                if (request.getNeedInfoDetails() == null || request.getNeedInfoDetails().isEmpty()) {
+                    throw new BizException(40000, "needInfoDetails is required");
+                }
+                app.setStatus("NEED_MORE_INFO");
+                app.setNeedInfoDetails(request.getNeedInfoDetails());
+                app.setReviewedAt(LocalDateTime.now());
+            }
+            default -> throw new BizException(40000, "Invalid action: " + action);
+        }
+
+        applicationMapper.updateById(app);
+
+        String remark = request.getRemark() != null ? request.getRemark()
+                : switch (action) {
+                    case "UNDER_REVIEW" -> "申请进入审核队列";
+                    case "APPROVED" -> "审核通过";
+                    case "REJECTED" -> request.getRejectReason();
+                    case "NEED_MORE_INFO" -> String.join("; ", request.getNeedInfoDetails());
+                    default -> null;
+                };
+        recordHistory(app.getId(), request.getMerchantId(), fromStatus, action, remark, reviewer);
+
+        log.info("Application reviewed: merchantId={}, {} → {}, reviewer={}",
+                request.getMerchantId(), fromStatus, action, reviewer);
+        return toResponse(app);
+    }
+
+    private void recordHistory(Long applicationId, Long merchantId,
+                               String fromStatus, String toStatus, String remark, String operator) {
+        ApplicationStatusHistory h = new ApplicationStatusHistory();
+        h.setApplicationId(applicationId);
+        h.setMerchantId(merchantId);
+        h.setFromStatus(fromStatus);
+        h.setToStatus(toStatus);
+        h.setRemark(remark);
+        h.setOperator(operator);
+        statusHistoryMapper.insert(h);
+    }
+
     private MerchantApplication findLatest(Long merchantId) {
         return applicationMapper.selectOne(
                 new LambdaQueryWrapper<MerchantApplication>()
                         .eq(MerchantApplication::getMerchantId, merchantId)
                         .orderByDesc(MerchantApplication::getId)
                         .last("LIMIT 1"));
+    }
+
+    @Override
+    public ApplicationResponse toPublicResponse(MerchantApplication app) {
+        return toResponse(app);
     }
 
     private ApplicationResponse toResponse(MerchantApplication app) {

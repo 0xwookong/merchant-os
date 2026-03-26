@@ -795,11 +795,16 @@ const zh = {
 
   "app.rejected.title": "您的申请未通过审核",
 
-  "app.timeline.title": "审核进度",
+  "app.timeline.title": "申请进度",
+  "app.timeline.created": "创建申请",
   "app.timeline.submitted": "申请已提交",
   "app.timeline.reviewing": "审核中",
   "app.timeline.approved": "审核通过",
+  "app.timeline.rejected": "审核未通过",
+  "app.timeline.needMoreInfo": "需要补充材料",
   "app.timeline.result": "审核结果",
+  "app.timeline.inProgress": "进行中...",
+  "app.timeline.events": "条记录",
 
   "app.section.registration": "公司注册信息",
   "app.section.address": "注册地址",
