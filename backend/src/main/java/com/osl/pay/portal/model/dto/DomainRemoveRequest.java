@@ -1,15 +1,10 @@
 package com.osl.pay.portal.model.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class DomainRequest {
-
-    @NotBlank(message = "域名不能为空")
-    @Size(max = 500, message = "域名长度不能超过 500")
-    private String domain;
+public class DomainRemoveRequest {
 
     /** OTP code (if user has OTP enabled) */
     @Size(max = 6, message = "验证码最多 6 位")

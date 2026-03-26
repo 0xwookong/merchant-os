@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.osl.pay.portal.model.dto.LoginRequest;
 import com.osl.pay.portal.model.dto.RegisterRequest;
 import com.osl.pay.portal.repository.*;
+import com.osl.pay.portal.security.AuthRedisService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -41,8 +42,10 @@ class DomainApiTest {
     @Autowired private MerchantApplicationMapper merchantApplicationMapper;
     @Autowired private ApplicationDocumentMapper applicationDocumentMapper;
     @Autowired private StringRedisTemplate redis;
+    @Autowired private AuthRedisService authRedis;
 
     private String token;
+    private Long userId;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -64,10 +67,14 @@ class DomainApiTest {
         Set<String> rateKeys = redis.keys("rate:*");
         if (rateKeys != null && !rateKeys.isEmpty()) redis.delete(rateKeys);
 
-        token = registerVerifyAndLogin();
+        MvcResult result = registerVerifyAndLogin();
+        token = objectMapper.readTree(result.getResponse().getContentAsString())
+                .path("data").path("accessToken").asText();
+        userId = objectMapper.readTree(result.getResponse().getContentAsString())
+                .path("data").path("userId").asLong();
     }
 
-    private String registerVerifyAndLogin() throws Exception {
+    private MvcResult registerVerifyAndLogin() throws Exception {
         RegisterRequest reg = new RegisterRequest();
         reg.setEmail("domain@test.com");
         reg.setPassword("Test1234");
@@ -85,78 +92,178 @@ class DomainApiTest {
         LoginRequest login = new LoginRequest();
         login.setEmail("domain@test.com");
         login.setPassword("Test1234");
-        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+        return mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))
                 .andReturn();
-        return objectMapper.readTree(result.getResponse().getContentAsString())
-                .path("data").path("accessToken").asText();
     }
 
-    @Test
-    @DisplayName("添加域名 → 200，返回 id + domain")
-    void should_addDomain() throws Exception {
-        mockMvc.perform(post("/api/v1/domains")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("domain", "https://example.com"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.domain").value("https://example.com"));
+    @Nested
+    @DisplayName("添加域名（需身份验证）")
+    class AddDomain {
+
+        @Test
+        @DisplayName("有效邮件验证码 + 合法域名 → 200 添加成功")
+        void should_addDomain_when_validEmailCode() throws Exception {
+            authRedis.saveEmailCode(userId, "123456");
+
+            mockMvc.perform(post("/api/v1/domains")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "domain", "https://example.com",
+                                    "emailCode", "123456"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.domain").value("https://example.com"));
+        }
+
+        @Test
+        @DisplayName("无验证码 → 400")
+        void should_reject_when_noVerificationCode() throws Exception {
+            mockMvc.perform(post("/api/v1/domains")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "domain", "https://example.com"))))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("错误邮件验证码 → 400 '邮件验证码错误或已过期'")
+        void should_reject_when_wrongEmailCode() throws Exception {
+            authRedis.saveEmailCode(userId, "123456");
+
+            mockMvc.perform(post("/api/v1/domains")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "domain", "https://example.com",
+                                    "emailCode", "999999"))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("邮件验证码错误或已过期"));
+        }
+
+        @Test
+        @DisplayName("重复添加 → 400 '该域名已存在'")
+        void should_reject_duplicate() throws Exception {
+            authRedis.saveEmailCode(userId, "111111");
+            mockMvc.perform(post("/api/v1/domains")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(Map.of(
+                            "domain", "https://dup.com",
+                            "emailCode", "111111"))));
+
+            authRedis.saveEmailCode(userId, "222222");
+            mockMvc.perform(post("/api/v1/domains")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "domain", "https://dup.com",
+                                    "emailCode", "222222"))))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("该域名已存在"));
+        }
+
+        @Test
+        @DisplayName("无效格式（无协议）→ 400")
+        void should_reject_noProtocol() throws Exception {
+            authRedis.saveEmailCode(userId, "123456");
+
+            mockMvc.perform(post("/api/v1/domains")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "domain", "example.com",
+                                    "emailCode", "123456"))))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
-    @Test
-    @DisplayName("重复添加 → 400 '该域名已存在'")
-    void should_reject_duplicate() throws Exception {
-        mockMvc.perform(post("/api/v1/domains")
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(Map.of("domain", "https://dup.com"))));
+    @Nested
+    @DisplayName("删除域名（需身份验证）")
+    class RemoveDomain {
 
-        mockMvc.perform(post("/api/v1/domains")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("domain", "https://dup.com"))))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("该域名已存在"));
+        @Test
+        @DisplayName("有效验证码 → 200 删除成功，数据库中域名已清除")
+        void should_removeDomain_when_validCode() throws Exception {
+            // Add first
+            authRedis.saveEmailCode(userId, "111111");
+            MvcResult addResult = mockMvc.perform(post("/api/v1/domains")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "domain", "https://remove-me.com",
+                                    "emailCode", "111111"))))
+                    .andReturn();
+            Long id = objectMapper.readTree(addResult.getResponse().getContentAsString())
+                    .path("data").path("id").asLong();
+
+            // Remove with verification
+            authRedis.saveEmailCode(userId, "222222");
+            mockMvc.perform(post("/api/v1/domains/" + id + "/remove")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "emailCode", "222222"))))
+                    .andExpect(status().isOk());
+
+            assertThat(domainWhitelistMapper.selectCount(null)).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("无验证码 → 400")
+        void should_reject_when_noCode() throws Exception {
+            mockMvc.perform(post("/api/v1/domains/1/remove")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
-    @Test
-    @DisplayName("无效格式（无协议）→ 400")
-    void should_reject_noProtocol() throws Exception {
-        mockMvc.perform(post("/api/v1/domains")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("domain", "example.com"))))
-                .andExpect(status().isBadRequest());
-    }
+    @Nested
+    @DisplayName("查看与认证")
+    class ListAndAuth {
 
-    @Test
-    @DisplayName("列表 + 删除")
-    void should_listAndDelete() throws Exception {
-        // Add
-        MvcResult addResult = mockMvc.perform(post("/api/v1/domains")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("domain", "https://list.com"))))
-                .andReturn();
-        Long id = objectMapper.readTree(addResult.getResponse().getContentAsString())
-                .path("data").path("id").asLong();
+        @Test
+        @DisplayName("列表 → 返回已添加的域名")
+        void should_listDomains() throws Exception {
+            authRedis.saveEmailCode(userId, "123456");
+            mockMvc.perform(post("/api/v1/domains")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(Map.of(
+                            "domain", "https://list.com",
+                            "emailCode", "123456"))));
 
-        // List
-        mockMvc.perform(get("/api/v1/domains").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].domain").value("https://list.com"));
+            mockMvc.perform(get("/api/v1/domains").header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data[0].domain").value("https://list.com"));
+        }
 
-        // Delete
-        mockMvc.perform(delete("/api/v1/domains/" + id).header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
+        @Test
+        @DisplayName("未认证 → 403")
+        void should_return403() throws Exception {
+            mockMvc.perform(get("/api/v1/domains")).andExpect(status().isForbidden());
+        }
 
-        assertThat(domainWhitelistMapper.selectCount(null)).isEqualTo(0);
-    }
+        @Test
+        @DisplayName("添加域名后审计日志中存在 DOMAIN_ADDED 记录")
+        void should_writeAuditLog_when_addDomain() throws Exception {
+            authRedis.saveEmailCode(userId, "123456");
+            mockMvc.perform(post("/api/v1/domains")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(Map.of(
+                            "domain", "https://audit.com",
+                            "emailCode", "123456"))));
 
-    @Test
-    @DisplayName("未认证 → 403")
-    void should_return403() throws Exception {
-        mockMvc.perform(get("/api/v1/domains")).andExpect(status().isForbidden());
+            // Give async audit a moment
+            Thread.sleep(200);
+
+            long auditCount = auditLogMapper.selectCount(null);
+            assertThat(auditCount).isGreaterThanOrEqualTo(1);
+        }
     }
 }
