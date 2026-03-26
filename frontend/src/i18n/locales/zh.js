@@ -674,6 +674,15 @@ const zh = {
   "settings.personal.edit": "编辑",
   "settings.profile.saved": "个人信息更新成功",
 
+  // notifications
+  "notifications.title": "通知",
+  "notifications.empty": "暂无通知",
+  "notifications.markAllRead": "全部已读",
+  "notifications.justNow": "刚刚",
+  "notifications.minutesAgo": "{count} 分钟前",
+  "notifications.hoursAgo": "{count} 小时前",
+  "notifications.daysAgo": "{count} 天前",
+
   // change password dialog
   "changePassword.title": "修改密码",
   "changePassword.oldPassword": "当前密码",

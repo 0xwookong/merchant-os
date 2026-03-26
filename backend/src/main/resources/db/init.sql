@@ -330,3 +330,19 @@ CREATE TABLE IF NOT EXISTS t_audit_log (
     INDEX idx_merchant_id (merchant_id),
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Notification table (in-app notifications for merchants)
+CREATE TABLE IF NOT EXISTS t_notification (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    merchant_id BIGINT NOT NULL,
+    user_id BIGINT COMMENT 'Target user (NULL = all users in merchant)',
+    type VARCHAR(30) NOT NULL COMMENT 'APPLICATION_STATUS/WEBHOOK_FAILED/CREDENTIAL_ROTATED/MEMBER_INVITED/SECURITY_ALERT',
+    title VARCHAR(200) NOT NULL,
+    message VARCHAR(1000) NOT NULL,
+    link VARCHAR(300) COMMENT 'Optional deep link path',
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_merchant_user (merchant_id, user_id),
+    INDEX idx_read (merchant_id, is_read),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

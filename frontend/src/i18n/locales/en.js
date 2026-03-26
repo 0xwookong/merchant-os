@@ -674,6 +674,15 @@ const en = {
   "settings.personal.edit": "Edit",
   "settings.profile.saved": "Profile updated successfully",
 
+  // notifications
+  "notifications.title": "Notifications",
+  "notifications.empty": "No notifications",
+  "notifications.markAllRead": "Mark all read",
+  "notifications.justNow": "Just now",
+  "notifications.minutesAgo": "{count}m ago",
+  "notifications.hoursAgo": "{count}h ago",
+  "notifications.daysAgo": "{count}d ago",
+
   // change password dialog
   "changePassword.title": "Change Password",
   "changePassword.oldPassword": "Current Password",

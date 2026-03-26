@@ -16,6 +16,7 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import ChangePasswordDialog from "./change-password-dialog";
+import NotificationBell from "./notification-bell";
 
 export default function TopBar() {
   const { user, logout } = useAuth();
@@ -74,6 +75,8 @@ export default function TopBar() {
               </span>
             </div>
           </button>
+
+          <NotificationBell />
 
           <div className="w-px h-8 bg-white/20" />
 
