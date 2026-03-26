@@ -1,6 +1,6 @@
 # Task-029: 域名白名单操作增加身份验证（2FA / 邮件验证码）
 
-## Status: Verifying
+## Status: Done
 
 ## PRD Reference
 docs/prd/11-domain-whitelist.md — §2.2 添加域名, §2.3 移除域名
