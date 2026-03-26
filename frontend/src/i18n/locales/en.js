@@ -544,6 +544,8 @@ const en = {
   "logs.filter.2xx": "2xx Success",
   "logs.filter.4xx": "4xx Client Error",
   "logs.filter.5xx": "5xx Server Error",
+  "logs.total": "Total: {count} logs",
+  "logs.perPage": "Per page",
 
   // members
   "members.title": "Members & Permissions",

@@ -544,6 +544,8 @@ const zh = {
   "logs.filter.2xx": "2xx 成功",
   "logs.filter.4xx": "4xx 客户端错误",
   "logs.filter.5xx": "5xx 服务端错误",
+  "logs.total": "共 {count} 条日志",
+  "logs.perPage": "每页",
 
   // members
   "members.title": "成员与权限",

@@ -8,6 +8,8 @@ import {
   XMarkIcon,
   ArrowPathIcon,
   MagnifyingGlassIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { Select } from "@/components/ui/select";
 
@@ -17,6 +19,8 @@ const METHOD_COLORS: Record<string, string> = {
   PUT: "bg-yellow-100 text-yellow-700",
   DELETE: "bg-red-100 text-red-700",
 };
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 function statusColor(code: number): string {
   if (code >= 200 && code < 300) return "text-green-600";
@@ -32,6 +36,9 @@ function tryFormatJson(str: string | null): string {
 export default function LogsPage() {
   const { t } = useI18n();
   const [logs, setLogs] = useState<ApiLogEntry[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState<ApiLogEntry | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -40,11 +47,11 @@ export default function LogsPage() {
   const [filterStatus, setFilterStatus] = useState("");
 
   const fetchLogs = useCallback(() => {
-    logService.getLatest()
-      .then(setLogs)
+    logService.getPage(page, pageSize)
+      .then((res) => { setLogs(res.list); setTotal(res.total); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [page, pageSize]);
 
   useEffect(() => {
     fetchLogs();
@@ -69,6 +76,18 @@ export default function LogsPage() {
     if (filterStatus === "5xx" && log.statusCode < 500) return false;
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const goToPage = (p: number) => {
+    const clamped = Math.max(1, Math.min(p, totalPages));
+    setPage(clamped);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPage(1);
+  };
 
   return (
     <div className="space-y-8">
@@ -145,6 +164,48 @@ export default function LogsPage() {
               ))}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {total > 0 && (
+            <div className="px-5 py-4 border-t border-[var(--gray-100)] flex items-center justify-between text-sm flex-wrap gap-3">
+              <div className="flex items-center gap-4">
+                <span className="text-[var(--gray-500)]">{t("logs.total", { count: total })}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[var(--gray-500)]">{t("logs.perPage")}</span>
+                  <Select value={pageSize} onChange={(e) => handlePageSizeChange(Number(e.target.value))} selectSize="sm">
+                    {PAGE_SIZE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => goToPage(1)} disabled={page <= 1}
+                  className="px-2 py-1.5 rounded border border-[var(--gray-300)] text-xs disabled:opacity-30 hover:bg-[var(--gray-50)]">
+                  1
+                </button>
+                <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
+                  className="p-1.5 rounded border border-[var(--gray-300)] disabled:opacity-30 hover:bg-[var(--gray-50)]">
+                  <ChevronLeftIcon className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <input type="number" min={1} max={totalPages} value={page}
+                    onChange={(e) => { const v = parseInt(e.target.value, 10); if (!isNaN(v)) goToPage(v); }}
+                    className="w-12 text-center border border-[var(--gray-300)] rounded-lg py-1.5 text-sm text-[var(--gray-700)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="text-[var(--gray-400)]">/</span>
+                  <span className="text-[var(--gray-700)]">{totalPages}</span>
+                </div>
+                <button onClick={() => goToPage(page + 1)} disabled={page >= totalPages}
+                  className="p-1.5 rounded border border-[var(--gray-300)] disabled:opacity-30 hover:bg-[var(--gray-50)]">
+                  <ChevronRightIcon className="w-4 h-4" />
+                </button>
+                <button onClick={() => goToPage(totalPages)} disabled={page >= totalPages}
+                  className="px-2 py-1.5 rounded border border-[var(--gray-300)] text-xs disabled:opacity-30 hover:bg-[var(--gray-50)]">
+                  {totalPages}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

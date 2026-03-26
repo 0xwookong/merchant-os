@@ -11,8 +11,15 @@ export interface ApiLogEntry {
   createdAt: string;
 }
 
+export interface LogPageResult {
+  list: ApiLogEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export const logService = {
-  getLatest(): Promise<ApiLogEntry[]> {
-    return api.get<ApiLogEntry[]>("/api/v1/logs");
+  getPage(page = 1, pageSize = 20): Promise<LogPageResult> {
+    return api.get<LogPageResult>("/api/v1/logs", { page: String(page), pageSize: String(pageSize) });
   },
 };
