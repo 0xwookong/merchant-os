@@ -13,7 +13,9 @@
       "Bash(pnpm test:*)",
       "Bash(git add:*)",
       "Bash(mvn dependency:tree)",
-      "Bash(pnpm vitest:*)"
+      "Bash(pnpm vitest:*)",
+      "WebFetch(domain:docs.osl-pay.com)",
+      "Bash(mvn clean:*)"
     ]
   }
 }
