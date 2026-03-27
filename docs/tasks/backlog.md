@@ -66,7 +66,7 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 |---|------|------|-----|
 | 021 | 成员与权限管理 | 前端成员列表/邀请/移除 + 后端成员API + 邮件 | 10 |
 | 022 | MCP 配置中心 | 前端配置展示/复制/指南 + 工具列表 | 09 §3 |
-| 023 | MCP Server 实现 | 后端MCP协议实现 + 6个工具 + SSE通信 | 09 §2 |
+| 023 | MCP Server 实现 | ~~后端MCP协议实现 + 6个工具 + SSE通信~~ ⚠️ 架构已变更，见 Phase 6 | 09 §2 |
 
 ---
 
@@ -95,8 +95,8 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | 019 | 域名白名单 | ✅ Done (2026-03-24) |
 | 020 | API 请求日志 | ✅ Done (2026-03-24) |
 | 021 | 成员与权限管理 | ✅ Done (2026-03-24) |
-| 022 | MCP 配置中心 | ✅ Done (2026-03-24) |
-| 023 | MCP Server 实现 | ✅ Done (2026-03-24) |
+| 022 | MCP 配置中心 | ✅ Done (2026-03-24) → ⚠️ 需重做（架构变更: SSE→stdio），见 038 |
+| 023 | MCP Server 实现 | ✅ Done (2026-03-24) → ⚠️ 需重做（架构变更: Java→TypeScript），见 039-041 |
 
 ### Phase 5: 产品优化（商户视角审视）
 
@@ -111,6 +111,34 @@ Auth（认证）→ Layout（布局壳）→ Environment（环境切换）
 | 033 | 环境切换增强警告 | P2 | ✅ Done (2026-03-26) |
 | 034 | Getting Started 保留入口 | P2 | ✅ Done (2026-03-26) |
 | 035 | 签名工具定位区分 | P2 | ✅ Done (2026-03-26) |
+
+### Phase 6: MCP 架构重构
+
+| # | Task | Status |
+|---|------|--------|
+| 038 | MCP 后端清理 + 前端配置中心重构 | 🔲 Todo |
+| 039 | MCP Server - 项目初始化与签名工具 | 🔲 Todo |
+| 040 | MCP Server - 报价与币种工具 | 🔲 Todo |
+| 041 | MCP Server - 订单与签名工具 | 🔲 Todo |
+
+### Phase 6: MCP 架构重构（SSE → stdio）
+
+**背景**: 原 Task 022/023 基于远程 SSE 架构实现 MCP，经安全评审后决定改为本地 stdio 架构。核心原因：支付系统的 RSA 私钥不能传输到远程服务器。详见 PRD `docs/prd/09-mcp-integration.md`。
+
+**变更摘要**:
+- MCP Server 从 Java Spring Boot 后端 → 独立 TypeScript npm 包（`mcp-server/`）
+- 传输协议从远程 SSE → 本地 stdio
+- 前端配置中心从 SSE config JSON → stdio config JSON（含 AppId 自动填入）
+- 清理后端已废弃的 MCP 代码
+
+| # | Task | 范围 | PRD | 说明 |
+|---|------|------|-----|------|
+| 038 | MCP 后端清理 + 前端配置中心重构 | 删除后端 mcp/ 包 + 更新前端 MCP 页面 | 09 §3-4 | 删除 McpController/McpToolService 等 5 个 Java 文件 + McpApiTest；移除 SecurityConfig permitAll 规则；前端页面改为 stdio 配置 JSON（含 AppId 自动填入）、3 步指南；更新 i18n |
+| 039 | MCP Server - 项目初始化与签名工具 | `mcp-server/` 脚手架 + signing + config + get_guide | 09 §2 | TypeScript 项目初始化，@modelcontextprotocol/sdk，RSA 签名实现，环境变量解析，get_guide 工具 |
+| 040 | MCP Server - 报价与币种工具 | get_quote + get_currency_list + api-client | 09 §2 | HTTP 客户端封装（自动签名+请求头），get_quote 和 get_currency_list 工具实现 |
+| 041 | MCP Server - 订单与签名工具 | create_order + query_order + generate_signature | 09 §2 | 剩余 3 个工具实现，README 文档编写，端到端测试 |
+
+**执行顺序**: 038 → 039 → 040 → 041（038 清理旧代码先行；039-041 按工具分批实现 MCP Server）
 
 ---
 
