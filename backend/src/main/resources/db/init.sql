@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS t_merchant_user (
 CREATE TABLE IF NOT EXISTS t_order (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     merchant_id BIGINT NOT NULL,
+    environment VARCHAR(20) NOT NULL DEFAULT 'sandbox' COMMENT 'production/sandbox',
     order_no VARCHAR(50) NOT NULL COMMENT 'e.g. ORD20240303001',
     fiat_amount DECIMAL(18,2) NOT NULL,
     fiat_currency VARCHAR(10) NOT NULL COMMENT 'USD/EUR/GBP',
@@ -59,16 +60,17 @@ CREATE TABLE IF NOT EXISTS t_order (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_order_no (order_no),
-    INDEX idx_merchant_id (merchant_id),
+    INDEX idx_merchant_env (merchant_id, environment),
     INDEX idx_status (status),
     INDEX idx_created_at (created_at),
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- API credential table (merchant API keys)
+-- API credential table (merchant API keys, per environment)
 CREATE TABLE IF NOT EXISTS t_api_credential (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     merchant_id BIGINT NOT NULL,
+    environment VARCHAR(20) NOT NULL DEFAULT 'sandbox' COMMENT 'production/sandbox',
     app_id VARCHAR(64) NOT NULL COMMENT '应用唯一标识 osl_app_UUID',
     api_public_key TEXT NOT NULL COMMENT 'RSA 2048 公钥 PEM',
     api_private_key TEXT NOT NULL COMMENT 'RSA 2048 私钥 PEM',
@@ -76,7 +78,7 @@ CREATE TABLE IF NOT EXISTS t_api_credential (
     webhook_private_key TEXT NOT NULL COMMENT 'Webhook RSA 2048 私钥 PEM',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_merchant_id (merchant_id),
+    UNIQUE KEY uk_merchant_env (merchant_id, environment),
     UNIQUE KEY uk_app_id (app_id),
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -85,13 +87,14 @@ CREATE TABLE IF NOT EXISTS t_api_credential (
 CREATE TABLE IF NOT EXISTS t_webhook_config (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     merchant_id BIGINT NOT NULL,
+    environment VARCHAR(20) NOT NULL DEFAULT 'sandbox' COMMENT 'production/sandbox',
     url VARCHAR(500) NOT NULL COMMENT 'Webhook 目标 URL',
     secret VARCHAR(100) NOT NULL COMMENT '签名密钥',
     events VARCHAR(1000) NOT NULL COMMENT '订阅事件，逗号分隔',
     status ENUM('ACTIVE','DISABLED') NOT NULL DEFAULT 'ACTIVE',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_merchant_id (merchant_id),
+    INDEX idx_merchant_env (merchant_id, environment),
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -115,10 +118,11 @@ CREATE TABLE IF NOT EXISTS t_api_request_log (
 CREATE TABLE IF NOT EXISTS t_domain_whitelist (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     merchant_id BIGINT NOT NULL,
+    environment VARCHAR(20) NOT NULL DEFAULT 'sandbox' COMMENT 'production/sandbox',
     domain VARCHAR(500) NOT NULL COMMENT '含协议的完整域名',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_merchant_domain (merchant_id, domain),
-    INDEX idx_merchant_id (merchant_id),
+    UNIQUE KEY uk_merchant_env_domain (merchant_id, environment, domain),
+    INDEX idx_merchant_env (merchant_id, environment),
     FOREIGN KEY (merchant_id) REFERENCES t_merchant(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

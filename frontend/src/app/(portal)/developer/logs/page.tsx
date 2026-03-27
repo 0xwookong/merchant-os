@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useI18n } from "@/providers/language-provider";
+import { useEnvironment } from "@/providers/environment-provider";
 import { logService, type ApiLogEntry } from "@/services/logService";
 import {
   ClipboardDocumentListIcon,
@@ -35,6 +36,7 @@ function tryFormatJson(str: string | null): string {
 
 export default function LogsPage() {
   const { t } = useI18n();
+  const { environment } = useEnvironment();
   const [logs, setLogs] = useState<ApiLogEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -51,7 +53,7 @@ export default function LogsPage() {
       .then((res) => { setLogs(res.list); setTotal(res.total); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page, pageSize]);
+  }, [page, pageSize, environment]);
 
   useEffect(() => {
     fetchLogs();

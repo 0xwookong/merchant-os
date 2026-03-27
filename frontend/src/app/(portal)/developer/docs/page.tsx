@@ -24,6 +24,7 @@ const METHOD_COLORS: Record<string, string> = {
 
 export default function DocsPage() {
   const { t } = useI18n();
+  const { environment } = useEnvironment();
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [endpoints, setEndpoints] = useState<EndpointSummary[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -44,7 +45,7 @@ export default function DocsPage() {
       })
       .catch((err) => setError(err.message || t("docs.error")))
       .finally(() => setLoading(false));
-  }, [t]);
+  }, [t, environment]);
 
   useEffect(() => { fetchEndpoints(); }, [fetchEndpoints]);
 

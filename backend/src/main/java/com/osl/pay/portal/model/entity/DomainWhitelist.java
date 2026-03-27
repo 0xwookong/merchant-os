@@ -12,6 +12,7 @@ public class DomainWhitelist {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long merchantId;
+    private String environment;
     private String domain;
 
     @TableField(fill = FieldFill.INSERT)

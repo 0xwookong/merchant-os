@@ -26,6 +26,7 @@ public class Order {
     private String txHash;
     private Long blockHeight;
     private Integer confirmations;
+    private String environment;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

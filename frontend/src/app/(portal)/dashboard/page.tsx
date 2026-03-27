@@ -34,7 +34,7 @@ const METRIC_ICONS: Record<string, React.ReactNode> = {
 
 export default function DashboardPage() {
   const { t } = useI18n();
-  const { isSandbox } = useEnvironment();
+  const { environment, isSandbox } = useEnvironment();
   const { applicationStatus } = useApplicationStatus();
   const [range, setRange] = useState<Range>("7d");
   const [metrics, setMetrics] = useState<MetricCardType[]>([]);
@@ -66,7 +66,7 @@ export default function DashboardPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [showNotApproved]);
+  }, [showNotApproved, environment]);
 
   useEffect(() => {
     fetchData(range);

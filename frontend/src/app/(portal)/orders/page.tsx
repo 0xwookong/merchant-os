@@ -20,7 +20,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function OrdersPage() {
   const { t } = useI18n();
-  const { isSandbox } = useEnvironment();
+  const { environment, isSandbox } = useEnvironment();
   const { applicationStatus } = useApplicationStatus();
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -56,7 +56,7 @@ export default function OrdersPage() {
       .then((res) => { setOrders(res.list); setTotal(res.total); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [status, payment, startDate, endDate, page, pageSize, showNotApproved]);
+  }, [status, payment, startDate, endDate, page, pageSize, showNotApproved, environment]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 

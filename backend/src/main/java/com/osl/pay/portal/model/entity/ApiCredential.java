@@ -14,6 +14,8 @@ public class ApiCredential {
 
     private Long merchantId;
 
+    private String environment;
+
     private String appId;
 
     private String apiPublicKey;

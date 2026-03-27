@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useI18n } from "@/providers/language-provider";
+import { useEnvironment } from "@/providers/environment-provider";
 import { webhookService, type WebhookConfig, type WebhookLogEntry } from "@/services/webhookService";
 import {
   PlusIcon,
@@ -20,6 +21,7 @@ import { Toast } from "@/components/ui/toast";
 
 export default function WebhooksPage() {
   const { t } = useI18n();
+  const { environment } = useEnvironment();
 
   const ALL_EVENTS = [
     { key: "order.created", label: t("webhooks.event.order.created"), group: t("webhooks.eventGroup.order") },
@@ -57,7 +59,7 @@ export default function WebhooksPage() {
       .then(setConfigs)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [environment]);
 
   useEffect(() => { fetchConfigs(); }, [fetchConfigs]);
 

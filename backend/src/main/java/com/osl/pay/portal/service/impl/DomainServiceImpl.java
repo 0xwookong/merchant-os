@@ -2,6 +2,7 @@ package com.osl.pay.portal.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.osl.pay.portal.common.audit.AuditService;
+import com.osl.pay.portal.common.context.EnvironmentContext;
 import com.osl.pay.portal.common.exception.BizException;
 import com.osl.pay.portal.model.dto.DomainResponse;
 import com.osl.pay.portal.model.entity.DomainWhitelist;
@@ -31,6 +32,7 @@ public class DomainServiceImpl implements DomainService {
         return domainMapper.selectList(
                 new LambdaQueryWrapper<DomainWhitelist>()
                         .eq(DomainWhitelist::getMerchantId, merchantId)
+                        .eq(DomainWhitelist::getEnvironment, EnvironmentContext.current())
                         .orderByDesc(DomainWhitelist::getCreatedAt))
                 .stream().map(this::toResponse).toList();
     }
@@ -39,10 +41,11 @@ public class DomainServiceImpl implements DomainService {
     public DomainResponse add(Long merchantId, Long userId, String domain, HttpServletRequest httpRequest) {
         validateDomain(domain);
 
-        // Check duplicate
+        // Check duplicate within same environment
         Long count = domainMapper.selectCount(
                 new LambdaQueryWrapper<DomainWhitelist>()
                         .eq(DomainWhitelist::getMerchantId, merchantId)
+                        .eq(DomainWhitelist::getEnvironment, EnvironmentContext.current())
                         .eq(DomainWhitelist::getDomain, domain));
         if (count > 0) {
             throw new BizException(40000, "该域名已存在");
@@ -50,6 +53,7 @@ public class DomainServiceImpl implements DomainService {
 
         DomainWhitelist entry = new DomainWhitelist();
         entry.setMerchantId(merchantId);
+        entry.setEnvironment(EnvironmentContext.current());
         entry.setDomain(domain);
         domainMapper.insert(entry);
 
@@ -66,7 +70,8 @@ public class DomainServiceImpl implements DomainService {
     @Override
     public void remove(Long merchantId, Long userId, Long id, HttpServletRequest httpRequest) {
         DomainWhitelist entry = domainMapper.selectById(id);
-        if (entry == null || !entry.getMerchantId().equals(merchantId)) {
+        if (entry == null || !entry.getMerchantId().equals(merchantId)
+                || !EnvironmentContext.current().equals(entry.getEnvironment())) {
             throw new BizException(40400, "域名不存在");
         }
         domainMapper.deleteById(id);

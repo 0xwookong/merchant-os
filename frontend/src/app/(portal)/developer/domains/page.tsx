@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useI18n } from "@/providers/language-provider";
+import { useEnvironment } from "@/providers/environment-provider";
 import { domainService, type DomainEntry } from "@/services/domainService";
 import {
   PlusIcon,
@@ -34,6 +35,7 @@ function validateDomain(value: string, existing: DomainEntry[], t: (key: string)
 
 export default function DomainsPage() {
   const { t, locale } = useI18n();
+  const { environment } = useEnvironment();
   const [domains, setDomains] = useState<DomainEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [newDomain, setNewDomain] = useState("");
@@ -51,7 +53,7 @@ export default function DomainsPage() {
       .then(setDomains)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [environment]);
 
   useEffect(() => { fetchDomains(); }, [fetchDomains]);
 

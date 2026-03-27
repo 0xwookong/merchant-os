@@ -1,6 +1,7 @@
 package com.osl.pay.portal.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.osl.pay.portal.common.context.EnvironmentContext;
 import com.osl.pay.portal.model.dto.MerchantProgressResponse;
 import com.osl.pay.portal.model.entity.*;
 import com.osl.pay.portal.repository.*;
@@ -29,17 +30,22 @@ public class MerchantProgressServiceImpl implements MerchantProgressService {
         String status = applicationMapper.selectStatusByMerchantId(merchantId);
         response.setApplicationStatus(status);
 
+        String env = EnvironmentContext.current();
+
         response.setHasCredentials(credentialMapper.selectCount(
                 new LambdaQueryWrapper<ApiCredential>()
-                        .eq(ApiCredential::getMerchantId, merchantId)) > 0);
+                        .eq(ApiCredential::getMerchantId, merchantId)
+                        .eq(ApiCredential::getEnvironment, env)) > 0);
 
         response.setHasWebhooks(webhookMapper.selectCount(
                 new LambdaQueryWrapper<WebhookConfig>()
-                        .eq(WebhookConfig::getMerchantId, merchantId)) > 0);
+                        .eq(WebhookConfig::getMerchantId, merchantId)
+                        .eq(WebhookConfig::getEnvironment, env)) > 0);
 
         response.setHasDomains(domainMapper.selectCount(
                 new LambdaQueryWrapper<DomainWhitelist>()
-                        .eq(DomainWhitelist::getMerchantId, merchantId)) > 0);
+                        .eq(DomainWhitelist::getMerchantId, merchantId)
+                        .eq(DomainWhitelist::getEnvironment, env)) > 0);
 
         log.debug("getProgress merchantId={} result: status={} cred={} webhook={} domain={}",
                 merchantId, status, response.isHasCredentials(), response.isHasWebhooks(), response.isHasDomains());

@@ -34,7 +34,7 @@ type StepStatus = "completed" | "inProgress" | "pending" | "locked" | "rejected"
 
 export default function GettingStartedPage() {
   const { user } = useAuth();
-  const { isSandbox } = useEnvironment();
+  const { environment, isSandbox } = useEnvironment();
   const { t } = useI18n();
   const [progress, setProgress] = useState<MerchantProgressResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,7 +53,7 @@ export default function GettingStartedPage() {
       .then((res) => { if (!controller.signal.aborted) setProgress(res); })
       .catch(() => {})
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
-  }, []);
+  }, [environment]);
 
   // Re-fetch whenever this page becomes visible (initial mount + SPA navigation back)
   useEffect(() => {

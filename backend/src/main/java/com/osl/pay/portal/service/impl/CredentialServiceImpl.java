@@ -36,7 +36,8 @@ public class CredentialServiceImpl implements CredentialService {
     public CredentialResponse getCredentials(Long merchantId) {
         ApiCredential credential = credentialMapper.selectOne(
                 new LambdaQueryWrapper<ApiCredential>()
-                        .eq(ApiCredential::getMerchantId, merchantId));
+                        .eq(ApiCredential::getMerchantId, merchantId)
+                        .eq(ApiCredential::getEnvironment, EnvironmentContext.current()));
 
         if (credential == null) {
             credential = generateCredentials(merchantId);
@@ -52,6 +53,7 @@ public class CredentialServiceImpl implements CredentialService {
 
         ApiCredential credential = new ApiCredential();
         credential.setMerchantId(merchantId);
+        credential.setEnvironment(EnvironmentContext.current());
         credential.setAppId("osl_app_" + UUID.randomUUID().toString().replace("-", ""));
         credential.setApiPublicKey(toPem("PUBLIC KEY", apiKeyPair.getPublic().getEncoded()));
         credential.setApiPrivateKey(toPem("PRIVATE KEY", apiKeyPair.getPrivate().getEncoded()));
@@ -89,7 +91,8 @@ public class CredentialServiceImpl implements CredentialService {
     private ApiCredential getOrFail(Long merchantId) {
         ApiCredential credential = credentialMapper.selectOne(
                 new LambdaQueryWrapper<ApiCredential>()
-                        .eq(ApiCredential::getMerchantId, merchantId));
+                        .eq(ApiCredential::getMerchantId, merchantId)
+                        .eq(ApiCredential::getEnvironment, EnvironmentContext.current()));
         if (credential == null) {
             throw new com.osl.pay.portal.common.exception.BizException(40400, "API credentials not found");
         }

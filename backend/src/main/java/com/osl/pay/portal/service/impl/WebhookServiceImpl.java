@@ -1,6 +1,7 @@
 package com.osl.pay.portal.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.osl.pay.portal.common.context.EnvironmentContext;
 import com.osl.pay.portal.common.exception.BizException;
 import com.osl.pay.portal.model.dto.WebhookCreateRequest;
 import com.osl.pay.portal.model.dto.WebhookLogResponse;
@@ -41,6 +42,7 @@ public class WebhookServiceImpl implements WebhookService {
         List<WebhookConfig> configs = webhookConfigMapper.selectList(
                 new LambdaQueryWrapper<WebhookConfig>()
                         .eq(WebhookConfig::getMerchantId, merchantId)
+                        .eq(WebhookConfig::getEnvironment, EnvironmentContext.current())
                         .orderByDesc(WebhookConfig::getCreatedAt));
         return configs.stream().map(this::toResponse).toList();
     }
@@ -55,6 +57,7 @@ public class WebhookServiceImpl implements WebhookService {
         config.setSecret("whsec_" + UUID.randomUUID().toString().replace("-", ""));
         config.setEvents(String.join(",", request.getEvents()));
         config.setStatus("ACTIVE");
+        config.setEnvironment(EnvironmentContext.current());
         webhookConfigMapper.insert(config);
 
         log.info("Webhook created: merchantId={}, url={}", merchantId, request.getUrl());
@@ -141,7 +144,8 @@ public class WebhookServiceImpl implements WebhookService {
 
     private WebhookConfig getOwnedConfig(Long merchantId, Long id) {
         WebhookConfig config = webhookConfigMapper.selectById(id);
-        if (config == null || !config.getMerchantId().equals(merchantId)) {
+        if (config == null || !config.getMerchantId().equals(merchantId)
+                || !EnvironmentContext.current().equals(config.getEnvironment())) {
             throw new BizException(40400, "Webhook 配置不存在");
         }
         return config;

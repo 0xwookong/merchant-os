@@ -44,7 +44,7 @@ const QUICK_LINKS = [
 
 export default function CredentialsPage() {
   const { t } = useI18n();
-  const { isSandbox } = useEnvironment();
+  const { environment, isSandbox } = useEnvironment();
   const [data, setData] = useState<CredentialData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export default function CredentialsPage() {
       .then(setData)
       .catch((err) => setError(err.message || t("credentials.error")))
       .finally(() => setLoading(false));
-  }, [t]);
+  }, [t, environment]);
 
   useEffect(() => { fetchCredentials(); }, [fetchCredentials]);
 

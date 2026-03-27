@@ -23,6 +23,8 @@ public class WebhookConfig {
 
     private String status;
 
+    private String environment;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 

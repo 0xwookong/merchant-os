@@ -2,6 +2,7 @@ package com.osl.pay.portal.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.osl.pay.portal.common.context.EnvironmentContext;
 import com.osl.pay.portal.common.exception.BizException;
 import com.osl.pay.portal.common.result.PageResult;
 import com.osl.pay.portal.model.dto.OrderDetailResponse;
@@ -65,6 +66,7 @@ public class OrderServiceImpl implements OrderService {
 
         LambdaQueryWrapper<Order> query = new LambdaQueryWrapper<Order>()
                 .eq(Order::getMerchantId, merchantId)
+                .eq(Order::getEnvironment, EnvironmentContext.current())
                 .ge(Order::getCreatedAt, rangeStart)
                 .le(Order::getCreatedAt, rangeEnd)
                 .orderByDesc(Order::getCreatedAt);
@@ -103,7 +105,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDetailResponse getDetail(Long merchantId, Long orderId) {
         Order order = orderMapper.selectById(orderId);
-        if (order == null || !order.getMerchantId().equals(merchantId)) {
+        if (order == null || !order.getMerchantId().equals(merchantId)
+                || !EnvironmentContext.current().equals(order.getEnvironment())) {
             throw new BizException(40400, "订单不存在");
         }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
-import { setEnvironment as setModuleEnvironment } from "@/lib/environment";
+import { getEnvironment, setEnvironment as setModuleEnvironment } from "@/lib/environment";
 
 type Environment = "production" | "sandbox";
 
@@ -14,12 +14,12 @@ interface EnvironmentContextValue {
 const EnvironmentContext = createContext<EnvironmentContextValue | null>(null);
 
 export function EnvironmentProvider({ children }: { children: ReactNode }) {
-  const [environment, setEnvironment] = useState<Environment>("sandbox");
+  const [environment, setEnvironment] = useState<Environment>(getEnvironment);
 
   const toggleEnvironment = useCallback(() => {
     setEnvironment((prev) => {
       const next = prev === "production" ? "sandbox" : "production";
-      setModuleEnvironment(next); // Sync to module-level for api.ts
+      setModuleEnvironment(next); // Sync to module-level for api.ts + localStorage
       return next;
     });
   }, []);
